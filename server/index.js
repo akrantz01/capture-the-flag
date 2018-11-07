@@ -23,13 +23,20 @@ if (isNaN(args.port)) {
     process.exit(1);
 }
 
-app.use(express.static('public'));
+let DATA = {};
 
 app.ws('/ws', function (ws, req) {
     ws.on('message', function (msg) {
         console.log(msg)
     });
 });
+
+app.get("/debug*", function (req, res) {
+    res.setHeader("Content-Type", "application/json");
+    res.send(JSON.stringify(DATA));
+});
+
+app.use(express.static('public'));
 
 console.log(`[+] Running server on ${args.host}:${args.port}...`);
 app.listen(args.port, args.host, function () {});
