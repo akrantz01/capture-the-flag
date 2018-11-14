@@ -2,9 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Hello World</title>
+    <title>Benchmark Test</title>
+    <link rel="stylesheet" type="text/css" href="main.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/addons/p5.dom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.0.4/jscolor.min.js"></script>
 </head>
 <body>
-    <h1>Hello World</h1>
+<script src="mmoc.js"></script>
+<script src="index.js"></script>
+
+<div id="modal">
+    <div id="modal-content">
+        <div id="modal-head">
+            <h2>Select Type</h2>
+        </div>
+        <button id="observer">Observer</button>
+        <button id="player">Player</button>
+        <br>
+        <label for="color">Ball Color: </label><input id="color" class="jscolor" onchange="update(this.jscolor)">
+    </div>
+</div>
 </body>
 </html>
