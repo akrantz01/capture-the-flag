@@ -26,8 +26,40 @@ if (isNaN(args.port)) {
 let DATA = {};
 
 app.ws('/ws', function (ws, req) {
-    ws.on('message', function (msg) {
-        console.log(msg)
+    let userID;
+
+    ws.on("open", function () {
+        ws.on("close", function () {
+            delete DATA[userID];
+        })
+    });
+
+    ws.on('message', function (msgs) {
+        let msg = JSON.parse(msgs);
+        switch (msg.type) {
+            case 1:
+                userID = msg.id;
+
+                DATA[msg.id] = {
+                    X: msg.coordinates.x,
+                    Y: msg.coordinates.y,
+                    Z: msg.coordinates.z,
+                    Orientation: msg.orientation,
+                    Other: msg.other
+                };
+                break;
+
+            case 2:
+                break;
+
+            case 3:
+                ws.send(JSON.stringify(DATA));
+                break;
+
+            case 4:
+                break;
+
+        }
     });
 });
 
