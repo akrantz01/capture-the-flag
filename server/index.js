@@ -24,6 +24,7 @@ if (isNaN(args.port)) {
 }
 
 let DATA = {};
+let OBJECTS = {};
 
 app.ws('/ws', function (ws, req) {
     let userID;
@@ -50,6 +51,12 @@ app.ws('/ws', function (ws, req) {
                 break;
 
             case 2:
+                OBJECTS[msg.id] = {
+                    other: msg.other,
+                    x: msg.coordinates.x,
+                    y: msg.coordinates.y,
+                    z: msg.coordinates.z
+                };
                 break;
 
             case 3:
@@ -57,6 +64,7 @@ app.ws('/ws', function (ws, req) {
                 break;
 
             case 4:
+                delete OBJECTS[msg.id];
                 break;
 
         }
