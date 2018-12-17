@@ -28,6 +28,7 @@ function Player(x, y, z, playerModel) {
 
 Player.prototype.update = function (ground) {
     this.pos = fromBabylon(this.mesh.position);
+    //console.log("pos", this.pos)
     //prevent player vertical rotation
     this.mesh.physicsImpostor.setAngularVelocity(new BABYLON.Quaternion(0, 0, 0, 0));
     this.mesh.physicsImpostor.executeNativeFunction(function (world, body) {

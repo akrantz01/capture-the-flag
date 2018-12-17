@@ -148,6 +148,7 @@ var createScene = function () {
 
         if (players) {
 
+            //console.log(players)
             let size = Object.keys(players).length - 1;
             while (otherPlayers.length < size) {
                 otherPlayers.push(new OtherPlayer(0, 0, 0, otherPlayers.length - 1, playerModel));

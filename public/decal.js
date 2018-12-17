@@ -9,6 +9,7 @@ function Decal(pos, norm, mesh, scene) {
         normal: norm,
         size: decalSize
     }, scene);
+    console.log(this.decal);
     this.decal.material = decalMaterial;
     this.offset = Vector.sub(fromBabylon(this.mesh.position), fromBabylon(this.decal.position));
 }

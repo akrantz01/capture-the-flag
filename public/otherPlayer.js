@@ -1,7 +1,7 @@
 function OtherPlayer(x, y, z, i, playerModel) {
-    this.mesh = /*BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 5, diameterY: 4}, scene)*/
-                playerModel.createInstance("i" + i);
-    this.mesh.position = new BABYLON.Vector3(x || 0, y || 0, z || 0);
+    this.mesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 5, diameterY: 4}, scene)
+                /*playerModel.createInstance("i" + i)*/;
+    this.mesh.position = new BABYLON.Vector3(x, y, z);
     this.vel = new Vector();
     this.acc = new Vector();
     this.pos = new Vector(x, y, z);
@@ -9,6 +9,7 @@ function OtherPlayer(x, y, z, i, playerModel) {
 
 OtherPlayer.prototype.update = function (v) {
     this.mesh.position = v.toBabylon();
+    console.log(v);
 };
 OtherPlayer.prototype.applyForce = function(v) {
     this.acc.add(v);

@@ -1,5 +1,7 @@
-let MMOC = (function() {
-    const reqd = (name) => { throw new Error("Expected argument '" + name + "'") };
+let MMOC = (function () {
+    const reqd = (name) => {
+        throw new Error("Expected argument '" + name + "'")
+    };
 
     let _id = "";
     let _x = 0;
@@ -13,7 +15,7 @@ let MMOC = (function() {
 
 
     class MMOC {
-        init(id_len=8, wsurl="//" + document.domain + ":" + location.port + "/ws") {
+        init(id_len = 8, wsurl = "//" + document.domain + ":" + location.port + "/ws") {
             if (location.protocol === "https") wsurl = "wss:" + wsurl;
             else wsurl = "ws:" + wsurl;
             this.ws = new WebSocket(wsurl);
@@ -28,9 +30,26 @@ let MMOC = (function() {
             };
 
             this.ws.onmessage = function (event) {
-                let d = JSON.parse(event.data);
-                if (d.Type === 4) _broadcasts[d.ID] = d;
-                _data = d;
+
+                let broad = event.data;
+                let other = "";
+                let index = broad.indexOf("}\n{");
+                if (index !== -1) {
+                    broad = broad.substring(index + 1);
+                    other = event.data.substring(0, index + 1);
+
+                    broad = JSON.parse(broad);
+                    other = JSON.parse(other);
+
+                    if (broad.Type === 4) _broadcasts[broad.ID] = broad;
+                    else _data = broad;
+                    if (other.Type === 4) _broadcasts[other.ID] = other;
+                    else _data = other;
+                } else {
+                    let d = JSON.parse(event.data);
+                    if (d.Type === 4) _broadcasts[d.ID] = d;
+                    else _data = d;
+                }
             };
         }
 
@@ -48,7 +67,7 @@ let MMOC = (function() {
             }));
         }
 
-        sendObjectData(object=reqd('object')) {
+        sendObjectData(object = reqd('object')) {
             this.ws.send(JSON.stringify({
                 type: 2,
                 id: object.id,
@@ -61,14 +80,14 @@ let MMOC = (function() {
             }));
         }
 
-        removeObject(object=reqd('object')) {
+        removeObject(object = reqd('object')) {
             this.ws.send(JSON.stringify({
                 type: 3,
                 id: object.id
             }));
         }
 
-        broadcast(id=reqd('id'), x=reqd('x'), y=reqd('y'), z=reqd('z')) {
+        broadcast(id = reqd('id'), x = reqd('x'), y = reqd('y'), z = reqd('z')) {
             this.ws.send(JSON.stringify({
                 type: 4,
                 id: id,
@@ -97,23 +116,25 @@ let MMOC = (function() {
         }
 
         getBroadcasts() {
-            setTimeout(() => {_broadcasts = {}}, 1);
+            setTimeout(() => {
+                _broadcasts = {}
+            }, 1);
             return _broadcasts;
         }
 
-        changeX(by=reqd("by")) {
+        changeX(by = reqd("by")) {
             _x += by;
         }
 
-        changeY(by=reqd("by")) {
+        changeY(by = reqd("by")) {
             _y += by;
         }
 
-        changeZ(by=reqd("by")) {
+        changeZ(by = reqd("by")) {
             _z += by;
         }
 
-        setPosition(x=reqd('x'), y=reqd('y'), z=reqd('z')) {
+        setPosition(x = reqd('x'), y = reqd('y'), z = reqd('z')) {
             _x = x;
             _y = y;
             _z = z;
@@ -123,16 +144,16 @@ let MMOC = (function() {
             return _id;
         }
 
-        changeOrientation(by=reqd("by")) {
+        changeOrientation(by = reqd("by")) {
             _orientation += by;
         }
 
-        setOther(key=reqd("key"), value=reqd("value")) {
+        setOther(key = reqd("key"), value = reqd("value")) {
             _other[key] = value;
         }
 
         isconnected() {
-            return new Promise(function(resolve, reject) {
+            return new Promise(function (resolve, reject) {
                 if (_connected) {
                     resolve();
                 } else {
@@ -151,6 +172,7 @@ class MovingObject {
             function s4() {
                 return Math.floor((1 + Math.random()) * 0x1000).toString(16).substring(1);
             }
+
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         })();
         this.mesh = mesh;
