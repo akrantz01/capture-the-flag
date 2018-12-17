@@ -1,11 +1,12 @@
 //list of pressed keys
 var keys = [];
 
-//keyCodes for arrow keys
-var LEFT = 37;
-var UP = 38;
-var RIGHT = 39;
-var DOWN = 40;
+// Key codes
+// The commented numbers are for arrow keys
+var LEFT =  65; // 37;
+var UP =    87; // 38;
+var RIGHT = 68; // 39;
+var DOWN =  83; // 40;
 var SPACE = 32;
 
 //map coords
