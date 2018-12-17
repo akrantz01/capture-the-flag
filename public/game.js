@@ -117,14 +117,12 @@ var createScene = function () {
         for (var i = 0; i < proj.length; i++) {
             let id = proj[i].update(ground, scene, otherPlayers, decalList);
             if (id !== 0) {
-                console.log(id);
                 multiplayer.broadcast(id.toString(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z);
                 proj.splice(i, 1);
             }
         }
         let broadDecals = multiplayer.getBroadcasts();
         if (Object.keys(broadDecals).length > 0) {
-            console.log(broadDecals);
             for (let dec2 in broadDecals) {
                 let dec = broadDecals[dec2];
                 let pos = new BABYLON.Vector3(dec.Coordinates.X, dec.Coordinates.Y, dec.Coordinates.Z);
