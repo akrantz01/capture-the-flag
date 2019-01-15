@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/gorilla/handlers"
 	"log"
@@ -12,31 +11,23 @@ import (
 	"time"
 )
 
+const (
+	HOST = "127.0.0.1"
+	PORT = "5000"
+	DEBUG = true
+)
+
 var (
-	server Server
 	data = GameData{
 		Users: make(map[string]*UserValue),
 		Objects: make(map[string]Object),
-		Globals: make(map[string]map[string]Value),
 	}
-	tests []TestPlayer
 	hub = newHub()
 )
 
 func main() {
-	// Get config file
-	file := flag.String("config", "config.yml", "Alternative yaml configuration file")
-	flag.Parse()
-
-	// Temporary variable
-	var globals map[string]map[string]Value
-
-	// Parse config file
-	server, globals, tests = ParseConfig(*file)
-	data.SetGlobals(globals)
-
 	// Serve from static directory
-	http.Handle("/", handlers.LoggingHandler(os.Stdout, http.FileServer(http.Dir(server.StaticDir))))
+	http.Handle("/", handlers.LoggingHandler(os.Stdout, http.FileServer(http.Dir("public"))))
 
 	// Gracefully stop goroutines
 	c := make(chan os.Signal)
@@ -47,19 +38,6 @@ func main() {
 		log.Println("Stopped goroutines")
 		os.Exit(0)
 	}()
-
-	// Enable test users
-	if server.Mode == 1 {
-		go func() {
-			log.Println("Started moving test users...")
-			for {
-				for i, tp := range tests {
-					tp.Move(i)
-				}
-				time.Sleep(500 * time.Millisecond)
-			}
-		}()
-	}
 
 	go func() {
 		log.Println("Started pushing data...")
@@ -77,11 +55,11 @@ func main() {
 	http.HandleFunc("/ws", wsHandler)
 
 	// Debug routes
-	if server.Debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
+	if DEBUG { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
 
 	// Start server
 	go hub.run()
-	log.Fatal(http.ListenAndServe(server.Host + ":" + server.Port, nil))
+	log.Fatal(http.ListenAndServe(HOST + ":" + PORT, nil))
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
