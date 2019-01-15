@@ -24,7 +24,7 @@ func main() {
 	// Get host, port and debug enabled
 	host := flag.String("host", "127.0.0.1", "Host to run on")
 	port := flag.String("port", "8080", "Port to run on")
-	debug := flag.Bool("debug", true, "Enable debug info")
+	debug := flag.Bool("debug", false, "Enable debug info")
 
 	// Serve from static directory
 	http.Handle("/", handlers.LoggingHandler(os.Stdout, http.FileServer(http.Dir("public"))))
