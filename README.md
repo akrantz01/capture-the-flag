@@ -27,3 +27,6 @@ Coming soon...
 | --host  | 127.0.0.1 | The address to listen on |
 | --port  | 8080      | The port to listen on    |
 | --debug | false     | Enable debugging         |
+
+## Disclaimer
+Please keep in mind that we are both juniors in high school which means that we won't be able to provide much support and game updates will come fairly infrequently.
