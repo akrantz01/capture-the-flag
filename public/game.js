@@ -3,10 +3,10 @@ var keys = [];
 
 // Key codes
 // The commented numbers are for arrow keys
-var LEFT =  65; // 37;
-var UP =    87; // 38;
+var LEFT = 65; // 37;
+var UP = 87; // 38;
 var RIGHT = 68; // 39;
-var DOWN =  83; // 40;
+var DOWN = 83; // 40;
 var SPACE = 32;
 
 //map coords
@@ -144,22 +144,25 @@ var createScene = function () {
                 }
             }
         }
-        //console.log(proj.length);
 
         if (players) {
-
-            //console.log(players)
-            let size = Object.keys(players).length - 1;
+            let size = Object.keys(players).length;
             while (otherPlayers.length < size) {
                 otherPlayers.push(new OtherPlayer(0, 0, 0, otherPlayers.length - 1, playerModel));
+            }
+            console.log(otherPlayers);
+            while (otherPlayers.length > size) {
+                otherPlayers.pop();
             }
             let index = 0;
 
             for (let player in players) {
-                if (Object.keys(players)[index] !== multiplayer.getID() && index < size) {
+                if (Object.keys(players)[index] !== multiplayer.getID()) {
                     otherPlayers[index].mesh.position = new BABYLON.Vector3(players[player]["X"] + 1, players[player]["Y"] + 2, players[player]["Z"] - 0.5);
-                    index++;
+                } else {
+                    otherPlayers[index].mesh.position = new BABYLON.Vector3(0, -100, -100);
                 }
+                index++;
                 for (var l = 0; l < decalList.length; l++) {
                     decalList[l].update();
                 }
@@ -258,7 +261,7 @@ document.addEventListener("click", function () {
     //vel.normalize();
     let alpha = camera.alpha;
     let beta = camera.beta;
-    let vel = new Vector(Math.cos(alpha)*Math.sin(beta), Math.cos(beta), Math.sin(alpha)*Math.sin(beta));
+    let vel = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
     proj.push(new Projectile(fromBabylon(player.mesh.position).add(vel.mult(-4)), vel.mult(3), 1));
 });
 
