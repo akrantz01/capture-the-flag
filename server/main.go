@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/gorilla/handlers"
 	"log"
@@ -9,12 +10,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-)
-
-const (
-	HOST = "127.0.0.1"
-	PORT = "5000"
-	DEBUG = true
 )
 
 var (
@@ -26,6 +21,11 @@ var (
 )
 
 func main() {
+	// Get host, port and debug enabled
+	host := flag.String("host", "127.0.0.1", "Host to run on")
+	port := flag.String("port", "8080", "Port to run on")
+	debug := flag.Bool("debug", true, "Enable debug info")
+
 	// Serve from static directory
 	http.Handle("/", handlers.LoggingHandler(os.Stdout, http.FileServer(http.Dir("public"))))
 
@@ -55,11 +55,11 @@ func main() {
 	http.HandleFunc("/ws", wsHandler)
 
 	// Debug routes
-	if DEBUG { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
+	if *debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
 
 	// Start server
 	go hub.run()
-	log.Fatal(http.ListenAndServe(HOST + ":" + PORT, nil))
+	log.Fatal(http.ListenAndServe(*host + ":" + *port, nil))
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
@@ -86,6 +86,8 @@ func (_ debugHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Printf("JSON Encoding Error: %v", err)
 	} else {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(j)
+		if _, err := w.Write(j); err != nil {
+			log.Fatalf("Unable to send response: %s", err)
+		}
 	}
 }
