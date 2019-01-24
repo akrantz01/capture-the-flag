@@ -170,7 +170,7 @@ var createScene = function () {
                             found = true;
                     }
                     if (!found) {
-                        otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, s[i], playerModel);
+                        otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, s[i], 1, playerModel);
                     }
                 }
                 for (let i = 0; i < s2.length; i++) {
