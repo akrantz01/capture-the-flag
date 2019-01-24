@@ -13,30 +13,21 @@ import (
 )
 
 var (
-	server Server
 	data = GameData{
 		Users: make(map[string]*UserValue),
 		Objects: make(map[string]Object),
-		Globals: make(map[string]map[string]Value),
 	}
-	tests []TestPlayer
 	hub = newHub()
 )
 
 func main() {
-	// Get config file
-	file := flag.String("config", "config.yml", "Alternative yaml configuration file")
-	flag.Parse()
-
-	// Temporary variable
-	var globals map[string]map[string]Value
-
-	// Parse config file
-	server, globals, tests = ParseConfig(*file)
-	data.SetGlobals(globals)
+	// Get host, port and debug enabled
+	host := flag.String("host", "127.0.0.1", "Host to run on")
+	port := flag.String("port", "8080", "Port to run on")
+	debug := flag.Bool("debug", false, "Enable debug info")
 
 	// Serve from static directory
-	http.Handle("/", handlers.LoggingHandler(os.Stdout, http.FileServer(http.Dir(server.StaticDir))))
+	http.Handle("/", handlers.LoggingHandler(os.Stdout, http.FileServer(http.Dir("public"))))
 
 	// Gracefully stop goroutines
 	c := make(chan os.Signal)
@@ -47,19 +38,6 @@ func main() {
 		log.Println("Stopped goroutines")
 		os.Exit(0)
 	}()
-
-	// Enable test users
-	if server.Mode == 1 {
-		go func() {
-			log.Println("Started moving test users...")
-			for {
-				for i, tp := range tests {
-					tp.Move(i)
-				}
-				time.Sleep(500 * time.Millisecond)
-			}
-		}()
-	}
 
 	go func() {
 		log.Println("Started pushing data...")
@@ -77,11 +55,11 @@ func main() {
 	http.HandleFunc("/ws", wsHandler)
 
 	// Debug routes
-	if server.Debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
+	if *debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
 
 	// Start server
 	go hub.run()
-	log.Fatal(http.ListenAndServe(server.Host + ":" + server.Port, nil))
+	log.Fatal(http.ListenAndServe(*host + ":" + *port, nil))
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
@@ -108,6 +86,8 @@ func (_ debugHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Printf("JSON Encoding Error: %v", err)
 	} else {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(j)
+		if _, err := w.Write(j); err != nil {
+			log.Fatalf("Unable to send response: %s", err)
+		}
 	}
 }

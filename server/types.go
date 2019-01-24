@@ -6,27 +6,12 @@ import (
 )
 
 type (
-	// Server info
-	Server struct {
-		Mode	  int	   `yaml:"mode"`
-		Host      string   `yaml:"host"`
-		Port      string   `yaml:"port"`
-		Debug     bool	   `yaml:"debug"`
-		StaticDir string   `yaml:"static-directory"`
-	}
-
 	// Game data
 	GameData struct {
 		sync.RWMutex
-		Globals		map[string]map[string]Value
 		Users		map[string]*UserValue
 		Objects		map[string]Object
-	}
-
-	// Generic value
-	Value struct {
-		Value	string	`yaml:"value"`
-		Type	string	`yaml:"type"`
+		Scores		Scores
 	}
 
 	// User value
@@ -35,6 +20,7 @@ type (
 		Y	 	float32
 		Z		float32
 		Orientation	float32
+		Team	float32
 		Other	map[string]interface{}
 	}
 
@@ -60,33 +46,12 @@ type (
 		Other		map[string]interface{}	`yaml:"other"`
 	}
 
-	// Test player info
-	TestPlayer struct {
-		Starting	Coordinates		`yaml:"starting"`
-		Movements	movement		`yaml:"movement"`
-		Reference	*UserValue
-	}
-
-	// Movement for test players
-	movement struct {
-		Active		bool		`yaml:"active"`
-		Actions		[]action	`yaml:"actions"`
-	}
-
-	// Actions for test players' movement
-	action struct {
-		From	float32		`yaml:"from"`
-		To		float32		`yaml:"to"`
-		Axis	int		`yaml:"axis"`
-		Speed	float32	`yaml:"speed"`
+	// Store game data
+	Scores struct {
+		Team1	float32	`yaml:"team1"`
+		Team2	float32	`yaml:"team2"`
 	}
 )
-
-func (g *GameData) SetGlobals(globals map[string]map[string]Value) {
-	g.Lock()
-	defer g.Unlock()
-	g.Globals = globals
-}
 
 func (g *GameData) SetUserData(id string, x, y, z, orientation float32, other map[string]interface{}) {
 	g.Lock()
@@ -113,19 +78,6 @@ func (g *GameData) SetObject(id string, x, y, z float32, other map[string]interf
 	}
 }
 
-func (g *GameData) CreateTestUser(id string, x, y, z float32) *UserValue {
-	g.Lock()
-	defer g.Unlock()
-	g.Users[id] = &UserValue{
-		X: x,
-		Y: y,
-		Z: z,
-		Orientation: 0,
-		Other: make(map[string]interface{}),
-	}
-	return g.Users[id]
-}
-
 func (g *GameData) DeleteUserData(id string) {
 	g.Lock()
 	defer g.Unlock()
@@ -138,17 +90,25 @@ func (g *GameData) DeleteObject(id string) {
 	delete(g.Objects, id)
 }
 
+func (g *GameData) IncrementScoreTeam1() {
+	g.Scores.Team1++
+}
+
+func (g *GameData) IncrementScoreTeam2() {
+	g.Scores.Team2++
+}
+
 func (g *GameData) GetAllData() ([]byte, error) {
 	g.Lock()
 	defer g.Unlock()
 	j, err := json.Marshal(struct {
-		Globals		map[string]map[string]Value
 		Users		map[string]*UserValue
 		Objects		map[string]Object
+		Scores		Scores
 	}{
-		Globals: g.Globals,
 		Users: g.Users,
 		Objects: g.Objects,
+		Scores: g.Scores,
 	})
 	if err != nil {
 		return nil, err
@@ -162,28 +122,4 @@ func (u UserValue) equals (u2 UserValue) bool {
 	if u.Z != u2.Z {return false}
 	if len(u.Other) != len(u2.Other) {return false}
 	return true
-}
-
-func (t *TestPlayer) Move (id int) {
-	for i, a := range t.Movements.Actions {
-		switch a.Axis {
-		case 0:
-			t.Reference.X += a.Speed
-			break
-		case 1:
-			t.Reference.Y += a.Speed
-			break
-		case 2:
-			t.Reference.Z += a.Speed
-			break
-		}
-
-		if (t.Reference.X <= a.From || t.Reference.X >= a.To) && a.Axis == 0 {
-			t.Movements.Actions[i].Speed = -a.Speed
-		} else if (t.Reference.Y <= a.From || t.Reference.Y >= a.To) && a.Axis == 1 {
-			t.Movements.Actions[i].Speed = -a.Speed
-		} else if (t.Reference.Z <= a.From || t.Reference.Z >= a.To) && a.Axis == 2 {
-			t.Movements.Actions[i].Speed = -a.Speed
-		}
-	}
 }

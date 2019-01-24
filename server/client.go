@@ -101,6 +101,14 @@ func (c *Client) readPump() {
 				c.hub.broadcast <- out
 			}
 			break
+
+		case 5:
+			if data.Users[msg.ID].Team == 1 {
+				data.IncrementScoreTeam1()
+			} else {
+				data.IncrementScoreTeam2()
+			}
+			break
 		}
 	}
 }
