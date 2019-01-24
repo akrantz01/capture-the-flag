@@ -11,6 +11,7 @@ type (
 		sync.RWMutex
 		Users		map[string]*UserValue
 		Objects		map[string]Object
+		Scores		Scores
 	}
 
 	// User value
@@ -19,6 +20,7 @@ type (
 		Y	 	float32
 		Z		float32
 		Orientation	float32
+		Team	float32
 		Other	map[string]interface{}
 	}
 
@@ -42,6 +44,12 @@ type (
 	Object struct {
 		Coordinates Coordinates				`yaml:"coordinates"`
 		Other		map[string]interface{}	`yaml:"other"`
+	}
+
+	// Store game data
+	Scores struct {
+		Team1	float32	`yaml:"team1"`
+		Team2	float32	`yaml:"team2"`
 	}
 )
 
@@ -70,19 +78,6 @@ func (g *GameData) SetObject(id string, x, y, z float32, other map[string]interf
 	}
 }
 
-func (g *GameData) CreateTestUser(id string, x, y, z float32) *UserValue {
-	g.Lock()
-	defer g.Unlock()
-	g.Users[id] = &UserValue{
-		X: x,
-		Y: y,
-		Z: z,
-		Orientation: 0,
-		Other: make(map[string]interface{}),
-	}
-	return g.Users[id]
-}
-
 func (g *GameData) DeleteUserData(id string) {
 	g.Lock()
 	defer g.Unlock()
@@ -95,15 +90,25 @@ func (g *GameData) DeleteObject(id string) {
 	delete(g.Objects, id)
 }
 
+func (g *GameData) IncrementScoreTeam1() {
+	g.Scores.Team1++
+}
+
+func (g *GameData) IncrementScoreTeam2() {
+	g.Scores.Team2++
+}
+
 func (g *GameData) GetAllData() ([]byte, error) {
 	g.Lock()
 	defer g.Unlock()
 	j, err := json.Marshal(struct {
 		Users		map[string]*UserValue
 		Objects		map[string]Object
+		Scores		Scores
 	}{
 		Users: g.Users,
 		Objects: g.Objects,
+		Scores: g.Scores,
 	})
 	if err != nil {
 		return nil, err

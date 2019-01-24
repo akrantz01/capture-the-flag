@@ -9,10 +9,14 @@ function Decal(pos, norm, mesh, scene) {
         normal: norm,
         size: decalSize
     }, scene);
-    console.log(this.decal);
     this.decal.material = decalMaterial;
     this.offset = Vector.sub(fromBabylon(this.mesh.position), fromBabylon(this.decal.position));
 }
 Decal.prototype.update = function() {
     this.decal.position = (fromBabylon(this.mesh.position).sub(this.offset)).toBabylon();
+    if (this.mesh._isDisposed) {
+        this.decal.dispose();
+        return true;
+    }
+    return false;
 };

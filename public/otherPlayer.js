@@ -1,10 +1,11 @@
-function OtherPlayer(x, y, z, i, playerModel) {
+function OtherPlayer(x, y, z, id, playerModel) {
     this.mesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 5, diameterY: 4}, scene)
                 /*playerModel.createInstance("i" + i)*/;
     this.mesh.position = new BABYLON.Vector3(x, y, z);
     this.vel = new Vector();
     this.acc = new Vector();
     this.pos = new Vector(x, y, z);
+    this.id = id;
 }
 
 OtherPlayer.prototype.update = function (v) {

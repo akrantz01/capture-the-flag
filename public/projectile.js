@@ -21,7 +21,7 @@ function Projectile(pos, vel, type) {
         }, 1);
         console.log("disposed");
     };*/
-    this.ray = new BABYLON.Ray(this.pos.toBabylon(), this.vel.toBabylon(), 12);
+    this.ray = new BABYLON.Ray(this.pos.toBabylon(), this.vel.toBabylon(), this.vel.mag());
     /*this.rayHelper = new BABYLON.RayHelper(this.ray);
 
     var localMeshDirection = new BABYLON.Vector3(0, 0, -1);
@@ -32,7 +32,7 @@ function Projectile(pos, vel, type) {
     this.rayHelper.show(scene);*/
 }
 
-Projectile.prototype.update = function (ground, scene, players, decalList) {
+Projectile.prototype.update = function (ground, scene, players, oPlayers, decalList) {
     /*if (this.mesh.physicsImpostor.isDisposed) {
         return false;
     }*/
@@ -66,15 +66,16 @@ Projectile.prototype.update = function (ground, scene, players, decalList) {
     }
     if (players) {
         let meshes = [];
-        for (var i = 0; i < players.length; i++) meshes.push(players[i].mesh);
-
+        for (var i = 0; i < Object.keys(players).length; i++) {
+            players[Object.keys(players)[i]].mesh.tempID = Object.keys(oPlayers)[i];
+            meshes.push(players[Object.keys(players)[i]].mesh);
+        }
         var hitInfo = this.ray.intersectsMeshes(meshes);
         if (hitInfo.length) {
             hitInfo = hitInfo[0];
             decalList.push(new Decal(hitInfo.pickedPoint, hitInfo.getNormal(true, true), hitInfo.pickedMesh, scene));
-
             this.mesh.dispose();
-            return i + 1;
+            return hitInfo;
         }
         /*for (var i = 0; i < players.length; i++) {
             let pos = players[i].mesh.position;
