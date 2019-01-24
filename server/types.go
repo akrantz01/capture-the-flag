@@ -20,6 +20,7 @@ type (
 		Y	 	float32
 		Z		float32
 		Orientation	float32
+		Team	float32
 		Other	map[string]interface{}
 	}
 
