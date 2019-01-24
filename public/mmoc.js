@@ -54,6 +54,7 @@ let MMOC = (function () {
         }
 
         sendPlayerData() {
+            if (!_connected) return;
             this.ws.send(JSON.stringify({
                 type: 1,
                 id: _id,
@@ -68,6 +69,7 @@ let MMOC = (function () {
         }
 
         sendObjectData(object = reqd('object')) {
+            if (!_connected) return;
             this.ws.send(JSON.stringify({
                 type: 2,
                 id: object.id,
@@ -81,6 +83,7 @@ let MMOC = (function () {
         }
 
         removeObject(object = reqd('object')) {
+            if (!_connected) return;
             this.ws.send(JSON.stringify({
                 type: 3,
                 id: object.id
@@ -88,6 +91,7 @@ let MMOC = (function () {
         }
 
         broadcast(id = reqd('id'), x = reqd('x'), y = reqd('y'), z = reqd('z')) {
+            if (!_connected) return;
             this.ws.send(JSON.stringify({
                 type: 4,
                 id: id,

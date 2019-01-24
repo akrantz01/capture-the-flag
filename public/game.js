@@ -17,7 +17,7 @@ var proj = [];
 
 //players
 var player;
-var otherPlayers = [];
+var otherPlayers = {};
 
 var decalList = [];
 
@@ -72,6 +72,7 @@ var createScene = function () {
 
     //create player
     player = new Player(0, 0, 0, playerModel);
+    let ids = {};
 
     //update player
     scene.executeWhenReady(scene.registerBeforeRender(function () {
@@ -116,9 +117,12 @@ var createScene = function () {
 
         let players = multiplayer.getPlayers();
         for (var i = 0; i < proj.length; i++) {
-            let id = proj[i].update(ground, scene, otherPlayers, decalList);
-            if (id !== 0) {
-                multiplayer.broadcast(id.toString(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z);
+            let id = proj[i].update(ground, scene, otherPlayers, players, decalList);
+            if (id !== 0 && id !== -1) {
+                multiplayer.broadcast(id.pickedMesh.tempID, id.pickedPoint.x, id.pickedPoint.y, id.pickedPoint.z);
+                proj.splice(i, 1);
+            } else if (id === -1) {
+                multiplayer.broadcast(id, proj[i].pos.x, proj[i].pos.y, proj[i].pos.z);
                 proj.splice(i, 1);
             }
         }
@@ -127,10 +131,12 @@ var createScene = function () {
             for (let dec2 in broadDecals) {
                 let dec = broadDecals[dec2];
                 let pos = new BABYLON.Vector3(dec.Coordinates.X, dec.Coordinates.Y, dec.Coordinates.Z);
-
-                if (dec.id > 0) {
-                    decalList.push(new Decal(pos, (Vector.sub(fromBabylon(players[dec.ID].mesh.position), fromBabylon(pos)).normalize()).toBabylon(), players[dec.ID].mesh, scene));
-                } else {
+                console.log(dec.ID);
+                if (dec.ID !== -1 && dec.ID !== 0 && dec.ID !== '') {
+                    console.log(otherPlayers[dec.ID]);
+                    decalList.push(new Decal(pos, (Vector.sub(fromBabylon(otherPlayers[dec.ID].mesh.position), fromBabylon(pos)).normalize()).toBabylon(), otherPlayers[dec.ID].mesh, scene));
+                    console.log(decalList)
+                } else if (dec.ID !== 0) {
                     var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
                     decalMaterial.diffuseColor = new BABYLON.Color3(0, 1, 0);
                     decalMaterial.zOffset = -2;
@@ -144,33 +150,58 @@ var createScene = function () {
                 }
             }
         }
-
+        
         if (players) {
-            let size = Object.keys(players).length;
-            while (otherPlayers.length < size) {
-                otherPlayers.push(new OtherPlayer(0, 0, 0, otherPlayers.length - 1, playerModel));
-            }
-            console.log(otherPlayers);
-            while (otherPlayers.length > size) {
-                otherPlayers.pop();
+            let s = Object.keys(players);
+            let s2 = Object.keys(otherPlayers);
+            //console.log(s, s2)
+            if (!arraysEqual(s2, s)) {
+                /*for (let i = 0; i < s2.length; i++) {
+                    otherPlayers[s2[i]].mesh.dispose();
+                    delete otherPlayers[s2[i]];
+                }
+                for (let i = 0; i < s.length; i++) {
+                    otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, s[i], playerModel);
+                }*/
+                for (let i = 0; i < s.length; i++) {
+                    let found = false;
+                    for (let j = 0; j < s2.length; j++) {
+                        if (s[i] === s2[j])
+                            found = true;
+                    }
+                    if (!found) {
+                        otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, s[i], playerModel);
+                    }
+                }
+                for (let i = 0; i < s2.length; i++) {
+                    let found = false;
+                    for (let j = 0; j < s.length; j++) {
+                        if (s[j] === s2[i])
+                            found = true;
+                    }
+                    if (!found) {
+                        otherPlayers[s2[i]].mesh.dispose();
+                        delete otherPlayers[s2[i]];
+                    }
+                }
             }
             let index = 0;
 
             for (let player in players) {
                 if (Object.keys(players)[index] !== multiplayer.getID()) {
-                    otherPlayers[index].mesh.position = new BABYLON.Vector3(players[player]["X"] + 1, players[player]["Y"] + 2, players[player]["Z"] - 0.5);
+                    otherPlayers[Object.keys(players)[index]].mesh.position = new BABYLON.Vector3(players[player]["X"] + 1, players[player]["Y"] + 2, players[player]["Z"] - 0.5);
                 } else {
-                    otherPlayers[index].mesh.position = new BABYLON.Vector3(0, -100, -100);
+                    otherPlayers[Object.keys(players)[index]].mesh.position = new BABYLON.Vector3(0, -100, -100);
                 }
                 index++;
                 for (var l = 0; l < decalList.length; l++) {
-                    decalList[l].update();
+                    if (decalList[l].update()) decalList.splice(l, 1);
                 }
             }
-
-            multiplayer.setPosition(player.mesh.position.x, player.mesh.position.y, player.mesh.position.z);
-            multiplayer.sendPlayerData();
         }
+
+        multiplayer.setPosition(player.mesh.position.x, player.mesh.position.y, player.mesh.position.z);
+        multiplayer.sendPlayerData();
         camera.radius = 0.001;
     }));
 };
@@ -305,4 +336,18 @@ function updatePlayerCount(n, oplayers) {
             //a.mesh.dispose();
         }
     }
+}
+
+function arraysEqual(a, b) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length !== b.length) return false;
+
+    a.sort();
+    b.sort();
+
+    for (var i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
 }
