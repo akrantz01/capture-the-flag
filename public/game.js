@@ -122,7 +122,7 @@ var createScene = function () {
                 multiplayer.broadcast(id.pickedMesh.tempID, id.pickedPoint.x, id.pickedPoint.y, id.pickedPoint.z);
                 proj.splice(i, 1);
             } else if (id === -1) {
-                multiplayer.broadcast(id, proj[i].pos.x, proj[i].pos.y, proj[i].pos.z);
+                multiplayer.broadcast("-1", proj[i].pos.x, proj[i].pos.y, proj[i].pos.z);
                 proj.splice(i, 1);
             }
         }
@@ -132,11 +132,11 @@ var createScene = function () {
                 let dec = broadDecals[dec2];
                 let pos = new BABYLON.Vector3(dec.Coordinates.X, dec.Coordinates.Y, dec.Coordinates.Z);
                 console.log(dec.ID);
-                if (dec.ID !== -1 && dec.ID !== 0 && dec.ID !== '') {
+                if (dec.ID !== "-1" && dec.ID !== 0 && dec.ID !== '') {
                     console.log(otherPlayers[dec.ID]);
                     decalList.push(new Decal(pos, (Vector.sub(fromBabylon(otherPlayers[dec.ID].mesh.position), fromBabylon(pos)).normalize()).toBabylon(), otherPlayers[dec.ID].mesh, scene));
                     console.log(decalList)
-                } else if (dec.ID !== 0) {
+                } else if (dec.ID !== 0 && dec.ID !== '') {
                     var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
                     decalMaterial.diffuseColor = new BABYLON.Color3(0, 1, 0);
                     decalMaterial.zOffset = -2;

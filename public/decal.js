@@ -15,7 +15,6 @@ function Decal(pos, norm, mesh, scene) {
 Decal.prototype.update = function() {
     this.decal.position = (fromBabylon(this.mesh.position).sub(this.offset)).toBabylon();
     if (this.mesh._isDisposed) {
-        console.lg("dec");
         this.decal.dispose();
         return true;
     }
