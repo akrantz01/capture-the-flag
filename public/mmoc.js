@@ -90,11 +90,16 @@ let MMOC = (function () {
             }));
         }
 
-        broadcast(id = reqd('id'), x = reqd('x'), y = reqd('y'), z = reqd('z')) {
+        broadcast(id = reqd('id'), x = reqd('x'), y = reqd('y'), z = reqd('z'), dx = reqd('dx'), dy = reqd('dy'), dz = reqd('dz')) {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
                 type: 4,
                 id: id,
+                vel: {
+                    x: dx,
+                    y: dy,
+                    z: dz
+                },
                 coordinates: {
                     x: x,
                     y: y,
@@ -124,18 +129,6 @@ let MMOC = (function () {
                 _broadcasts = {}
             }, 1);
             return _broadcasts;
-        }
-
-        changeX(by = reqd("by")) {
-            _x += by;
-        }
-
-        changeY(by = reqd("by")) {
-            _y += by;
-        }
-
-        changeZ(by = reqd("by")) {
-            _z += by;
         }
 
         setPosition(x = reqd('x'), y = reqd('y'), z = reqd('z')) {

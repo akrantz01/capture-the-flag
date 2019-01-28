@@ -87,7 +87,7 @@ Player.prototype.update = function (ground) {
         }
     }
     if(this.jump && this.onGround) {
-        this.vel.y = 150;
+        this.vel.y = 75;
         this.onGround = false;
     }
 

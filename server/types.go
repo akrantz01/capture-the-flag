@@ -31,6 +31,7 @@ type (
 		Other		map[string]interface{}	`yaml:"other"`
 		Coordinates Coordinates				`yaml:"coordinates"`
 		Orientation	float32					`yaml:"orientation"`
+		Vel Coordinates						`yaml:"vel"`
 	}
 
 	// Store player coordinates (2d)
