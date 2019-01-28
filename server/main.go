@@ -16,6 +16,14 @@ var (
 	data = GameData{
 		Users: make(map[string]*UserValue),
 		Objects: make(map[string]Object),
+		Scores: Scores{
+			Team1: 0,
+			Team2: 0,
+		},
+		PlayerStatistics: PlayerStats{
+			Team1: 0,
+			Team2: 0,
+		},
 	}
 	hub = newHub()
 )
@@ -25,6 +33,7 @@ func main() {
 	host := flag.String("host", "127.0.0.1", "Host to run on")
 	port := flag.String("port", "8080", "Port to run on")
 	debug := flag.Bool("debug", false, "Enable debug info")
+	flag.Parse()
 
 	// Serve from static directory
 	http.Handle("/", handlers.LoggingHandler(os.Stdout, http.FileServer(http.Dir("public"))))
@@ -42,7 +51,7 @@ func main() {
 	go func() {
 		log.Println("Started pushing data...")
 		for {
-			if out, err := data.GetAllData(); err != nil {
+			if out, err := data.GetPlayerData(); err != nil {
 				fmt.Printf("JSON Encoding Error: %v", err)
 			} else {
 				hub.broadcast <- out
@@ -58,6 +67,7 @@ func main() {
 	if *debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
 
 	// Start server
+	log.Printf("Running on %s:%s with debug: %t", *host, *port, *debug)
 	go hub.run()
 	log.Fatal(http.ListenAndServe(*host + ":" + *port, nil))
 }

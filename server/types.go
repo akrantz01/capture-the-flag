@@ -9,9 +9,10 @@ type (
 	// Game data
 	GameData struct {
 		sync.RWMutex
-		Users		map[string]*UserValue
-		Objects		map[string]Object
-		Scores		Scores
+		Users				map[string]*UserValue
+		Objects				map[string]Object
+		Scores				Scores
+		PlayerStatistics	PlayerStats
 	}
 
 	// User value
@@ -20,7 +21,7 @@ type (
 		Y	 	float32
 		Z		float32
 		Orientation	float32
-		Team	float32
+		Team	int
 		Other	map[string]interface{}
 	}
 
@@ -51,6 +52,12 @@ type (
 		Team1	float32	`yaml:"team1"`
 		Team2	float32	`yaml:"team2"`
 	}
+
+	// Player statistics
+	PlayerStats struct {
+		Team1	int
+		Team2	int
+	}
 )
 
 func (g *GameData) SetUserData(id string, x, y, z, orientation float32, other map[string]interface{}) {
@@ -63,6 +70,12 @@ func (g *GameData) SetUserData(id string, x, y, z, orientation float32, other ma
 		Orientation: orientation,
 		Other: other,
 	}
+}
+
+func (g *GameData) SetTeam(id string, team int) {
+	g.Lock()
+	defer g.Unlock()
+	g.Users[id].Team = team
 }
 
 func (g *GameData) SetObject(id string, x, y, z float32, other map[string]interface{}) {
@@ -98,7 +111,50 @@ func (g *GameData) IncrementScoreTeam2() {
 	g.Scores.Team2++
 }
 
+func (g *GameData) AssignTeam() int {
+	g.Lock()
+	defer g.Unlock()
+	if g.PlayerStatistics.Team1 > g.PlayerStatistics.Team2 {
+		g.PlayerStatistics.Team2++
+		return 2
+	}
+	g.PlayerStatistics.Team1++
+	return 1
+}
+
+func (g *GameData) RemovePlayerTeam1() {
+	g.Lock()
+	defer g.Unlock()
+	g.PlayerStatistics.Team1--
+}
+
+func (g *GameData) RemovePlayerTeam2() {
+	g.Lock()
+	defer g.Unlock()
+	g.PlayerStatistics.Team2--
+}
+
 func (g *GameData) GetAllData() ([]byte, error) {
+	g.Lock()
+	defer g.Unlock()
+	j, err := json.Marshal(struct {
+		Users				map[string]*UserValue
+		Objects				map[string]Object
+		Scores				Scores
+		PlayerStatistics	PlayerStats
+	}{
+		Users: g.Users,
+		Objects: g.Objects,
+		Scores: g.Scores,
+		PlayerStatistics: g.PlayerStatistics,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return j, nil
+}
+
+func (g *GameData) GetPlayerData() ([]byte, error) {
 	g.Lock()
 	defer g.Unlock()
 	j, err := json.Marshal(struct {

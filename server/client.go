@@ -40,10 +40,18 @@ func (c *Client) readPump() {
 		c.conn.Close()
 	}()
 
-	var id string
+	var (
+		id string
+		team = data.AssignTeam()
+	)
 
 	c.conn.SetCloseHandler(func(code int, text string) error {
 		data.DeleteUserData(id)
+		if team == 1 {
+			data.RemovePlayerTeam1()
+		} else {
+			data.RemovePlayerTeam2()
+		}
 		return nil
 	})
 
@@ -78,6 +86,10 @@ func (c *Client) readPump() {
 				msg.Orientation,
 				msg.Other,
 			)
+
+			if data.Users[msg.ID].Team == 0 {
+				data.SetTeam(msg.ID, team)
+			}
 			break
 
 		case 2:
