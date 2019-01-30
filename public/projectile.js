@@ -1,7 +1,8 @@
-function Projectile(pos, vel, type) {
-    this.pos = pos;
-    this.vel = vel;
-    this.type = type;
+function Projectile(pos, vel, team) {
+    this.pos = (pos instanceof BABYLON.Vector3) ? fromBabylon(pos) : pos;
+    this.vel = (vel instanceof BABYLON.Vector3) ? fromBabylon(vel) : vel;
+    this.team = team;
+    this.created = false;
     this.mesh = BABYLON.MeshBuilder.CreateSphere("proj" + Math.random(), {diameter: 1}, scene);
     this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
     /*this.mesh.physicsImpostor = new BABYLON.PhysicsImpostor(this.mesh, BABYLON.PhysicsImpostor.SphereImpostor, {
@@ -94,5 +95,9 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
     //console.log(this.ray)
     this.ray.origin = this.mesh.position;
     this.ray.direction = this.vel.toBabylon();
+    if (!this.created) {
+        this.created = true;
+        return -2;
+    }
     return 0;
 };
