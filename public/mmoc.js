@@ -34,10 +34,11 @@ let MMOC = (function () {
                 let broad = event.data;
                 let other = "";
                 let index = broad.indexOf("}\n{");
+                if (index === -1) index = broad.indexOf("}{");
+                if (index === -1) index = broad.indexOf("} {");
                 if (index !== -1) {
                     broad = broad.substring(index + 1);
                     other = event.data.substring(0, index + 1);
-
                     broad = JSON.parse(broad);
                     other = JSON.parse(other);
 
@@ -125,10 +126,9 @@ let MMOC = (function () {
         }
 
         getBroadcasts() {
-            setTimeout(() => {
-                _broadcasts = {}
-            }, 1);
-            return _broadcasts;
+            let temp = JSON.parse(JSON.stringify(_broadcasts));
+            _broadcasts = {};
+            return temp;
         }
 
         setPosition(x = reqd('x'), y = reqd('y'), z = reqd('z')) {

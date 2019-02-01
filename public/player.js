@@ -1,7 +1,6 @@
 function Player(x, y, z, playerModel) {
     this.pos = new Vector(x, y, z);
     this.oldPos = this.pos;
-    this.oldMapHeight = 0;
     this.vel = new Vector();
     this.move = new Vector();
     this.meshv = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 2, diameterY: 4}, scene);/*playerModel*/;
@@ -24,7 +23,22 @@ function Player(x, y, z, playerModel) {
     this.timeOfGround = 0;
     this.jump = false;
     this.onGround = false;
+    this.maxSpeed = 113;
 }
+
+Player.prototype.enemyHit = function() {
+    console.log(this.maxSpeed)
+    if (this.maxSpeed > 20) {
+        this.maxSpeed -= 10;
+    }
+};
+
+Player.prototype.friendHit = function() {
+    console.log(this.maxSpeed)
+    if (this.maxSpeed < 160) {
+        this.maxSpeed += 10;
+    }
+};
 
 Player.prototype.update = function (ground) {
     this.pos = fromBabylon(this.mesh.position);
@@ -69,7 +83,7 @@ Player.prototype.update = function (ground) {
     left.mult(this.move.z);
     let down = this.vel.y;
     this.vel = (forwards.add(left));
-    this.vel.limit(113);
+    this.vel.limit(this.maxSpeed);
     this.vel.y = down;
 
     if (this.onGround) {

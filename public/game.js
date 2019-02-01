@@ -23,7 +23,7 @@ var decalList = [];
 
 var playerModel;
 
-var spawns = [{x: 437.7, y: 226, z: -362.6}, {x: -343.63, y: 132, z: 293.73}];
+var spawns = [{x: 243.85, y: 132, z: -218.78}, {x: -343.63, y: 132, z: 293.73}];
 
 var createScene = function () {
     var gravityVector = new BABYLON.Vector3(0, -100, 0);
@@ -45,7 +45,7 @@ var createScene = function () {
     let width = 1000;
     let height = 1000;
 
-    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "map2.png", width, height, 80, 0, 255/2, scene, false);
+    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "map2.png", width, height, 80, 0, 255 / 2, scene, false);
     //ground.position.set(500, 0, 500);
     /*BABYLON.Mesh.CreateGround("ground", width, height, 80, scene, true);
 
@@ -67,15 +67,26 @@ var createScene = function () {
 
     var groundMaterial = new BABYLON.StandardMaterial("groundMat", scene);
     groundMaterial.diffuseTexture = new BABYLON.Texture("grid.jpg", scene);
-    groundMaterial.diffuseTexture.uScale = 160*2;
-    groundMaterial.diffuseTexture.vScale = 160*2;
+    groundMaterial.diffuseTexture.uScale = 160 * 2;
+    groundMaterial.diffuseTexture.vScale = 160 * 2;
     groundMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
     groundMaterial.emissiveColor = new BABYLON.Color3(0, 0, 0);
     groundMaterial.ambientColor = new BABYLON.Color3(0, 0, 0);
     ground.material = groundMaterial;
 
     //create player
-    player = new Player(spawns[1].x, spawns[1].y, spawns[1].z, playerModel);
+    player = new Player(0, 0, 0, playerModel);
+    let spawn = true;
+    let team = 0;
+
+    document.addEventListener("click", function () {
+        //let vel = Vector.sub(camera.position, fromBabylon(player.mesh.position));
+        //vel.normalize();
+        let alpha = camera.alpha;
+        let beta = camera.beta;
+        let vel = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
+        proj.push(new Projectile(fromBabylon(player.mesh.position).add(vel.mult(-4)), vel.mult(3), team, true));
+    });
 
     //update player
 
@@ -126,12 +137,12 @@ var createScene = function () {
             for (var i = 0; i < proj.length; i++) {
                 let id = proj[i].update(ground, scene, otherPlayers, players, decalList);
                 if (id === -2) {
-                    multiplayer.broadcast("-2", proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, proj[i].vel.x, proj[i].vel.y, proj[i].vel.z);
+                    multiplayer.broadcast("-2" + multiplayer.getID(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, proj[i].vel.x, proj[i].vel.y, proj[i].vel.z);
                 } else if (id !== 0 && id !== -1) {
-                    multiplayer.broadcast(id.pickedMesh.tempID, id.pickedPoint.x, id.pickedPoint.y, id.pickedPoint.z, 0, 0, 0);
+                    multiplayer.broadcast(id.pickedMesh.tempID, id.pickedPoint.x, id.pickedPoint.y, id.pickedPoint.z, team, 0, 0);
                     proj.splice(i, 1);
                 } else if (id === -1) {
-                    multiplayer.broadcast("-1", proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, 0, 0, 0);
+                    multiplayer.broadcast("-1" + multiplayer.getID(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, 0, 0, 0);
                     proj.splice(i, 1);
                 }
             }
@@ -140,16 +151,19 @@ var createScene = function () {
                 for (let dec2 in broadDecals) {
                     let dec = broadDecals[dec2];
                     let pos = new BABYLON.Vector3(dec.Coordinates.X, dec.Coordinates.Y, dec.Coordinates.Z);
-                    console.log(dec);
-                    if (dec.ID === "-2") {
-                        console.log(dec);
+                    if (dec.ID.slice(0, 2) === "-2" & dec.ID !== "-2" + multiplayer.getID()) {
                         let tvel = new BABYLON.Vector3(dec.Vel.X, dec.Vel.Y, dec.Vel.Z);
-                        proj.push(new Projectile(pos, tvel, 1));
-                    } else if (dec.ID !== "-1" && dec.ID !== 0 && dec.ID !== '') {
-                        console.log(otherPlayers[dec.ID]);
-                        decalList.push(new Decal(pos, (Vector.sub(fromBabylon(otherPlayers[dec.ID].mesh.position), fromBabylon(pos)).normalize()).toBabylon(), otherPlayers[dec.ID].mesh, scene));
-                        console.log(decalList)
-                    } else if (dec.ID !== 0 && dec.ID !== '') {
+                        proj.push(new Projectile(pos, tvel, team, false));
+                    } else if (dec.ID.slice(0, 2) !== "-1" && dec.ID !== '') {
+                        if (dec.ID === multiplayer.getID()) {
+                            if (dec.Vel.X === team) {
+                                player.friendHit();
+                            } else {
+                                player.enemyHit();
+                            }
+                        } else if (otherPlayers[dec.ID])
+                            decalList.push(new Decal(pos, (Vector.sub(fromBabylon(otherPlayers[dec.ID].mesh.position), fromBabylon(pos)).normalize()).toBabylon(), otherPlayers[dec.ID].mesh, scene));
+                    } else if (dec.ID !== 0 && dec.ID !== '' && dec.ID !== "-1" + multiplayer.getID()) {
                         var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
                         decalMaterial.diffuseColor = new BABYLON.Color3(0, 1, 0);
                         decalMaterial.zOffset = -2;
@@ -175,7 +189,10 @@ var createScene = function () {
                                 found = true;
                         }
                         if (!found) {
-                            otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, s[i], 1, playerModel);
+                            if (players[s[i]].Team === 1)
+                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, s[i], 1, playerModel);
+                            else
+                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, s[i], 2, playerModel);
                         }
                     }
                     for (let i = 0; i < s2.length; i++) {
@@ -192,11 +209,16 @@ var createScene = function () {
                 }
                 let index = 0;
 
-                for (let player in players) {
+                for (let player_ in players) {
                     if (Object.keys(players)[index] !== multiplayer.getID()) {
-                        otherPlayers[Object.keys(players)[index]].mesh.position = new BABYLON.Vector3(players[player]["X"] + 1, players[player]["Y"] + 2, players[player]["Z"] - 0.5);
+                        otherPlayers[Object.keys(players)[index]].mesh.position = new BABYLON.Vector3(players[player_]["X"] + 1, players[player_]["Y"] + 2, players[player_]["Z"] - 0.5);
                     } else {
                         otherPlayers[Object.keys(players)[index]].mesh.position = new BABYLON.Vector3(0, -100, -100);
+                        if (spawn) {
+                            team = players[multiplayer.getID()].Team;
+                            player.mesh.position = new BABYLON.Vector3(spawns[team - 1].x, spawns[team - 1].y, spawns[team - 1].z);
+                            spawn = false;
+                        }
                     }
                     index++;
                     for (var l = 0; l < decalList.length; l++) {
@@ -227,7 +249,6 @@ camera.setTarget(new BABYLON.Vector3(0, 0, 0));
 camera.attachControl(canvas, true);
 camera.keysDown = camera.keysUp = camera.keysLeft = camera.keysRight = [];
 camera.radius = 0.001;
-console.log(camera)
 camera.maxZ = 1000;
 
 //asset loader
@@ -294,15 +315,6 @@ document.addEventListener("keydown", function (e) {
 });
 document.addEventListener("keyup", function (e) {
     keys[e.keyCode] = false;
-});
-
-document.addEventListener("click", function () {
-    //let vel = Vector.sub(camera.position, fromBabylon(player.mesh.position));
-    //vel.normalize();
-    let alpha = camera.alpha;
-    let beta = camera.beta;
-    let vel = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
-    proj.push(new Projectile(fromBabylon(player.mesh.position).add(vel.mult(-4)), vel.mult(3), 1));
 });
 
 canvas.addEventListener("click", function (e) {
