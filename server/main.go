@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gorilla/handlers"
+	"gopkg.in/hlandau/passlib.v1"
 	"log"
 	"net/http"
 	"os"
@@ -26,6 +27,7 @@ var (
 		},
 	}
 	hub = newHub()
+	db = connectDatabase()
 )
 
 func main() {
@@ -34,6 +36,11 @@ func main() {
 	port := flag.String("port", "8080", "Port to run on")
 	debug := flag.Bool("debug", false, "Enable debug info")
 	flag.Parse()
+
+	// Configure hashing
+	if err := passlib.UseDefaults(passlib.DefaultsLatest); err != nil {
+		panic(err)
+	}
 
 	// Serve from static directory
 	http.Handle("/", handlers.LoggingHandler(os.Stdout, http.FileServer(http.Dir("public"))))
@@ -45,6 +52,11 @@ func main() {
 		log.Println("Listening for SIGINT, SIGTERM & SIGKILL...")
 		<-c
 		log.Println("Stopped goroutines")
+		if err := db.Close(); err != nil {
+			log.Printf("Unable to close database: %v\n", err)
+		} else {
+			log.Println("Closed connection to database")
+		}
 		os.Exit(0)
 	}()
 
@@ -62,6 +74,12 @@ func main() {
 
 	// WebSocket route
 	http.HandleFunc("/ws", wsHandler)
+
+	// Authentication/authorization routes
+	http.HandleFunc("/api/login", LoginHandler)
+	http.HandleFunc("/api/logout", LogoutHandler)
+	http.HandleFunc("/api/signup", SignUpHandler)
+	http.HandleFunc("/api/verify", VerifyHandler)
 
 	// Debug routes
 	if *debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
