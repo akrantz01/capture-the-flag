@@ -129,7 +129,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	if _, err := fmt.Fprintf(w, "{\"status\": \"success\", \"token\": \"%s\"}", signed); err != nil {
-		log.Printf("Unable to send request: %v\n", err)
+		log.Printf("Unable to send response: %v\n", err)
 	}
 }
 
@@ -138,7 +138,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"method not allowed\"}"); err != nil {
-			log.Printf("Unable to send request: %v\n", err)
+			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
@@ -147,7 +147,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if _, ok := r.URL.Query()["token"]; !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"query parameters must include field token\"}"); err != nil {
-			log.Printf("Unable to send request: %v\n", err)
+			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
@@ -178,7 +178,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"unable to parse jwt: %v\"}", err); err != nil {
-			log.Printf("Unable to send request: %v\n", err)
+			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
@@ -187,7 +187,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if !token.Valid {
 		w.WriteHeader(http.StatusUnauthorized)
 		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token\"}"); err != nil {
-			log.Printf("Unable to send request: %v\n", err)
+			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
@@ -197,7 +197,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"invalid claims format\"}"); err != nil {
-			log.Printf("Unable to send request: %v\n", err)
+			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
@@ -207,7 +207,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if user.ID == 0 {
 		w.WriteHeader(http.StatusUnauthorized)
 		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"no user exists at email: %v\"}", claims["sub"]); err != nil {
-			log.Printf("Unable to send request: %v\n", err)
+			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
@@ -218,7 +218,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	if _, err := fmt.Fprint(w, "{\"status\": \"success\"}"); err != nil {
-		log.Printf("Unable to send request: %v\n", err)
+		log.Printf("Unable to send response: %v\n", err)
 	}
 }
 
@@ -234,13 +234,13 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Decode json body
 	decoder := json.NewDecoder(r.Body)
-	var login struct{
+	var signup struct{
 		Email		string	`json:"email"`
 		Password	string	`json:"password"`
 		Name		string	`json:"name"`
 		Username	string	`json:"username"`
 	}
-	if err := decoder.Decode(&login); err != nil {
+	if err := decoder.Decode(&signup); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"unable to unmarshal json: %v\"}", err); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
@@ -249,7 +249,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if username & password exist
-	if login.Email == "" || login.Password == "" || login.Username == "" || login.Name == "" {
+	if signup.Email == "" || signup.Password == "" || signup.Username == "" || signup.Name == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"email, password, name and username fields are required\"}"); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
@@ -258,25 +258,25 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify argument lengths
-	if len(login.Email) < 4 || len(login.Email) > 64 {
+	if len(signup.Email) < 4 || len(signup.Email) > 64 {
 		w.WriteHeader(http.StatusBadRequest)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"email must be between 4 and 64 characters\"}"); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
-	} else if len(login.Password) != 64 {
+	} else if len(signup.Password) != 64 {
 		w.WriteHeader(http.StatusBadRequest)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"password must be 64 characters\"}"); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
-	} else if len(login.Username) < 4 || len(login.Username) > 64 {
+	} else if len(signup.Username) < 4 || len(signup.Username) > 64 {
 		w.WriteHeader(http.StatusBadRequest)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"username must be between 4 and 64 characters\"}"); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
-	} else if len(login.Name) > 64 {
+	} else if len(signup.Name) > 64 {
 		w.WriteHeader(http.StatusBadRequest)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"name must be 64 characters\"}"); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
@@ -285,7 +285,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Hash the password
-	hashed, err := passlib.Hash(login.Password)
+	hashed, err := passlib.Hash(signup.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"unable to hash password\"}"); err != nil {
@@ -297,7 +297,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check email exists
 	qu := new(User)
-	db.Where("email = ?", login.Email).First(&qu)
+	db.Where("email = ?", signup.Email).First(&qu)
 	if qu.Email != "" {
 		w.WriteHeader(http.StatusConflict)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"email already in use\"}"); err != nil {
@@ -306,7 +306,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	qa := new(Account)
-	db.Where("username = ?", login.Username).First(&qa)
+	db.Where("username = ?", signup.Username).First(&qa)
 	if qa.Username != "" {
 		w.WriteHeader(http.StatusConflict)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"username already in use\"}"); err != nil {
@@ -317,8 +317,8 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create the user
 	user := User{
-		Name: login.Name,
-		Email: login.Email,
+		Name:     signup.Name,
+		Email:    signup.Email,
 		Password: hashed,
 	}
 	db.NewRecord(user)
@@ -326,10 +326,10 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create the account data
 	account := Account{
-		Username: login.Username,
-		HighScore: 0,
+		Username:   signup.Username,
+		HighScore:  0,
 		TimePlayed: 0,
-		UserId: user.ID,
+		UserId:     user.ID,
 	}
 	db.NewRecord(account)
 	db.Create(&account)
@@ -346,7 +346,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"method not allowed\"}"); err != nil {
-			log.Printf("Unable to send request: %v\n", err)
+			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
@@ -355,7 +355,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	if _, ok := r.URL.Query()["token"]; !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"query parameters must include field token\"}"); err != nil {
-			log.Printf("Unable to send request: %v\n", err)
+			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
@@ -386,7 +386,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token\", \"valid\": false}"); err != nil {
-			log.Printf("Unable to send request: %v\n", err)
+			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
@@ -395,7 +395,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	if !token.Valid {
 		w.WriteHeader(http.StatusUnauthorized)
 		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token\", \"valid\": false}"); err != nil {
-			log.Printf("Unable to send request: %v\n", err)
+			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
@@ -405,7 +405,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"invalid claims format\", \"valid\": false}"); err != nil {
-			log.Printf("Unable to send request: %v\n", err)
+			log.Printf("Unable to send response: %v\n", err)
 		}
 	}
 
@@ -414,13 +414,13 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	if user.ID == 0 {
 		w.WriteHeader(http.StatusUnauthorized)
 		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"no user exists at email: %v\", \"valid\": false}", claims["sub"]); err != nil {
-			log.Printf("Unable to send request: %v\n", err)
+			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	if _, err := fmt.Fprint(w, "{\"status\": \"success\", \"valid\": true}"); err != nil {
-		log.Printf("Unable to send request: %v\n", err)
+		log.Printf("Unable to send response: %v\n", err)
 	}
 }
