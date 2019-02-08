@@ -80,6 +80,7 @@ func main() {
 	http.HandleFunc("/api/logout", LogoutHandler)
 	http.HandleFunc("/api/signup", SignUpHandler)
 	http.HandleFunc("/api/verify", VerifyHandler)
+	http.HandleFunc("/api/update", UpdateHandler)
 
 	// Debug routes
 	if *debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }

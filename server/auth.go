@@ -424,3 +424,131 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Unable to send response: %v\n", err)
 	}
 }
+
+func UpdateHandler(w http.ResponseWriter, r *http.Request) {
+	// Check method
+	if r.Method != "PUT" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"method not allowed\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Decode json body
+	decoder := json.NewDecoder(r.Body)
+	var update struct{
+		Email		string	`json:"email"`
+		Password	string	`json:"password"`
+		Name		string	`json:"name"`
+		Username	string	`json:"username"`
+		Token		string	`json:"token"`
+	}
+	if err := decoder.Decode(&update); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"unable to unmarshal json: %v\"}", err); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Verify token exists
+	if update.Token == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"token field not found in body\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Verify JWT
+	token, err := jwt.Parse(update.Token, func(token *jwt.Token) (i interface{}, e error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		} else if _, ok := token.Header["kid"]; !ok {
+			return nil, fmt.Errorf("unable to find key id in token")
+		}
+
+		// Get token
+		t := new(Token)
+		db.Where("id = ?", token.Header["kid"]).First(&t)
+		if t.SigningKey == "" {
+			return nil, fmt.Errorf("unable to find signing key for token: %v", token.Header["kid"])
+		}
+
+		// Decode signing key
+		signingKey, err := base64.StdEncoding.DecodeString(t.SigningKey)
+		if err != nil {
+			return nil, fmt.Errorf("unable to decode signing key")
+		}
+
+		return signingKey, nil
+	})
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Check if token is valid
+	if !token.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Get the token claims
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"invalid claims format\", \"valid\": false}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+	}
+
+	// Get user to modify
+	user := new(User)
+	db.Where("email = ?", claims["sub"]).First(&user)
+	if user.ID == 0 {
+		w.WriteHeader(http.StatusUnauthorized)
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"no user exists at email: %v\", \"valid\": false}", claims["sub"]); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Handle updating email
+	if update.Email != "" {
+		user.Email = update.Email
+	}
+
+	// Handle updating password
+	if update.Password != "" {
+		user.Password = update.Password
+	}
+
+	// Handle updating username
+	if update.Username != "" {
+		account := new(Account)
+		db.Where("user_id = ?", user.ID).First(&account)
+		account.Username = update.Username
+		db.Save(&account)
+	}
+
+	// Handle updating name
+	if update.Name != "" {
+		user.Name = update.Name
+	}
+
+	// Commit changes
+	db.Save(&user)
+
+	w.WriteHeader(http.StatusOK)
+	if _, err := fmt.Fprint(w, "{\"status\": \"success\"}"); err != nil {
+		log.Printf("Unable to send response: %v\n", err)
+	}
+}
