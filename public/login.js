@@ -21,6 +21,12 @@ function hashString(string) {
 }
 
 function userSignup(name, email, password, username) {
+    let token = localStorage.getItem("token");
+    if (token !== null) {
+        console.error("already logged in");
+        return;
+    }
+
     hashString(password).then(hashed => {
         fetch("/api/signup", {
             method: "POST",
@@ -35,6 +41,12 @@ function userSignup(name, email, password, username) {
                 username: username
             })
         }).then(res => res.json()).then(res => {
+            if (res.status === "error") {
+                console.error(res.reason);
+                // TODO: display error to user
+                return;
+            }
+
             console.log("success")
             // TODO: tell user to login
         }).catch(err => {
@@ -45,13 +57,95 @@ function userSignup(name, email, password, username) {
 }
 
 function userLogin(email, password) {
+    let token = localStorage.getItem("token");
+    if (token !== null) {
+        console.error("already logged in");
+        return;
+    }
 
+    hashString(password).then(hashed => {
+        fetch("/api/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                email: email,
+                password: hashed
+            })
+        }).then(res => res.json()).then(res => {
+            if (res.status === "error") {
+                console.error(res.reason);
+                // TODO: display to user
+                return
+            } else if (!res.hasOwnProperty("token")) {
+                console.error("unable to successfully log in: no token");
+                // TODO: display to user
+                return;
+            }
+
+            localStorage.setItem("token", res.token);
+            // TODO: enable game
+        }).catch(err => {
+            console.error(err);
+            // TODO: display error to user
+        });
+    });
 }
 
 function userLogout() {
+    let token = localStorage.getItem("token");
+    if (token === null) {
+        console.log("not signed in");
+        // TODO: inform user already logged out
+        return;
+    }
 
+    fetch(`/api/logout?token=${token}`, {
+        method: "GET",
+        headers: {
+            "Accept": "application/json"
+        }
+    }).then(res => res.json()).then(res => {
+        if (res.status === "error") {
+            console.error(res.reason);
+            // TODO: force user to login
+            return;
+        }
+
+        console.log("logged out");
+        localStorage.removeItem("token");
+        // TODO: disable game
+    }).catch(err => {
+        console.error(err);
+        // TODO: display error to user
+    });
 }
 
 function verifyToken() {
+    let token = localStorage.getItem("token");
+    if (token === null) {
+        localStorage.removeItem("token");
+        console.log("invalid");
+        // TODO: force user to login
+        return;
+    }
 
+    fetch(`/api/verify?token=${token}`, {
+        method: "GET",
+        headers: {
+            "Accept": "application/json"
+        }
+    }).then(res => res.json()).then(res => {
+        if (res.status === "error") {
+            console.error(res.reason);
+            // TODO: force user to login
+            return;
+        }
+        console.log(`valid: ${res.valid}`);
+    }).catch(err => {
+        console.error(err);
+        // TODO: display error to user
+    });
 }
