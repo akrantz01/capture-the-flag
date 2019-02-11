@@ -12,6 +12,42 @@ import (
 	"time"
 )
 
+func GetJWT(tokenString string) (*jwt.Token, error) {
+	// Parse the token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (i interface{}, e error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		} else if _, ok := token.Header["kid"]; !ok {
+			return nil, fmt.Errorf("unable to find key id in token")
+		}
+
+		// Get token
+		t := new(Token)
+		db.Where("id = ?", token.Header["kid"]).First(&t)
+		if t.SigningKey == "" {
+			return nil, fmt.Errorf("unable to find signing key for token: %v", token.Header["kid"])
+		}
+
+		// Decode signing key
+		signingKey, err := base64.StdEncoding.DecodeString(t.SigningKey)
+		if err != nil {
+			return nil, fmt.Errorf("unable to decode signing key")
+		}
+
+		return signingKey, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Check token validity
+	if !token.Valid {
+		return nil, fmt.Errorf("token is invalid")
+	}
+
+	return token, nil
+}
+
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Check method is POST
 	if r.Method != "POST" {
@@ -153,40 +189,10 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify JWT
-	token, err := jwt.Parse(r.URL.Query()["token"][0], func(token *jwt.Token) (i interface{}, e error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		} else if _, ok := token.Header["kid"]; !ok {
-			return nil, fmt.Errorf("unable to find key id in token")
-		}
-
-		// Get token
-		t := new(Token)
-		db.Where("id = ?", token.Header["kid"]).First(&t)
-		if t.SigningKey == "" {
-			return nil, fmt.Errorf("unable to find signing key for token: %v", token.Header["kid"])
-		}
-
-		// Decode signing key
-		signingKey, err := base64.StdEncoding.DecodeString(t.SigningKey)
-		if err != nil {
-			return nil, fmt.Errorf("unable to decode signing key")
-		}
-
-		return signingKey, nil
-	})
+	token, err := GetJWT(r.URL.Query()["token"][0])
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"unable to parse jwt: %v\"}", err); err != nil {
-			log.Printf("Unable to send response: %v\n", err)
-		}
-		return
-	}
-
-	// Check if token is valid
-	if !token.Valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token\"}"); err != nil {
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token: %s\"}", err); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
@@ -361,40 +367,10 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify JWT
-	token, err := jwt.Parse(r.URL.Query()["token"][0], func(token *jwt.Token) (i interface{}, e error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		} else if _, ok := token.Header["kid"]; !ok {
-			return nil, fmt.Errorf("unable to find key id in token")
-		}
-
-		// Get token
-		t := new(Token)
-		db.Where("id = ?", token.Header["kid"]).First(&t)
-		if t.SigningKey == "" {
-			return nil, fmt.Errorf("unable to find signing key for token: %v", token.Header["kid"])
-		}
-
-		// Decode signing key
-		signingKey, err := base64.StdEncoding.DecodeString(t.SigningKey)
-		if err != nil {
-			return nil, fmt.Errorf("unable to decode signing key")
-		}
-
-		return signingKey, nil
-	})
+	token, err := GetJWT(r.URL.Query()["token"][0])
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token\", \"valid\": false}"); err != nil {
-			log.Printf("Unable to send response: %v\n", err)
-		}
-		return
-	}
-
-	// Check if token is valid
-	if !token.Valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token\", \"valid\": false}"); err != nil {
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token: %s\"}", err); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
@@ -462,40 +438,10 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify JWT
-	token, err := jwt.Parse(update.Token, func(token *jwt.Token) (i interface{}, e error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		} else if _, ok := token.Header["kid"]; !ok {
-			return nil, fmt.Errorf("unable to find key id in token")
-		}
-
-		// Get token
-		t := new(Token)
-		db.Where("id = ?", token.Header["kid"]).First(&t)
-		if t.SigningKey == "" {
-			return nil, fmt.Errorf("unable to find signing key for token: %v", token.Header["kid"])
-		}
-
-		// Decode signing key
-		signingKey, err := base64.StdEncoding.DecodeString(t.SigningKey)
-		if err != nil {
-			return nil, fmt.Errorf("unable to decode signing key")
-		}
-
-		return signingKey, nil
-	})
+	token, err := GetJWT(update.Token)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token\"}"); err != nil {
-			log.Printf("Unable to send response: %v\n", err)
-		}
-		return
-	}
-
-	// Check if token is valid
-	if !token.Valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token\"}"); err != nil {
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token: %s\"}"); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
