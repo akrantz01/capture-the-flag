@@ -73,14 +73,14 @@ func main() {
 	}()
 
 	// WebSocket route
-	http.HandleFunc("/ws", wsHandler)
+	http.Handle("/ws", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(wsHandler)))
 
 	// Authentication/authorization routes
-	http.HandleFunc("/api/login", LoginHandler)
-	http.HandleFunc("/api/logout", LogoutHandler)
-	http.HandleFunc("/api/signup", SignUpHandler)
-	http.HandleFunc("/api/verify", VerifyHandler)
-	http.HandleFunc("/api/update", UpdateHandler)
+	http.Handle("/api/login", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(LoginHandler)))
+	http.Handle("/api/logout", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(LogoutHandler)))
+	http.Handle("/api/signup", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(SignUpHandler)))
+	http.Handle("/api/verify", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(VerifyHandler)))
+	http.Handle("/api/update", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(UpdateHandler)))
 
 	// Debug routes
 	if *debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
