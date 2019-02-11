@@ -180,16 +180,16 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify arguments
-	if _, ok := r.URL.Query()["token"]; !ok {
+	if r.Header.Get("Token") == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"query parameters must include field token\"}"); err != nil {
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"header 'Token' does not exist\"}"); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
 
 	// Verify JWT
-	token, err := GetJWT(r.URL.Query()["token"][0])
+	token, err := GetJWT(r.Header.Get("Token"))
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token: %s\"}", err); err != nil {
@@ -358,19 +358,19 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify arguments
-	if _, ok := r.URL.Query()["token"]; !ok {
+	if r.Header.Get("Token") == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"query parameters must include field token\"}"); err != nil {
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"header 'Token' does not exist\"}"); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
 
 	// Verify JWT
-	token, err := GetJWT(r.URL.Query()["token"][0])
+	token, err := GetJWT(r.Header.Get("Token"))
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token: %s\"}", err); err != nil {
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token: %s\", \"valid\": false}", err); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
@@ -418,7 +418,6 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		Password	string	`json:"password"`
 		Name		string	`json:"name"`
 		Username	string	`json:"username"`
-		Token		string	`json:"token"`
 	}
 	if err := decoder.Decode(&update); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -429,19 +428,19 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify token exists
-	if update.Token == "" {
+	if r.Header.Get("Token") == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"token field not found in body\"}"); err != nil {
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"header 'Token' does not exist\"}"); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
 	}
 
 	// Verify JWT
-	token, err := GetJWT(update.Token)
+	token, err := GetJWT(r.Header.Get("Token"))
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token: %s\"}"); err != nil {
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token: %s\"}", err); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
