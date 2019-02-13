@@ -128,7 +128,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		ExpiresAt: time.Now().Unix() + (60*60*24),
 		Issuer: "capture-the-flag",
 		IssuedAt: time.Now().Unix(),
-		Subject: user.Email,
+		Subject: fmt.Sprint(user.ID),
 	}
 
 	// Create signing key
@@ -209,10 +209,10 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := new(User)
-	db.Where("email = ?", claims["sub"]).First(&user)
+	db.Where("id = ?", claims["sub"]).First(&user)
 	if user.ID == 0 {
 		w.WriteHeader(http.StatusUnauthorized)
-		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"no user exists at email: %v\"}", claims["sub"]); err != nil {
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"no user exists at id: %v\"}", claims["sub"]); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
@@ -386,10 +386,10 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := new(User)
-	db.Where("email = ?", claims["sub"]).First(&user)
+	db.Where("id = ?", claims["sub"]).First(&user)
 	if user.ID == 0 {
 		w.WriteHeader(http.StatusUnauthorized)
-		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"no user exists at email: %v\", \"valid\": false}", claims["sub"]); err != nil {
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"no user exists at id: %v\", \"valid\": false}", claims["sub"]); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
@@ -457,10 +457,10 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get user to modify
 	user := new(User)
-	db.Where("email = ?", claims["sub"]).First(&user)
+	db.Where("id = ?", claims["sub"]).First(&user)
 	if user.ID == 0 {
 		w.WriteHeader(http.StatusUnauthorized)
-		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"no user exists at email: %v\", \"valid\": false}", claims["sub"]); err != nil {
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"no user exists at id: %v\", \"valid\": false}", claims["sub"]); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
