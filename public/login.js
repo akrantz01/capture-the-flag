@@ -149,3 +149,44 @@ function verifyToken() {
         // TODO: display error to user
     });
 }
+
+function userUpdate(name="", email="", password="", username="") {
+    let token = localStorage.getItem("token");
+    if (token === null) {
+        localStorage.removeItem("token");
+        console.log("invalid");
+        // TODO: force user to login
+        return;
+    }
+
+    hashString(password).then(hashed => {
+        if (hashed === "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855") hashed = "";
+
+        fetch("/api/update", {
+            method: "PUT",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "Token": token
+            },
+            body: JSON.stringify({
+                name: name,
+                email: email,
+                password: hashed,
+                username: username
+            })
+        }).then(res => res.json()).then(res => {
+            if (res.status === "error") {
+                console.error(res.reason);
+                // TODO: display to user
+                return;
+            }
+
+            // TODO: display success
+            console.log("updated");
+        }).catch(err => {
+            console.error(err);
+            // TODO: display to user
+        });
+    });
+}
