@@ -102,10 +102,11 @@ function userLogout() {
         return;
     }
 
-    fetch(`/api/logout?token=${token}`, {
+    fetch("/api/logout", {
         method: "GET",
         headers: {
-            "Accept": "application/json"
+            "Accept": "application/json",
+            "Token": token
         }
     }).then(res => res.json()).then(res => {
         if (res.status === "error") {
@@ -132,10 +133,11 @@ function verifyToken() {
         return;
     }
 
-    fetch(`/api/verify?token=${token}`, {
+    fetch("/api/verify", {
         method: "GET",
         headers: {
-            "Accept": "application/json"
+            "Accept": "application/json",
+            "Token": token
         }
     }).then(res => res.json()).then(res => {
         if (res.status === "error") {
