@@ -284,7 +284,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if len(signup.Name) > 64 {
 		w.WriteHeader(http.StatusBadRequest)
-		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"name must be 64 characters\"}"); err != nil {
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"name must be less than 64 characters\"}"); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
 		return
@@ -468,16 +468,49 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Handle updating email
 	if update.Email != "" {
+		if len(update.Email) < 4 || len(update.Email) > 64 {
+			w.WriteHeader(http.StatusBadRequest)
+			if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"email must be between 4 and 64 characters\"}"); err != nil {
+				log.Printf("Unable to send response: %v\n", err)
+			}
+			return
+		}
 		user.Email = update.Email
 	}
 
 	// Handle updating password
 	if update.Password != "" {
-		user.Password = update.Password
+		if len(update.Password) != 64 {
+			w.WriteHeader(http.StatusBadRequest)
+			if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"password must be 64 characters\"}"); err != nil {
+				log.Printf("Unable to send request: %v\n", err)
+			}
+			return
+		}
+
+		// Hash password
+		hashed, err := passlib.Hash(update.Password)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"unable to hash password\"}"); err != nil {
+				log.Printf("Unable to send response: %v\n", err)
+			}
+			log.Printf("Error hashing password: %v\n", err)
+			return
+		}
+		user.Password = hashed
 	}
 
 	// Handle updating username
 	if update.Username != "" {
+		if len(update.Username) < 4 || len(update.Username) > 64 {
+			w.WriteHeader(http.StatusBadRequest)
+			if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"username must be between 4 and 64 characters\"}"); err != nil {
+				log.Printf("Unable to send response: %v\n", err)
+			}
+			return
+		}
+
 		account := new(Account)
 		db.Where("user_id = ?", user.ID).First(&account)
 		account.Username = update.Username
@@ -486,6 +519,13 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Handle updating name
 	if update.Name != "" {
+		if len(update.Name) > 64 {
+			w.WriteHeader(http.StatusBadRequest)
+			if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"name must be less than 64 characters"); err != nil {
+				log.Printf("Unable to send response: %v\n", err)
+			}
+			return
+		}
 		user.Name = update.Name
 	}
 
