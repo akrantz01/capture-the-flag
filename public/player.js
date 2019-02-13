@@ -27,22 +27,57 @@ function Player(x, y, z, playerModel) {
 }
 
 Player.prototype.enemyHit = function() {
-    console.log(this.maxSpeed)
     if (this.maxSpeed > 20) {
         this.maxSpeed -= 10;
     }
 };
 
 Player.prototype.friendHit = function() {
-    console.log(this.maxSpeed)
-    if (this.maxSpeed < 160) {
+    if (this.maxSpeed < 200) {
         this.maxSpeed += 10;
+    }
+};
+
+Player.prototype.input = function(keys) {
+    if (keys[LEFT] || keys[RIGHT] || keys[UP] || keys[DOWN]) {
+        this.timeHeld += 0.5;
+        if (this.timeHeld > 16) {
+            this.timeHeld = 16;
+        }
+    } else {
+        this.timeHeld -= 2;
+        if (this.timeHeld < 0) {
+            this.timeHeld = 0;
+        }
+    }
+    if (keys[LEFT]) {
+        this.move.x = -1;
+    }
+    if (keys[RIGHT]) {
+        this.move.x = 1;
+    }
+    if (!keys[LEFT] && !keys[RIGHT]) {
+        this.move.x /= 2;
+    }
+    if (keys[UP]) {
+        this.move.z = 1;
+    }
+    if (keys[DOWN]) {
+        this.move.z = -1;
+    }
+    if (!keys[UP] && !keys[DOWN]) {
+        this.move.z /= 2;
+    }
+    if (!keys[SPACE]) {
+        this.jump = false;
+    }
+    if (keys[SPACE] && !this.jump) {
+        this.jump = true;
     }
 };
 
 Player.prototype.update = function (ground) {
     this.pos = fromBabylon(this.mesh.position);
-    //console.log("pos", this.pos)
     //prevent player vertical rotation
     this.mesh.physicsImpostor.setAngularVelocity(new BABYLON.Quaternion(0, 0, 0, 0));
     this.mesh.physicsImpostor.executeNativeFunction(function (world, body) {
@@ -61,6 +96,7 @@ Player.prototype.update = function (ground) {
     camera.alpha = tempalpha;
     camera.beta = tempbeta;
 
+    //rotate player model
     let deltar = this.oldAlpha - camera.alpha;
 
     this.meshv.rotate(BABYLON.Axis.Y, deltar, BABYLON.Space.WORLD);
@@ -84,6 +120,7 @@ Player.prototype.update = function (ground) {
     let down = this.vel.y;
     this.vel = (forwards.add(left));
     this.vel.limit(this.maxSpeed);
+    this.vel.mult(3);
     this.vel.y = down;
 
     if (this.onGround) {

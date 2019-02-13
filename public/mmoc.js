@@ -109,6 +109,18 @@ let MMOC = (function () {
             }))
         }
 
+        getScores() {
+            return _data["Scores"];
+        }
+
+        updateScore() {
+            if (!_connected) return;
+            this.ws.send(JSON.stringify({
+                type: 5,
+                id: _id
+            }));
+        }
+
         getData() {
             return _data;
         }
@@ -141,8 +153,8 @@ let MMOC = (function () {
             return _id;
         }
 
-        changeOrientation(by = reqd("by")) {
-            _orientation += by;
+        setOrientation(by = reqd("by")) {
+            _orientation = by;
         }
 
         setOther(key = reqd("key"), value = reqd("value")) {

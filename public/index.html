@@ -30,11 +30,18 @@
             filter: invert(100%) saturate(70%);
             mix-blend-mode: difference;
         }
+
+        #points {
+            position: absolute;
+            left: 50%;
+            top: 10px;
+        }
     </style>
 </head>
 <body>
 <canvas id="renderCanvas"></canvas>
 <img src="crosshair.png" id="crosshair">
+<p id="points"><span id="team1"></span> : <span id="team2"></span></p>
 
 <script src="mmoc.js"></script>
 
@@ -43,6 +50,7 @@
 <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
 <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
 <script src="decal.js"></script>
+<script src="flag.js"></script>
 <script src="Vector3.js"></script>
 <script src="projectile.js"></script>
 <script src="player.js"></script>

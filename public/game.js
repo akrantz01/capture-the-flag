@@ -10,9 +10,9 @@ var DOWN = 83; // 40;
 var SPACE = 32;
 
 //map coords
-var map = [];
+//var map = [];
 
-//list of porjectiles
+//list of projectiles
 var proj = [];
 
 //players
@@ -74,66 +74,79 @@ var createScene = function () {
     groundMaterial.ambientColor = new BABYLON.Color3(0, 0, 0);
     ground.material = groundMaterial;
 
-    //create player
+    //create player/data
     player = new Player(0, 0, 0, playerModel);
     let spawn = true;
     let team = 0;
 
-    document.addEventListener("click", function () {
-        //let vel = Vector.sub(camera.position, fromBabylon(player.mesh.position));
-        //vel.normalize();
-        let alpha = camera.alpha;
-        let beta = camera.beta;
-        let vel = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
-        proj.push(new Projectile(fromBabylon(player.mesh.position).add(vel.mult(-4)), vel.mult(3), team, true));
+    var flags = [new Flag(spawns[0].x, spawns[0].y, spawns[0].z, 1), new Flag(spawns[1].x, spawns[1].y, spawns[1].z, 2)];
+
+    //create projectiles on click
+    document.addEventListener("click", function (e) {
+        if (e.which === 3) {
+            let close = [];
+
+            let alpha = camera.alpha;
+            let beta = camera.beta;
+            let vec1 = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
+
+            let pos2 = fromBabylon(player.mesh.position);
+
+            for (let index = 0; index < Object.keys(otherPlayers).length; index++) {
+                if (Object.keys(otherPlayers)[index] !== multiplayer.getID()) {
+                    let pos1 = fromBabylon(otherPlayers[Object.keys(otherPlayers)[index]].mesh.position);
+                    let vec2 = pos1.clone().sub(pos2);
+                    vec2.y = vec1.y = 0;
+                    if (vec2.angleTo(vec1) < 2.5) {
+                        close.push([pos1, Object.keys(otherPlayers)[index]]);
+                    }
+                }
+            }
+
+            let closest = null;
+            let bestDist = 49;
+            for (let player_ in closest) {
+                let dist = Vector.distsq(player_[0], pos2);
+                if (dist < bestDist) {
+                    closest = player_;
+                    bestDist = dist;
+                }
+            }
+
+            if (closest !== null) {
+                //hit player
+            }
+        } else {
+            let alpha = camera.alpha;
+            let beta = camera.beta;
+            let vel = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
+            proj.push(new Projectile(fromBabylon(player.mesh.position).add(vel.mult(-4)), vel.mult(3), team, true));
+        }
     });
 
     //update player
+    var team1 = document.getElementById("team1");
+    var team2 = document.getElementById("team2");
 
     let delay = 0;
+    let flagCountDown = 0;
+    var highlight = new BABYLON.HighlightLayer("hl1", scene);
     scene.executeWhenReady(scene.registerBeforeRender(function () {
+        //add delay to ensure things load
         if (ground) {
             delay++;
         }
         if (delay > 100) {
-            if (keys[LEFT] || keys[RIGHT] || keys[UP] || keys[DOWN]) {
-                player.timeHeld += 0.5;
-                if (player.timeHeld > 16) {
-                    player.timeHeld = 16;
-                }
-            } else {
-                player.timeHeld -= 2;
-                if (player.timeHeld < 0) {
-                    player.timeHeld = 0;
-                }
-            }
-            if (keys[LEFT]) {
-                player.move.x = -1;
-            }
-            if (keys[RIGHT]) {
-                player.move.x = 1;
-            }
-            if (!keys[LEFT] && !keys[RIGHT]) {
-                player.move.x /= 2;
-            }
-            if (keys[UP]) {
-                player.move.z = 1;
-            }
-            if (keys[DOWN]) {
-                player.move.z = -1;
-            }
-            if (!keys[UP] && !keys[DOWN]) {
-                player.move.z /= 2;
-            }
-            if (!keys[SPACE]) {
-                player.jump = false;
-            }
-            if (keys[SPACE] && !player.jump) {
-                player.jump = true;
-            }
+            team1.innerText = multiplayer.getScores().Team1;
+            team2.innerText = multiplayer.getScores().Team2;
+
+
+            player.input(keys);
             player.update(ground);
 
             let players = multiplayer.getPlayers();
+
+            //broadcast decals/projectiles info
             for (var i = 0; i < proj.length; i++) {
                 let id = proj[i].update(ground, scene, otherPlayers, players, decalList);
                 if (id === -2) {
@@ -146,6 +159,8 @@ var createScene = function () {
                     proj.splice(i, 1);
                 }
             }
+
+            //get broadcasted decals/projectiles
             let broadDecals = multiplayer.getBroadcasts();
             if (Object.keys(broadDecals).length > 0) {
                 for (let dec2 in broadDecals) {
@@ -178,7 +193,9 @@ var createScene = function () {
                 }
             }
 
+            //update player list and positions
             if (players) {
+                player.maxSpeed = 2000;
                 let s = Object.keys(players);
                 let s2 = Object.keys(otherPlayers);
                 if (!arraysEqual(s2, s)) {
@@ -190,9 +207,9 @@ var createScene = function () {
                         }
                         if (!found) {
                             if (players[s[i]].Team === 1)
-                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, s[i], 1, playerModel);
+                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], 1, playerModel);
                             else
-                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, s[i], 2, playerModel);
+                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], 2, playerModel);
                         }
                     }
                     for (let i = 0; i < s2.length; i++) {
@@ -212,6 +229,8 @@ var createScene = function () {
                 for (let player_ in players) {
                     if (Object.keys(players)[index] !== multiplayer.getID()) {
                         otherPlayers[Object.keys(players)[index]].mesh.position = new BABYLON.Vector3(players[player_]["X"] + 1, players[player_]["Y"] + 2, players[player_]["Z"] - 0.5);
+                        //otherPlayers[Object.keys(players)[index]].mesh.rotate(-otherPlayers[Object.keys(players)[index]].alpha + players[player_]["Orientation"]);
+                        //otherPlayers[Object.keys(players)[index]].alpha = players[player_]["Orientation"];
                     } else {
                         otherPlayers[Object.keys(players)[index]].mesh.position = new BABYLON.Vector3(0, -100, -100);
                         if (spawn) {
@@ -221,13 +240,50 @@ var createScene = function () {
                         }
                     }
                     index++;
-                    for (var l = 0; l < decalList.length; l++) {
-                        if (decalList[l].update()) decalList.splice(l, 1);
+                }
+                if (team > 0) {
+                    let dist = (player.pos.x - spawns[2 - team].x) * (player.pos.x - spawns[2 - team].x) + (player.pos.z - spawns[2 - team].z) * (player.pos.z - spawns[2 - team].z);
+                    if (dist < 200) {
+                        flagCountDown++;
+                    }
+                    if (flagCountDown === 1) {
+                        highlight.addMesh(flags[2 - team].mesh, new BABYLON.Color3(2 - team, 2 - team, team - 1));
+                    }
+                    if (flagCountDown === 0) {
+                        highlight.removeMesh(flags[2 - team].mesh);
+                    }
+                    if (dist > 200 && flagCountDown > 0) {
+                        flagCountDown -= 2;
+                    }
+                    if (flagCountDown > 300) {
+                        highlight.removeMesh(flags[2 - team].mesh);
+                        flags[2 - team].taken = true;
+                    }
+                    if (flags[2 - team].taken) {
+                        setTimeout(function () {
+                            flags[2 - team].updatePosition(player.mesh.position.x, player.mesh.position.y + 7, player.mesh.position.z)
+                        }, 10);
+                    }
+                    let dist2 = (player.pos.x - spawns[team - 1].x) * (player.pos.x - spawns[team - 1].x) + (player.pos.z - spawns[team - 1].z) * (player.pos.z - spawns[team - 1].z);
+                    if (dist2 < 200 && flags[2 - team].taken) {
+                        setTimeout(function () {
+                            flags[2 - team].updatePosition(spawns[2 - team].x, spawns[2 - team].y, spawns[1].z)
+                        }, 30);
+                        flags[2 - team].taken = false;
+                        flagCountDown = 0;
+                        multiplayer.updateScore();
                     }
                 }
             }
 
+            //move decals with player
+            for (var l = 0; l < decalList.length; l++) {
+                if (decalList[l].update()) decalList.splice(l, 1);
+            }
+
+            //send client player info
             multiplayer.setPosition(player.mesh.position.x, player.mesh.position.y, player.mesh.position.z);
+            multiplayer.setOrientation(camera.alpha);
             multiplayer.sendPlayerData();
             camera.radius = 0.001;
         }
@@ -271,7 +327,7 @@ assetsManager.onFinish = function (tasks) {
     multiplayer.init();
 };
 
-//load map image and create coordinate map
+/*//load map image and create coordinate map
 var imageTask = assetsManager.addImageTask("image task", "map2.png");
 imageTask.onSuccess = function (task) {
     var canvas = document.createElement('canvas');
@@ -290,7 +346,7 @@ imageTask.onSuccess = function (task) {
         map.push(temp);
         map.push(temp);
     }
-};
+};*/
 
 var playerTask = assetsManager.addMeshTask("player task", "", "./", "snowman.babylon");
 playerTask.onSuccess = function (task) {
