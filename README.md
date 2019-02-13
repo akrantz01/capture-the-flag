@@ -22,11 +22,24 @@ Coming soon...
 * Navigate to your server's IP address
 
 ## Server Configuration
+There are two separate ways that you need to configure the server: command line arguments and environment variables.
+
+### Command Line Arguments
 | Flag    | Default   | Purpose                  |
 |---------|-----------|--------------------------|
 | --host  | 127.0.0.1 | The address to listen on |
 | --port  | 8080      | The port to listen on    |
 | --debug | false     | Enable debugging         |
+
+### Environment Variables
+
+| Environment Variable | Required | Purpose                                |
+|----------------------|----------|----------------------------------------|
+| DB_USERNAME          | Yes      | Username for logging into the database |
+| DB_PASSWORD          | Yes      | Password for logging into the database |
+| DB_DATABASE          | Yes      | Database name within PostgreSQL server |
+| DB_HOST              | Yes      | IP/FQDN to access the server at        |
+| DB_PORT              | Yes      | Port of the PostgreSQL server          |
 
 ## Disclaimer
 Please keep in mind that we are both juniors in high school which means that we won't be able to provide much support and game updates will come fairly infrequently.
