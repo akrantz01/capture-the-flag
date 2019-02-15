@@ -121,6 +121,22 @@ let MMOC = (function () {
             }));
         }
 
+        gotFlag() {
+            if (!_connected) return;
+            this.ws.send(JSON.stringify({
+                type: 6,
+                id: _id
+            }));
+        }
+
+        lostFlag() {
+            if (!_connected) return;
+            this.ws.send(JSON.stringify({
+                type: 7,
+                id: _id
+            }));
+        }
+
         getData() {
             return _data;
         }

@@ -121,6 +121,14 @@ func (c *Client) readPump() {
 				data.IncrementScoreTeam2()
 			}
 			break
+
+		case 6:
+			data.SetFlagTaken(msg.ID, data.Users[msg.ID].Team)
+			break
+
+		case 7:
+			data.ResetFlagTaken(data.Users[msg.ID].Team)
+			break
 		}
 	}
 }

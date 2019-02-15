@@ -13,6 +13,7 @@ type (
 		Objects				map[string]Object
 		Scores				Scores
 		PlayerStatistics	PlayerStats
+		Flags				Flags
 	}
 
 	// User value
@@ -58,6 +59,12 @@ type (
 	PlayerStats struct {
 		Team1	int
 		Team2	int
+	}
+
+	// Flag positions
+	Flags struct {
+		Team1 string
+		Team2 string
 	}
 )
 
@@ -171,6 +178,28 @@ func (g *GameData) GetPlayerData() ([]byte, error) {
 		return nil, err
 	}
 	return j, nil
+}
+
+func (g *GameData) SetFlagTaken(id string, team int) {
+	g.Lock()
+	defer g.Unlock()
+
+	if team == 1 {
+		g.Flags.Team1 = id
+	} else if team == 2 {
+		g.Flags.Team2 = id
+	}
+}
+
+func (g *GameData) ResetFlagTaken(team int) {
+	g.Lock()
+	defer g.Unlock()
+
+	if team == 1 {
+		g.Flags.Team1 = ""
+	} else if team == 2 {
+		g.Flags.Team2 = ""
+	}
 }
 
 func (u UserValue) equals (u2 UserValue) bool {
