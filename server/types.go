@@ -22,6 +22,7 @@ type (
 		Y	 	float32
 		Z		float32
 		Orientation	float32
+		Health	int
 		Team	int
 	}
 
@@ -31,7 +32,8 @@ type (
 		ID			string					`yaml:"id"`
 		Coordinates Coordinates				`yaml:"coordinates"`
 		Orientation	float32					`yaml:"orientation"`
-		Vel Coordinates						`yaml:"vel"`
+		Vel 		Coordinates				`yaml:"vel"`
+		Health		int						`yaml:"health"`
 	}
 
 	// Store player coordinates (2d)
@@ -73,6 +75,7 @@ func (g *GameData) SetUserData(id string, x, y, z, orientation float32) {
 		Y: y,
 		Z: z,
 		Orientation: orientation,
+		Health: 100,
 	}
 }
 
@@ -80,6 +83,13 @@ func (g *GameData) SetTeam(id string, team int) {
 	g.Lock()
 	defer g.Unlock()
 	g.Users[id].Team = team
+}
+
+func (g *GameData) UpdateHealth(id string, amount int) {
+	g.Lock()
+	defer g.Unlock()
+
+	g.Users[id].Health += amount
 }
 
 func (g *GameData) SetObject(id string, x, y, z float32) {

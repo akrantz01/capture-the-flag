@@ -127,6 +127,10 @@ func (c *Client) readPump() {
 		case 7:
 			data.ResetFlagTaken(data.Users[msg.ID].Team)
 			break
+
+		case 8:
+			data.UpdateHealth(msg.ID, msg.Health)
+			break
 		}
 	}
 }

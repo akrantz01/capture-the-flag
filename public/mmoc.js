@@ -137,6 +137,15 @@ let MMOC = (function () {
             }));
         }
 
+        changeHealth(by) {
+            if (!_connected) return;
+            this.ws.send(JSON.stringify({
+                type: 8,
+                id: _id,
+                health: by
+            }));
+        }
+
         getData() {
             return _data;
         }
