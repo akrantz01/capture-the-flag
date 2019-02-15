@@ -84,7 +84,6 @@ func (c *Client) readPump() {
 				msg.Coordinates.Y,
 				msg.Coordinates.Z,
 				msg.Orientation,
-				msg.Other,
 			)
 
 			if data.Users[msg.ID].Team == 0 {
@@ -98,7 +97,6 @@ func (c *Client) readPump() {
 				msg.Coordinates.X,
 				msg.Coordinates.Y,
 				msg.Coordinates.Z,
-				msg.Other,
 			)
 			break
 

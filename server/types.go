@@ -23,14 +23,12 @@ type (
 		Z		float32
 		Orientation	float32
 		Team	int
-		Other	map[string]interface{}
 	}
 
 	// Message container
 	Message struct {
 		Type		int						`yaml:"type"`
 		ID			string					`yaml:"id"`
-		Other		map[string]interface{}	`yaml:"other"`
 		Coordinates Coordinates				`yaml:"coordinates"`
 		Orientation	float32					`yaml:"orientation"`
 		Vel Coordinates						`yaml:"vel"`
@@ -46,7 +44,6 @@ type (
 	// Store objects
 	Object struct {
 		Coordinates Coordinates				`yaml:"coordinates"`
-		Other		map[string]interface{}	`yaml:"other"`
 	}
 
 	// Store game data
@@ -68,7 +65,7 @@ type (
 	}
 )
 
-func (g *GameData) SetUserData(id string, x, y, z, orientation float32, other map[string]interface{}) {
+func (g *GameData) SetUserData(id string, x, y, z, orientation float32) {
 	g.Lock()
 	defer g.Unlock()
 	g.Users[id] = &UserValue{
@@ -76,7 +73,6 @@ func (g *GameData) SetUserData(id string, x, y, z, orientation float32, other ma
 		Y: y,
 		Z: z,
 		Orientation: orientation,
-		Other: other,
 	}
 }
 
@@ -86,7 +82,7 @@ func (g *GameData) SetTeam(id string, team int) {
 	g.Users[id].Team = team
 }
 
-func (g *GameData) SetObject(id string, x, y, z float32, other map[string]interface{}) {
+func (g *GameData) SetObject(id string, x, y, z float32) {
 	g.Lock()
 	defer g.Unlock()
 	g.Objects[id] = Object{
@@ -95,7 +91,6 @@ func (g *GameData) SetObject(id string, x, y, z float32, other map[string]interf
 			Y: y,
 			Z: z,
 		},
-		Other: other,
 	}
 }
 
@@ -206,6 +201,5 @@ func (u UserValue) equals (u2 UserValue) bool {
 	if u.X != u2.X {return false}
 	if u.Y != u2.Y {return false}
 	if u.Z != u2.Z {return false}
-	if len(u.Other) != len(u2.Other) {return false}
 	return true
 }
