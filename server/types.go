@@ -65,6 +65,8 @@ type (
 		Team1 string
 		Team2 string
 	}
+
+	ServerCode int
 )
 
 func (g *GameData) SetUserData(id string, x, y, z, orientation float32) {

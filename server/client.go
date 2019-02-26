@@ -14,6 +14,15 @@ const (
 	pongWait       = 60 * time.Second
 	pingPeriod     = (pongWait * 9) / 10
 	maxMessageSize = 512
+
+	SetPlayerData = iota + 1
+	SetObjectData
+	DeleteObject
+	Broadcast
+	UpdateScore
+	TakeFlag
+	ResetFlag
+	UpdateHealth
 )
 
 var (
@@ -75,7 +84,7 @@ func (c *Client) readPump() {
 		}
 
 		switch msg.Type {
-		case 1:
+		case SetPlayerData:
 			id = msg.ID
 
 			data.SetUserData(
@@ -91,7 +100,7 @@ func (c *Client) readPump() {
 			}
 			break
 
-		case 2:
+		case SetObjectData:
 			data.SetObject(
 				msg.ID,
 				msg.Coordinates.X,
@@ -100,11 +109,11 @@ func (c *Client) readPump() {
 			)
 			break
 
-		case 3:
+		case DeleteObject:
 			data.DeleteObject(msg.ID)
 			break
 
-		case 4:
+		case Broadcast:
 			if out, err := json.Marshal(msg); err != nil {
 				log.Printf("JSON Encode Error: %v", err)
 			} else {
@@ -112,7 +121,7 @@ func (c *Client) readPump() {
 			}
 			break
 
-		case 5:
+		case UpdateScore:
 			if data.Users[msg.ID].Team == 1 {
 				data.IncrementScoreTeam1()
 			} else {
@@ -120,15 +129,15 @@ func (c *Client) readPump() {
 			}
 			break
 
-		case 6:
+		case TakeFlag:
 			data.SetFlagTaken(msg.ID, data.Users[msg.ID].Team)
 			break
 
-		case 7:
+		case ResetFlag:
 			data.ResetFlagTaken(data.Users[msg.ID].Team)
 			break
 
-		case 8:
+		case UpdateHealth:
 			data.UpdateHealth(msg.ID, msg.Health)
 			break
 		}

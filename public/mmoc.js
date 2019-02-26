@@ -3,6 +3,17 @@ let MMOC = (function () {
         throw new Error("Expected argument '" + name + "'")
     };
 
+    const SERVER_CODES = Object.freeze({
+        SET_PLAYER_DATA: 1,
+        SET_OBJECT_DATA: 2,
+        DELETE_OBJECT: 3,
+        BROADCAST: 4,
+        UPDATE_SCORE: 5,
+        TAKE_FLAG: 6,
+        RESET_FLAG: 7,
+        UPDATE_HEALTH: 8
+    });
+
     let _id = "";
     let _x = 0;
     let _y = 0;
@@ -57,7 +68,7 @@ let MMOC = (function () {
         sendPlayerData() {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
-                type: 1,
+                type: SERVER_CODES.SET_PLAYER_DATA,
                 id: _id,
                 other: _other,
                 coordinates: {
@@ -72,7 +83,7 @@ let MMOC = (function () {
         sendObjectData(object = reqd('object')) {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
-                type: 2,
+                type: SERVER_CODES.SET_OBJECT_DATA,
                 id: object.id,
                 other: object.other,
                 coordinates: {
@@ -86,7 +97,7 @@ let MMOC = (function () {
         removeObject(object = reqd('object')) {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
-                type: 3,
+                type: SERVER_CODES.DELETE_OBJECT,
                 id: object.id
             }));
         }
@@ -94,7 +105,7 @@ let MMOC = (function () {
         broadcast(id = reqd('id'), x = reqd('x'), y = reqd('y'), z = reqd('z'), dx = reqd('dx'), dy = reqd('dy'), dz = reqd('dz')) {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
-                type: 4,
+                type: SERVER_CODES.BROADCAST,
                 id: id,
                 vel: {
                     x: dx,
@@ -116,7 +127,7 @@ let MMOC = (function () {
         updateScore() {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
-                type: 5,
+                type: SERVER_CODES.UPDATE_SCORE,
                 id: _id
             }));
         }
@@ -124,7 +135,7 @@ let MMOC = (function () {
         gotFlag() {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
-                type: 6,
+                type: SERVER_CODES.TAKE_FLAG,
                 id: _id
             }));
         }
@@ -132,7 +143,7 @@ let MMOC = (function () {
         lostFlag() {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
-                type: 7,
+                type: SERVER_CODES.RESET_FLAG,
                 id: _id
             }));
         }
@@ -140,7 +151,7 @@ let MMOC = (function () {
         changeHealth(by) {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
-                type: 8,
+                type: SERVER_CODES.UPDATE_HEALTH,
                 id: _id,
                 health: by
             }));
