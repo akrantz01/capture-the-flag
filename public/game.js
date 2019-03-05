@@ -45,7 +45,7 @@ var createScene = function () {
     let width = 1000;
     let height = 1000;
 
-    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "map2.png", width, height, 80, 0, 255 / 2, scene, false);
+    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "map2.png", width, height, 60, 0, 255 / 2, scene, false);
     //ground.position.set(500, 0, 500);
     /*BABYLON.Mesh.CreateGround("ground", width, height, 80, scene, true);
 
@@ -97,24 +97,24 @@ var createScene = function () {
                     let pos1 = fromBabylon(otherPlayers[Object.keys(otherPlayers)[index]].mesh.position);
                     let vec2 = pos1.clone().sub(pos2);
                     vec2.y = vec1.y = 0;
-                    if (vec2.angleTo(vec1) < 2.5) {
+                    if (vec2.angleTo(vec1) > 2.5) {
                         close.push([pos1, Object.keys(otherPlayers)[index]]);
                     }
                 }
             }
 
             let closest = null;
-            let bestDist = 49;
-            for (let player_ in closest) {
-                let dist = Vector.distsq(player_[0], pos2);
+            let bestDist = 400;
+            for (let player_ in close) {
+                let dist = Vector.distsq(close[player_][0], pos2);
                 if (dist < bestDist) {
-                    closest = player_;
+                    closest = close[player_];
                     bestDist = dist;
                 }
             }
 
             if (closest !== null) {
-                //hit player
+                multiplayer.changeHealth(-10, closest[1]);
             }
         } else {
             let alpha = camera.alpha;
@@ -131,6 +131,10 @@ var createScene = function () {
     let delay = 0;
     let flagCountDown = 0;
     var highlight = new BABYLON.HighlightLayer("hl1", scene);
+    let wait = null;
+    let healtime = null;
+    let heal = false;
+
     scene.executeWhenReady(scene.registerBeforeRender(function () {
         //add delay to ensure things load
         if (ground) {
@@ -145,6 +149,35 @@ var createScene = function () {
             player.update(ground);
 
             let players = multiplayer.getPlayers();
+            let th = player.health;
+
+            if (players[multiplayer.getID()] !== undefined) {
+                player.health = players[multiplayer.getID()].Health;
+            }
+
+            if (player.health < th) {
+                heal = false;
+                clearTimeout(wait);
+                clearInterval(healtime);
+                wait = setTimeout(function () {
+                    heal = true;
+                }, 1000);
+            }
+
+            if (player.health >= 100) {
+                heal = false;
+                clearInterval(healtime);
+            }
+            if (heal) {
+                heal = false;
+                healtime = setInterval(function () {
+                    if (players[multiplayer.getID()].Health >= 100) {
+                        clearInterval(healtime);
+                    } else {
+                        multiplayer.changeHealth(1, multiplayer.getID());
+                    }
+                }, 1000);
+            }
 
             //broadcast decals/projectiles info
             for (var i = 0; i < proj.length; i++) {
@@ -195,7 +228,6 @@ var createScene = function () {
 
             //update player list and positions
             if (players) {
-                player.maxSpeed = 2000;
                 let s = Object.keys(players);
                 let s2 = Object.keys(otherPlayers);
                 if (!arraysEqual(s2, s)) {
@@ -207,9 +239,16 @@ var createScene = function () {
                         }
                         if (!found) {
                             if (players[s[i]].Team === 1)
-                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], 1, playerModel);
+                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], "", 1, playerModel, scene);
                             else
-                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], 2, playerModel);
+                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], "", 2, playerModel, scene);
+                            /*if (s[i] === multiplayer.getID()) {
+                                otherPlayers[s[i]].mesh.dispose();
+                                advancedTexture.removeControl(otherPlayers[s[i]].healthbar);
+                                otherPlayers[s[i]].healthbar.dispose();
+                                advancedTexture.removeControl(otherPlayers[s[i]].label);
+                                otherPlayers[s[i]].label.dispose();
+                            }*/
                         }
                     }
                     for (let i = 0; i < s2.length; i++) {
@@ -220,6 +259,10 @@ var createScene = function () {
                         }
                         if (!found) {
                             otherPlayers[s2[i]].mesh.dispose();
+                            /*advancedTexture.removeControl(otherPlayers[s2[i]].healthbar);
+                            otherPlayers[s2[i]].healthbar.dispose();
+                            advancedTexture.removeControl(otherPlayers[s2[i]].label);
+                            otherPlayers[s2[i]].label.dispose();*/
                             delete otherPlayers[s2[i]];
                         }
                     }
@@ -228,6 +271,8 @@ var createScene = function () {
 
                 for (let player_ in players) {
                     if (Object.keys(players)[index] !== multiplayer.getID()) {
+                        otherPlayers[Object.keys(players)[index]].move(camera.position);
+                        otherPlayers[Object.keys(players)[index]].health = players[player_].Health;
                         otherPlayers[Object.keys(players)[index]].mesh.position = new BABYLON.Vector3(players[player_]["X"] + 1, players[player_]["Y"] + 2, players[player_]["Z"] - 0.5);
                         //otherPlayers[Object.keys(players)[index]].mesh.rotate(-otherPlayers[Object.keys(players)[index]].alpha + players[player_]["Orientation"]);
                         //otherPlayers[Object.keys(players)[index]].alpha = players[player_]["Orientation"];
