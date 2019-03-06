@@ -130,22 +130,21 @@ Player.prototype.update = function (ground) {
         let incline = normal.y;
         let down = normal.add(new Vector(0, -1, 0));
         if (incline < 0.65) {
-            /*this.vel.y /= 8;
-            this.timeHeld /= 2;
-            this.vel.div(2);
-            this.vel.add(new Vector(down.x * 20, down.y * 160, down.z * 20));
-            this.vel.div(5);
-            this.mesh.physicsImpostor.applyImpulse(new BABYLON.Vector3(0, -100, 0), this.mesh.getAbsolutePosition());
-            this.jump = false;*/
             this.vel.add(new Vector(down.x * 20, down.y * 20, down.z * 20));
             tempy = this.vel.y;
             this.vel.y = 0;
             normal.y = 0;
             if (normal.x !== 0 || normal.z !== 0) {
-                angbet = Vector.angleBetween(normal, this.vel);
-                console.log(Math.cos(angbet))
-                this.vel.mult((Math.cos(angbet) + 1) ** 2);
+                angbet = Vector.angleBetween(normal.mult(-1), this.vel);
+                let multi = 0;
+                if (angbet < Math.PI/2) {
+                    multi = 0.04;
+                } else {
+                    multi = 1;
+                }
+                this.vel.mult(multi);
             }
+            this.vel.y = tempy;
             this.jump = false;
         } else if (incline < 1) {
             this.vel.mult(incline * incline * incline);
