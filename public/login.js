@@ -1,3 +1,9 @@
+STATES = Object.freeze({
+    LOGIN: 0,
+    SIGNUP: 1,
+    ACCOUNT: 2
+});
+
 function string2ArrayBuffer(string) {
     let buffer = new ArrayBuffer(string.length * 2);
     let bufferView = new Uint16Array(buffer);
@@ -193,5 +199,34 @@ function userUpdate(name="", email="", password="", username="") {
 }
 
 window.onload = () => {
+    let state;
+    verifyToken().then(status => {
+        if (status) state = STATES.ACCOUNT;
+        else state = STATES.LOGIN;
 
+        setInterval(() => {
+            switch (state) {
+                case STATES.LOGIN:
+                    document.getElementById("state_login").style.display = "block";
+                    document.getElementById("state_signup").style.display = "none";
+                    document.getElementById("state_account").style.display = "none";
+                    break;
+
+                case STATES.SIGNUP:
+                    document.getElementById("state_login").style.display = "none";
+                    document.getElementById("state_signup").style.display = "block";
+                    document.getElementById("state_account").style.display = "none";
+                    break;
+
+                case STATES.ACCOUNT:
+                    document.getElementById("state_login").style.display = "none";
+                    document.getElementById("state_signup").style.display = "none";
+                    document.getElementById("state_account").style.display = "block";
+                    break;
+            }
+        }, 100);
+    }).catch(err => {
+        // TODO: display to user
+        console.error(err);
+    });
 };
