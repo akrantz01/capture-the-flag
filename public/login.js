@@ -21,174 +21,177 @@ function hashString(string) {
 }
 
 function userSignup(name, email, password, username) {
-    let token = localStorage.getItem("token");
-    if (token !== null) {
-        console.error("already logged in");
-        return;
-    }
+    return new Promise((resolve, reject) => {
+        let token = localStorage.getItem("token");
+        if (token !== null) {
+            resolve(false);
+            return;
+        }
 
-    hashString(password).then(hashed => {
-        fetch("/api/signup", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify({
-                name: name,
-                email: email,
-                password: hashed,
-                username: username
-            })
-        }).then(res => res.json()).then(res => {
-            if (res.status === "error") {
-                console.error(res.reason);
-                // TODO: display error to user
-                return;
-            }
+        hashString(password).then(hashed => {
+            fetch("/api/signup", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    password: hashed,
+                    username: username
+                })
+            }).then(res => res.json()).then(res => {
+                if (res.status === "error") {
+                    reject(res.reason);
+                    return;
+                }
 
-            console.log("success")
-            // TODO: tell user to login
-        }).catch(err => {
-            console.error(err);
-            // TODO: display error to user
+                resolve(true);
+            }).catch(err => {
+                reject(err);
+            });
         });
     });
 }
 
 function userLogin(email, password) {
-    let token = localStorage.getItem("token");
-    if (token !== null) {
-        console.error("already logged in");
-        return;
-    }
+    return new Promise((resolve, reject) => {
+        let token = localStorage.getItem("token");
+        if (token !== null) {
+            resolve(false);
+            return;
+        }
 
-    hashString(password).then(hashed => {
-        fetch("/api/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify({
-                email: email,
-                password: hashed
-            })
-        }).then(res => res.json()).then(res => {
-            if (res.status === "error") {
-                console.error(res.reason);
-                // TODO: display to user
-                return
-            } else if (!res.hasOwnProperty("token")) {
-                console.error("unable to successfully log in: no token");
-                // TODO: display to user
-                return;
-            }
+        hashString(password).then(hashed => {
+            fetch("/api/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: hashed
+                })
+            }).then(res => res.json()).then(res => {
+                if (res.status === "error") {
+                    reject(res.reason);
+                    return
+                } else if (!res.hasOwnProperty("token")) {
+                    reject("no token");
+                    return;
+                }
 
-            localStorage.setItem("token", res.token);
-            // TODO: enable game
-        }).catch(err => {
-            console.error(err);
-            // TODO: display error to user
+                localStorage.setItem("token", res.token);
+                resolve(true);
+            }).catch(err => {
+                reject(err);
+            });
         });
     });
+
 }
 
 function userLogout() {
-    let token = localStorage.getItem("token");
-    if (token === null) {
-        console.log("not signed in");
-        // TODO: inform user already logged out
-        return;
-    }
-
-    fetch("/api/logout", {
-        method: "GET",
-        headers: {
-            "Accept": "application/json",
-            "Token": token
-        }
-    }).then(res => res.json()).then(res => {
-        if (res.status === "error") {
-            console.error(res.reason);
-            // TODO: force user to login
+    return new Promise((resolve, reject) => {
+        let token = localStorage.getItem("token");
+        if (token === null) {
+            resolve(false);
             return;
         }
 
-        console.log("logged out");
-        localStorage.removeItem("token");
-        // TODO: disable game
-    }).catch(err => {
-        console.error(err);
-        // TODO: display error to user
-    });
-}
-
-function verifyToken() {
-    let token = localStorage.getItem("token");
-    if (token === null) {
-        localStorage.removeItem("token");
-        console.log("invalid");
-        // TODO: force user to login
-        return;
-    }
-
-    fetch("/api/verify", {
-        method: "GET",
-        headers: {
-            "Accept": "application/json",
-            "Token": token
-        }
-    }).then(res => res.json()).then(res => {
-        if (res.status === "error") {
-            console.error(res.reason);
-            // TODO: force user to login
-            return;
-        }
-        console.log(`valid: ${res.valid}`);
-    }).catch(err => {
-        console.error(err);
-        // TODO: display error to user
-    });
-}
-
-function userUpdate(name="", email="", password="", username="") {
-    let token = localStorage.getItem("token");
-    if (token === null) {
-        localStorage.removeItem("token");
-        console.log("invalid");
-        // TODO: force user to login
-        return;
-    }
-
-    hashString(password).then(hashed => {
-        if (hashed === "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855") hashed = "";
-
-        fetch("/api/update", {
-            method: "PUT",
+        fetch("/api/logout", {
+            method: "GET",
             headers: {
                 "Accept": "application/json",
-                "Content-Type": "application/json",
                 "Token": token
-            },
-            body: JSON.stringify({
-                name: name,
-                email: email,
-                password: hashed,
-                username: username
-            })
+            }
         }).then(res => res.json()).then(res => {
             if (res.status === "error") {
-                console.error(res.reason);
-                // TODO: display to user
+                reject(res.reason);
                 return;
             }
 
-            // TODO: display success
-            console.log("updated");
+            localStorage.removeItem("token");
+            resolve(true);
         }).catch(err => {
-            console.error(err);
-            // TODO: display to user
+            reject(err);
         });
     });
+
+
 }
+
+function verifyToken() {
+    return new Promise((resolve, reject) => {
+        let token = localStorage.getItem("token");
+        if (token === null) {
+            localStorage.removeItem("token");
+            resolve(false);
+            return;
+        }
+
+        fetch("/api/verify", {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Token": token
+            }
+        }).then(res => res.json()).then(res => {
+            if (res.status === "error") {
+                reject(res.reason);
+                return;
+            }
+            resolve(res.valid);
+        }).catch(err => {
+            reject(err);
+        });
+    });
+
+}
+
+function userUpdate(name="", email="", password="", username="") {
+    return new Promise((resolve, reject) => {
+        let token = localStorage.getItem("token");
+        if (token === null) {
+            localStorage.removeItem("token");
+            resolve(false);
+            return;
+        }
+
+        hashString(password).then(hashed => {
+            // SHA256 value of "" <empty>
+            if (hashed === "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855") hashed = "";
+
+            fetch("/api/update", {
+                method: "PUT",
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "Token": token
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    password: hashed,
+                    username: username
+                })
+            }).then(res => res.json()).then(res => {
+                if (res.status === "error") {
+                    reject(res.reason);
+                    return;
+                }
+
+                resolve(true);
+            }).catch(err => {
+                reject(err);
+            });
+        });
+    });
+
+}
+
+window.onload = () => {
+
+};
