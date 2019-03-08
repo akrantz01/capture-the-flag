@@ -3,8 +3,9 @@ function Player(x, y, z, playerModel) {
     this.oldPos = this.pos;
     this.vel = new Vector();
     this.move = new Vector();
-    this.meshv = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 2, diameterY: 4}, scene);/*playerModel*/;
-    this.meshv.rotate(BABYLON.Axis.Y, Math.PI-0.4, BABYLON.Space.WORLD);
+    this.meshv = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 2, diameterY: 4}, scene);/*playerModel*/
+
+    this.meshv.rotate(BABYLON.Axis.Y, Math.PI - 0.4, BABYLON.Space.WORLD);
     var playerMaterial = new BABYLON.StandardMaterial("player", scene);
     playerMaterial.alpha = 0;
     this.mesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 2, diameterY: 4}, scene);
@@ -23,22 +24,23 @@ function Player(x, y, z, playerModel) {
     this.timeOfGround = 0;
     this.jump = false;
     this.onGround = false;
-    this.maxSpeed = 113;
+    this.maxSpeed = 80;
+    this.health = 100;
 }
 
-Player.prototype.enemyHit = function() {
+Player.prototype.enemyHit = function () {
     if (this.maxSpeed > 20) {
         this.maxSpeed -= 10;
     }
 };
 
-Player.prototype.friendHit = function() {
-    if (this.maxSpeed < 200) {
+Player.prototype.friendHit = function () {
+    if (this.maxSpeed < 160) {
         this.maxSpeed += 10;
     }
 };
 
-Player.prototype.input = function(keys) {
+Player.prototype.input = function (keys) {
     if (keys[LEFT] || keys[RIGHT] || keys[UP] || keys[DOWN]) {
         this.timeHeld += 0.5;
         if (this.timeHeld > 16) {
@@ -111,7 +113,7 @@ Player.prototype.update = function (ground) {
     }
 
     //player controls
-    this.speedInc = new Vector(Math.pow(this.timeHeld, 0.25)*40, 0, 0);
+    this.speedInc = new Vector(Math.pow(this.timeHeld, 0.25) * 40, 0, 0);
     this.speedInc.z = this.speedInc.x;
     let forwards = new Vector(Math.sin(-tempalpha) * this.speedInc.x, 0, Math.cos(-tempalpha) * this.speedInc.x);
     forwards.mult(this.move.x);
@@ -120,7 +122,6 @@ Player.prototype.update = function (ground) {
     let down = this.vel.y;
     this.vel = (forwards.add(left));
     this.vel.limit(this.maxSpeed);
-    this.vel.mult(3);
     this.vel.y = down;
 
     if (this.onGround) {
@@ -128,29 +129,40 @@ Player.prototype.update = function (ground) {
         let normal = fromBabylon(ground.getNormalAtCoordinates(this.pos.x, this.pos.z));
         let incline = normal.y;
         let down = normal.add(new Vector(0, -1, 0));
-
-        if (incline < 0.5) {
-            this.vel.y /= 8;
-            this.timeHeld /= 2;
-            this.vel.div(2);
-            this.vel.add(new Vector(down.x*20, down.y*160, down.z*20));
+        if (incline < 0.65) {
+            this.vel.add(new Vector(down.x * 20, down.y * 20, down.z * 20));
+            tempy = this.vel.y;
+            this.vel.y = 0;
+            normal.y = 0;
+            if (normal.x !== 0 || normal.z !== 0) {
+                angbet = Vector.angleBetween(normal.mult(-1), this.vel);
+                let multi = 0;
+                if (angbet < Math.PI/2) {
+                    multi = 0.04;
+                } else {
+                    multi = 1;
+                }
+                this.vel.mult(multi);
+            }
+            this.vel.y = tempy;
             this.jump = false;
+        } else if (incline < 1) {
+            this.vel.mult(incline * incline * incline);
         }
     }
-    if(this.jump && this.onGround) {
-        this.vel.y = 75;
+    if (this.jump && this.onGround) {
+        this.vel.y = 70;
         this.onGround = false;
     }
 
     if (!this.onGround) {
         this.timeOfGround++;
-        this.vel.y -= Math.atan(this.timeOfGround/4)*10;
+        this.vel.y -= Math.atan(this.timeOfGround / 4) * 5;
     } else {
         this.jump = false;
     }
-
-    this.mesh.physicsImpostor.setLinearVelocity(this.vel.toBabylon());
     this.mesh.physicsImpostor.applyImpulse(new BABYLON.Vector3(0, 100, 0), this.mesh.getAbsolutePosition());
+    this.mesh.physicsImpostor.setLinearVelocity(this.vel.toBabylon());
 
     this.meshv.position = new BABYLON.Vector3(this.mesh.position.x - 0.0, this.mesh.position.y + 2, this.mesh.position.z - 0.0);
 

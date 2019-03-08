@@ -70,12 +70,23 @@ type (
 func (g *GameData) SetUserData(id string, x, y, z, orientation float32) {
 	g.Lock()
 	defer g.Unlock()
-	g.Users[id] = &UserValue{
-		X: x,
-		Y: y,
-		Z: z,
-		Orientation: orientation,
-		Health: 100,
+
+	if _, ok := g.Users[id]; !ok {
+		g.Users[id] = &UserValue{
+			X: x,
+			Y: y,
+			Z: z,
+			Orientation: orientation,
+			Health: 100,
+		}
+	} else {
+		g.Users[id] = &UserValue{
+			X: x,
+			Y: y,
+			Z: z,
+			Orientation: orientation,
+			Health: g.Users[id].Health,
+		}
 	}
 }
 

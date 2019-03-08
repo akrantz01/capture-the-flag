@@ -148,11 +148,11 @@ let MMOC = (function () {
             }));
         }
 
-        changeHealth(by) {
+        changeHealth(by, id) {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
                 type: SERVER_CODES.UPDATE_HEALTH,
-                id: _id,
+                id: id,
                 health: by
             }));
         }
