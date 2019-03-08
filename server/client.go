@@ -23,6 +23,7 @@ const (
 	TakeFlag
 	ResetFlag
 	UpdateHealth
+	EventFlag
 )
 
 var (
@@ -139,6 +140,14 @@ func (c *Client) readPump() {
 
 		case UpdateHealth:
 			data.UpdateHealth(msg.ID, msg.Health)
+			break
+
+		case EventFlag:
+			if out, err := json.Marshal(msg); err != nil {
+				log.Printf("JSON Encode Error: %v", err)
+			} else {
+				c.hub.broadcast <- out
+			}
 			break
 		}
 	}
