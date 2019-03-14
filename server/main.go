@@ -81,6 +81,7 @@ func main() {
 	http.Handle("/api/signup", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(SignUpHandler)))
 	http.Handle("/api/verify", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(VerifyHandler)))
 	http.Handle("/api/update", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(UpdateHandler)))
+	http.Handle("/api/user", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(UserHandler)))
 
 	// Debug routes
 	if *debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }

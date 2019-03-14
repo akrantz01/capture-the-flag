@@ -537,3 +537,61 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Unable to send response: %v\n", err)
 	}
 }
+
+func UserHandler(w http.ResponseWriter, r *http.Request) {
+	// Check method
+	if r.Method != "GET" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"method not allowed\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Verify token exists
+	if r.Header.Get("Token") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"header 'Token' does not exist\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Verify JWT
+	token, err := GetJWT(r.Header.Get("Token"))
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token: %s\"}", err); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Get the token claims
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"invalid claims format\", \"valid\": false}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+	}
+
+	user := new(User)
+	db.Where("id = ?", claims["sub"]).First(&user)
+	if user.ID == 0 {
+		w.WriteHeader(http.StatusUnauthorized)
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"no user exists at id: %v\", \"valid\": false}", claims["sub"]); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	account := new(Account)
+	db.Where("user_id = ?", user.ID).First(&account)
+
+	w.WriteHeader(http.StatusOK)
+	if _, err := fmt.Fprintf(w, "{\"status\": \"success\", \"user\": {\"name\": \"%s\", \"email\": \"%s\", \"username\": \"%s\", \"statistics\": {\"highscore\": %d, \"time_played\": %f}}}", user.Name, user.Email, account.Username, account.HighScore, account.TimePlayed); err != nil {
+		log.Printf("Unable to send response: %v\n", err)
+	}
+}
