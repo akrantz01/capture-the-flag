@@ -4,6 +4,10 @@ STATES = Object.freeze({
     ACCOUNT: 2
 });
 
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+}
+
 function string2ArrayBuffer(string) {
     let buffer = new ArrayBuffer(string.length * 2);
     let bufferView = new Uint16Array(buffer);
@@ -120,6 +124,7 @@ function userLogout() {
             }
 
             localStorage.removeItem("token");
+            localStorage.removeItem("user");
             resolve(true);
         }).catch(err => {
             reject(err);
@@ -198,11 +203,137 @@ function userUpdate(name="", email="", password="", username="") {
 
 }
 
+function userData() {
+    return new Promise((resolve, reject) => {
+        let token = localStorage.getItem("token");
+        if (token === null) {
+            localStorage.removeItem("token");
+            resolve(false);
+            return;
+        }
+
+        fetch("/api/user", {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Token": token
+            }
+        }).then(res => res.json()).then(res => {
+            if (res.status === "error") {
+                reject(res.reason);
+                return;
+            }
+            resolve(res.user);
+        }).catch(err => {
+            reject(err);
+        })
+    });
+}
+
 window.onload = () => {
-    let state;
+    let state = STATES.LOGIN;
+
+    // Event listeners for login
+    document.getElementById("login-switch").onclick = () => {
+        state = STATES.SIGNUP;
+        document.getElementById("login-log").innerText = "";
+        document.getElementById("login-email").value = "";
+        document.getElementById("login-password").value = "";
+    };
+    document.getElementById("login-submit").onclick = (e) => {
+        e.target.disabled = true;
+        userLogin(document.getElementById("login-email").value, document.getElementById("login-password").value).then(() => {
+            userData().then(data => {
+                localStorage.setItem("user", JSON.stringify(data));
+
+                document.getElementById("account-data-name").innerText = data.name;
+                document.getElementById("account-data-email").innerText = data.email;
+                document.getElementById("account-data-username").innerText = data.username;
+                document.getElementById("account-data-highscore").innerText = data.statistics.highscore;
+                document.getElementById("account-data-timeplayed").innerText = data.statistics.time_played;
+
+                state = STATES.ACCOUNT;
+                e.target.disabled = false;
+            }).catch(err => {
+                document.getElementById("account-log").innerText = capitalizeFirstLetter(err.toString());
+            });
+        }).catch(err => {
+            document.getElementById("login-log").innerText = capitalizeFirstLetter(err.toString());
+            e.target.disabled = false;
+        });
+    };
+
+    // Event listeners for signup
+    document.getElementById("signup-switch").onclick = () => {
+        state = STATES.LOGIN;
+        document.getElementById("signup-log").innerText = "";
+        document.getElementById("signup-email").value = "";
+        document.getElementById("signup-password").value = "";
+        document.getElementById("signup-name").value = "";
+        document.getElementById("signup-username").value = "";
+    };
+    document.getElementById("signup-submit").onclick = (e) => {
+        e.target.disabled = true;
+        userSignup(document.getElementById("signup-name").value, document.getElementById("signup-email").value, document.getElementById("signup-password").value, document.getElementById("signup-username").value).then(status => {
+            state = (status) ? STATES.LOGIN : STATES.ACCOUNT;
+            e.target.disabled = false;
+        }).catch(err => {
+            document.getElementById("signup-log").innerText = capitalizeFirstLetter(err.toString());
+            e.target.disabled = false;
+        });
+
+    };
+
+
+    // Event listeners for account
+    document.getElementById("account-logout").onclick = (e) => {
+        e.target.disabled = true;
+        userLogout().then(() => {
+            state = STATES.LOGIN;
+            e.target.disabled = false;
+            document.getElementById("account-log").innerText = "";
+            document.getElementById("account-email").value = "";
+            document.getElementById("account-password").value = "";
+            document.getElementById("account-name").value = "";
+            document.getElementById("account-username").value = "";
+        }).catch(err => {
+            document.getElementById("account-log").innerText = capitalizeFirstLetter(err.toString());
+            e.target.disabled = false;
+        });
+    };
+    document.getElementById("account-submit").onclick = (e) => {
+        e.target.disabled = true;
+        userUpdate(document.getElementById("account-name").value, document.getElementById("account-email").value, document.getElementById("account-password").value, document.getElementById("account-username").value).then(() => {
+            userData().then(data => {
+                localStorage.setItem("user", JSON.stringify(data));
+
+                document.getElementById("account-data-name").innerText = data.name;
+                document.getElementById("account-data-email").innerText = data.email;
+                document.getElementById("account-data-username").innerText = data.username;
+                document.getElementById("account-data-highscore").innerText = data.statistics.highscore;
+                document.getElementById("account-data-timeplayed").innerText = data.statistics.time_played;
+
+                e.target.disabled = false;
+                document.getElementById("account-log").innerText = "";
+                document.getElementById("account-email").value = "";
+                document.getElementById("account-password").value = "";
+                document.getElementById("account-name").value = "";
+                document.getElementById("account-username").value = "";
+            }).catch(err => {
+                document.getElementById("account-log").innerText = capitalizeFirstLetter(err.toString());
+            });
+        }).catch(err => {
+            document.getElementById("account-log").innerText = capitalizeFirstLetter(err.toString());
+            e.target.disabled = false;
+        });
+    };
+
+
     verifyToken().then(status => {
         if (status) state = STATES.ACCOUNT;
-        else state = STATES.LOGIN;
+
+        document.getElementById("login-switch").disabled = false;
+        document.getElementById("login-submit").disabled = false;
 
         setInterval(() => {
             switch (state) {
@@ -219,12 +350,19 @@ window.onload = () => {
                     break;
 
                 case STATES.ACCOUNT:
+                    let user = JSON.parse(localStorage.getItem("user"));
+                    document.getElementById("account-data-name").innerText = user.name;
+                    document.getElementById("account-data-email").innerText = user.email;
+                    document.getElementById("account-data-username").innerText = user.username;
+                    document.getElementById("account-data-highscore").innerText = user.statistics.highscore;
+                    document.getElementById("account-data-timeplayed").innerText = user.statistics.time_played;
+
                     document.getElementById("state_login").style.display = "none";
                     document.getElementById("state_signup").style.display = "none";
                     document.getElementById("state_account").style.display = "block";
                     break;
             }
-        }, 100);
+        }, 15);
     }).catch(err => {
         // TODO: display to user
         console.error(err);

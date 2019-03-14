@@ -5,18 +5,107 @@
     <title>Login</title>
 
     <script src="login.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="login.css">
 </head>
 <body>
-    <div id="state_login">
+    <div id="state_login" style="display: block">
+        <h1>Login</h1>
 
+        <br>
+        <p id="login-log" style="color: red;"></p>
+        <br>
+
+        <label for="login-email">Email:</label><br>
+        <input type="email" placeholder="john@smith.com" id="login-email">
+
+        <br><br>
+
+        <label for="login-password">Password:</label><br>
+        <input type="password" placeholder="secret-password" id="login-password">
+
+        <br><br>
+
+        <button id="login-submit" disabled>Login</button>
+        <br>
+        <button id="login-switch" class="link" disabled>Don't have an account? Click here to signup.</button>
     </div>
 
-    <div id="state_signup">
+    <div id="state_signup" style="display: none;">
+        <h1>Signup</h1>
 
+        <br>
+        <p id="signup-log" style="color: red;"></p>
+        <br>
+
+        <label for="signup-name">Name:</label><br>
+        <input type="text" placeholder="John Smith" id="signup-name">
+
+        <br><br>
+
+        <label for="signup-email">Email:</label><br>
+        <input type="email" placeholder="john@smith.com" id="signup-email">
+
+        <br><br>
+
+        <label for="signup-password">Password:</label><br>
+        <input type="password" placeholder="secret-password" id="signup-password">
+
+        <br><br>
+
+        <label for="signup-username">Username:</label><br>
+        <input type="text" placeholder="jsmith94" id="signup-username">
+
+        <br><br>
+
+        <button id="signup-submit">Signup</button>
+        <br>
+        <button id="signup-switch" class="link">Don't have an account? Click here to signup.</button>
     </div>
 
-    <div id="state_account">
+    <div id="state_account" style="display: none;">
+        <h1>Account</h1>
 
+        <br>
+        <p id="account-log" style="color: red"></p>
+        <p>
+            Current Information:
+            <ul style="list-style-type: none;">
+                <li>Name: <span id="account-data-name">&lt;loading&gt;</span></li>
+                <li>Email: <span id="account-data-email">&lt;loading&gt;</span></li>
+                <li>Username: <span id="account-data-username">&lt;loading&gt;</span></li>
+                <li>Statistics:</li>
+                <ul style="list-style-type: none">
+                    <li style="margin-left: 1em">High Score: <span id="account-data-highscore">&lt;loading&gt;</span></li>
+                    <li style="margin-left: 1em">Time Played: <span id="account-data-timeplayed">&lt;loading&gt;</span></li>
+                </ul>
+            </ul>
+        </p>
+        <br>
+
+        <label for="account-name">Name:</label>
+        <input type="text" placeholder="John Smith" id="account-name">
+
+        <br><br>
+
+        <label for="account-email">Email:</label>
+        <input type="email" placeholder="john@smith.com" id="account-email">
+
+        <br><br>
+
+        <label for="account-password">Password:</label>
+        <input type="password" placeholder="secret-password" id="account-password">
+
+        <br><br>
+
+        <label for="account-username">Username:</label>
+        <input type="text" placeholder="jsmith94" id="account-username">
+
+        <br><br>
+
+        <button id="account-submit">Update</button>
+        <br><br>
+        <button id="account-logout">Logout</button>
     </div>
 </body>
 </html>
