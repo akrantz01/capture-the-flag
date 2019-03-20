@@ -105,6 +105,8 @@
 
         <button id="account-submit">Update</button>
         <br><br>
+        <button id="account-play">Play Game</button>
+        <br><br>
         <button id="account-logout">Logout</button>
     </div>
 
@@ -205,6 +207,7 @@
                 e.target.disabled = false;
             });
         };
+        document.getElementById("account-play").onclick = () => window.location.href = `${window.location.protocol}//${window.location.host}/index.html`;
 
 
         verifyToken().then(status => {
