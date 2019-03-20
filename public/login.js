@@ -331,7 +331,15 @@ window.onload = () => {
 
     verifyToken().then(status => {
         if (status) state = STATES.ACCOUNT;
-
+        else {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+        }
+    }).catch(() => {
+        state = STATES.LOGIN;
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+    }).finally(() => {
         document.getElementById("login-switch").disabled = false;
         document.getElementById("login-submit").disabled = false;
 
@@ -363,8 +371,5 @@ window.onload = () => {
                     break;
             }
         }, 15);
-    }).catch(err => {
-        // TODO: display to user
-        console.error(err);
     });
 };
