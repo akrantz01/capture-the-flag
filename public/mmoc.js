@@ -43,7 +43,6 @@ let MMOC = (function () {
             };
 
             this.ws.onmessage = function (event) {
-
                 let broad = event.data;
                 let other = "";
                 let index = broad.indexOf("}\n{");
@@ -56,15 +55,15 @@ let MMOC = (function () {
                     other = JSON.parse(other);
 
                     if (broad.Type === SERVER_CODES.BROADCAST) _broadcasts[broad.ID] = broad;
-                    else if (broad.Type === SERVER_CODES.EVENT_FLAG) _flag_events[broad.ID] = broad;
+                    else if (broad.Type === SERVER_CODES.EVENT_FLAG) _flag_events = broad;
                     else _data = broad;
                     if (other.Type === SERVER_CODES.BROADCAST) _broadcasts[other.ID] = other;
-                    else if (other.Type === SERVER_CODES.EVENT_FLAG) _flag_events[other.ID] = other;
+                    else if (other.Type === SERVER_CODES.EVENT_FLAG) _flag_events = other;
                     else _data = other;
                 } else {
                     let d = JSON.parse(event.data);
                     if (d.Type === SERVER_CODES.BROADCAST) _broadcasts[d.ID] = d;
-                    else if (d.Type === SERVER_CODES.EVENT_FLAG) _flag_events[d.ID] = d;
+                    else if (d.Type === SERVER_CODES.EVENT_FLAG) _flag_events = d;
                     else _data = d;
                 }
             };
@@ -137,11 +136,13 @@ let MMOC = (function () {
             }));
         }
 
-        gotFlag() {
+        gotFlag(flag) {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
                 type: SERVER_CODES.EVENT_FLAG,
-                id: _id
+                id: _id,
+                flag: flag,
+                action: 1
             }));
             this.ws.send(JSON.stringify({
                 type: SERVER_CODES.TAKE_FLAG,
@@ -149,11 +150,13 @@ let MMOC = (function () {
             }));
         }
 
-        lostFlag() {
+        lostFlag(flag) {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
                 type: SERVER_CODES.EVENT_FLAG,
-                id: _id
+                id: _id,
+                flag: flag,
+                action: 0
             }));
             this.ws.send(JSON.stringify({
                 type: SERVER_CODES.RESET_FLAG,
@@ -194,7 +197,7 @@ let MMOC = (function () {
 
         getFlagEvents() {
             let temp = JSON.parse(JSON.stringify(_flag_events));
-            _broadcasts = {};
+            _flag_events = {};
             return temp;
         }
 

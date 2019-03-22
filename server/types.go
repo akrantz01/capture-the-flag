@@ -34,6 +34,8 @@ type (
 		Orientation	float32					`yaml:"orientation"`
 		Vel 		Coordinates				`yaml:"vel"`
 		Health		int						`yaml:"health"`
+		Flag		int						`yaml:"flag"`
+		Action		int						`yaml:"action"`
 	}
 
 	// Store player coordinates (2d)

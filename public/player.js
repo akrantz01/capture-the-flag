@@ -26,6 +26,11 @@ function Player(x, y, z, playerModel) {
     this.onGround = false;
     this.maxSpeed = 80;
     this.health = 100;
+    this.fall = true;
+    this.slow = false;
+    this.slowWait = 0;
+    this.oldVel = this.vel.clone();
+    this.lastVels = [];
 }
 
 Player.prototype.enemyHit = function () {
@@ -124,6 +129,8 @@ Player.prototype.update = function (ground) {
     this.vel.limit(this.maxSpeed);
     this.vel.y = down;
 
+    let avgvel;
+
     if (this.onGround) {
         this.timeOfGround = 0;
         let normal = fromBabylon(ground.getNormalAtCoordinates(this.pos.x, this.pos.z));
@@ -137,17 +144,89 @@ Player.prototype.update = function (ground) {
             if (normal.x !== 0 || normal.z !== 0) {
                 angbet = Vector.angleBetween(normal.mult(-1), this.vel);
                 let multi = 0;
-                if (angbet < Math.PI/2) {
-                    multi = 0.04;
-                } else {
-                    multi = 1;
+                console.log(angbet);
+                avgvel = new Vector();
+                for (let i = 0; i < this.lastVels.length; i++) {
+                    avgvel.add(this.lastVels[i]);
                 }
-                this.vel.mult(multi);
+                if (angbet < Math.PI / 2 || true) {
+
+                    /*if (this.slow < 1) {
+                        this.slow += 0.05;
+                        this.vel.mult(0.8);
+                    }*/
+                    multi = 0.04;
+                    //angbet = Math.abs(Math.atan(normal.z/normal.x));
+                    //console.log(angbet)
+                    //this.vel.x *= Math.abs(Math.sin(angbet));
+                    //this.vel.z *= Math.abs(Math.sin(angbet));
+                    let signs = new Vector();
+                    signs.x = Math.sign(this.vel.x);
+                    signs.z = Math.sign(this.vel.z);
+
+                    let spd = this.maxSpeed * Math.cos(angbet / 1.3) * 0.9;
+
+                    this.vel.x = signs.x * (Math.abs(this.vel.x) - Math.abs(normal.x) * spd * this.slow);
+                    this.vel.z = signs.z * (Math.abs(this.vel.z) - Math.abs(normal.z) * spd * this.slow);
+
+                    if (!this.slow) {
+                        this.slow = true;
+                        this.timeHeld = 16;
+                        //this.mesh.position = (this.oldPos).toBabylon();
+                        //this.vel.sub(this.oldVel.mult(0.5));
+                    }
+                    avgvel.add(this.vel);
+                    avgvel.mult(1/(this.lastVels.length+1));
+                    this.vel = avgvel;
+                } else {
+                    multi -= 0.05;
+                    /*if (this.slow > 0) {
+                        this.vel.mult (1-this.slow/2);
+                        this.slow -= 0.1;
+                    }
+                    if (this.slow < 0) {
+                        this.slow = 0;
+                    }*/
+                }
+                console.log(this.slow)
+                //this.vel.mult(multi);
             }
             this.vel.y = tempy;
             this.jump = false;
         } else if (incline < 1) {
             this.vel.mult(incline * incline * incline);
+
+            if (this.slow) {
+                //this.slow = false;
+                this.slowWait++;
+            }
+            if (this.slowWait > 2) {
+                this.slow = false;
+                this.slowWait = 0;
+            }
+            /*if (this.slow > 0) {
+                this.vel.mult (1-this.slow/2);
+                this.slow -= 0.1;
+            }
+            if (this.slow < 0) {
+                this.slow = 0;
+            }*/
+        } else {
+            if (this.slow) {
+                //this.slow = false;
+                this.slowWait++;
+            }
+            if (this.slowWait > 2) {
+                this.slow = false;
+                this.slowWait = 0;
+            }
+            /*if (this.slow > 0) {
+                this.vel.mult (1-this.slow/2);
+                this.slow -= 0.1;
+            }
+            if (this.slow < 0) {
+                this.slow = 0;
+            }*/
         }
     }
     if (this.jump && this.onGround) {
@@ -155,7 +234,7 @@ Player.prototype.update = function (ground) {
         this.onGround = false;
     }
 
-    if (!this.onGround) {
+    if (!this.onGround && this.fall) {
         this.timeOfGround++;
         this.vel.y -= Math.atan(this.timeOfGround / 4) * 5;
     } else {
@@ -167,4 +246,9 @@ Player.prototype.update = function (ground) {
     this.meshv.position = new BABYLON.Vector3(this.mesh.position.x - 0.0, this.mesh.position.y + 2, this.mesh.position.z - 0.0);
 
     this.oldPos = this.pos.clone();
+    this.oldVel = this.vel.clone();
+    this.lastVels.push(this.vel.clone());
+    if (this.lastVels.length > 3) {
+        this.lastVels.shift();
+    }
 };

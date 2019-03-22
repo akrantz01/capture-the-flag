@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -15,15 +16,15 @@ const (
 	pingPeriod     = (pongWait * 9) / 10
 	maxMessageSize = 512
 
-	SetPlayerData = iota + 1
-	SetObjectData
-	DeleteObject
-	Broadcast
-	UpdateScore
-	TakeFlag
-	ResetFlag
-	UpdateHealth
-	EventFlag
+	SetPlayerData	= 1
+	SetObjectData	= 2
+	DeleteObject	= 3
+	Broadcast		= 4
+	UpdateScore		= 5
+	TakeFlag		= 6
+	ResetFlag		= 7
+	UpdateHealth	= 8
+	EventFlag		= 9
 )
 
 var (
@@ -45,6 +46,17 @@ type Client struct {
 }
 
 func (c *Client) readPump() {
+	fmt.Println(SetPlayerData)
+	fmt.Println(SetObjectData)
+	fmt.Println(DeleteObject)
+	fmt.Println(Broadcast)
+	fmt.Println(UpdateScore)
+	fmt.Println(TakeFlag)
+	fmt.Println(ResetFlag)
+	fmt.Println(UpdateHealth)
+	fmt.Println(EventFlag)
+
+
 	defer func() {
 		c.hub.unregister <- c
 		c.conn.Close()

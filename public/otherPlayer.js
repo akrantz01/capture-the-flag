@@ -55,14 +55,16 @@ function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, scene) {
     this.mesh.position = new BABYLON.Vector3(x, y, z);
     this.mesh.rotate(BABYLON.Axis.Y, Math.PI-0.4+alpha, BABYLON.Space.WORLD);
     this.alpha = alpha;
+    this.mesh.deltar = 0;
     this.id = id;
     this.team = team;
+    this.hasFlag = false;
     this.health = 100;
 }
 
 //https://www.babylonjs-playground.com/#3HQSB#4
 
-OtherPlayer.prototype.move = function(pos) {
+OtherPlayer.prototype.move = function() {
     //console.log(this.health)
     this.healthBar.scaling.y = this.health / 100;
     this.healthBar.position.x =  (1 - (this.health / 100)) * -1;

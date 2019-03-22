@@ -78,6 +78,7 @@ var createScene = function () {
     player = new Player(0, 0, 0, playerModel);
     let spawn = true;
     let team = 0;
+    let lastPlayerPos = new BABYLON.Vector3();
 
     var flags = [new Flag(spawns[0].x, spawns[0].y, spawns[0].z, 1), new Flag(spawns[1].x, spawns[1].y, spawns[1].z, 2)];
 
@@ -179,6 +180,11 @@ var createScene = function () {
                 }, 1000);
             }
 
+            if (player.health <= 0) {
+                spawn = true;
+                multiplayer.changeHealth(-player.health + 100, multiplayer.getID());
+            }
+
             //broadcast decals/projectiles info
             for (var i = 0; i < proj.length; i++) {
                 let id = proj[i].update(ground, scene, otherPlayers, players, decalList);
@@ -226,6 +232,7 @@ var createScene = function () {
                 }
             }
 
+            let flagsEvents = multiplayer.getFlagEvents();
             //update player list and positions
             if (players) {
                 let s = Object.keys(players);
@@ -270,54 +277,183 @@ var createScene = function () {
                 let index = 0;
 
                 for (let player_ in players) {
-                    if (Object.keys(players)[index] !== multiplayer.getID()) {
-                        otherPlayers[Object.keys(players)[index]].move(camera.position);
-                        otherPlayers[Object.keys(players)[index]].health = players[player_].Health;
-                        otherPlayers[Object.keys(players)[index]].mesh.position = new BABYLON.Vector3(players[player_]["X"] + 1, players[player_]["Y"] + 2, players[player_]["Z"] - 0.5);
+                    let tid = Object.keys(players)[index];
+                    if (tid !== multiplayer.getID()) {
+                        if (flagsEvents.Action === 1) {
+                            if (flagsEvents.Flag < 0) {
+                                flags[-flagsEvents.Flag - 1] = new Flag(spawns[-flagsEvents.Flag - 1].x, spawns[-flagsEvents.Flag - 1].y, spawns[-flagsEvents.Flag - 1].z, -flagsEvents.Flag)
+                            } else if (flagsEvents.ID === tid) {
+                                flags[flagsEvents.Flag].taken(otherPlayers[tid].team, otherPlayers[tid].mesh, tid);
+                                //otherPlayers[tid].hasFlag = true;
+                            }
+                        } else if (flagsEvents.Action === 0) {
+                            if (flagsEvents.Flag < 0) {
+                                flags[-flagsEvents.Flag - 1].mesh.dispose();
+                                flags[-flagsEvents.Flag - 1] = new Flag(spawns[-flagsEvents.Flag - 1].x, spawns[-flagsEvents.Flag - 1].y, spawns[-flagsEvents.Flag - 1].z, -flagsEvents.Flag)
+                            } else {
+                                flags[flagsEvents.Flag].pmesh = null;
+                                //flags[flagsEvents.Flag].moved = false;
+                                flags[flagsEvents.Flag].hold = false;
+                                flags[flagsEvents.Flag].id = 0;
+                                flags[flagsEvents.Flag].count = 0;
+                            }
+                        }
+                        otherPlayers[tid].move();
+                        otherPlayers[tid].health = players[player_].Health;
+                        otherPlayers[tid].mesh.position = new BABYLON.Vector3(players[player_]["X"] + 1, players[player_]["Y"] + 2, players[player_]["Z"] - 0.5);
                         //otherPlayers[Object.keys(players)[index]].mesh.rotate(-otherPlayers[Object.keys(players)[index]].alpha + players[player_]["Orientation"]);
-                        //otherPlayers[Object.keys(players)[index]].alpha = players[player_]["Orientation"];
+                        let deltar = otherPlayers[tid].alpha - players[player_]["Orientation"];
+                        otherPlayers[tid].mesh.rotate(BABYLON.Axis.Y, deltar, BABYLON.Space.WORLD);
+                        otherPlayers[tid].alpha = players[player_]["Orientation"];
+                        otherPlayers[tid].mesh.deltar = deltar;
+                        //console.log(players[player_]["Orientation"])
                     } else {
                         otherPlayers[Object.keys(players)[index]].mesh.position = new BABYLON.Vector3(0, -100, -100);
                         if (spawn) {
+                            /*if (flags[0].id === multiplayer.getID()) {
+                                multiplayer.lostFlag(0);
+                                //console.log('test3')
+                                flags[0].pmesh = null;
+                                //flags[i].moved = false;
+                                flags[0].hold = false;
+                                flags[0].id = 0;
+                                flags[0].count = 0;
+                            }
+                            if (flags[1].id === multiplayer.getID()) {
+                                multiplayer.lostFlag(1);
+                                //console.log('test3')
+                                flags[1].pmesh = null;
+                                //flags[i].moved = false;
+                                flags[1].hold = false;
+                                flags[1].id = 0;
+                                flags[1].count = 0;
+                            }*/
                             team = players[multiplayer.getID()].Team;
-                            player.mesh.position = new BABYLON.Vector3(spawns[team - 1].x, spawns[team - 1].y, spawns[team - 1].z);
+                            lastPlayerPos = player.mesh.position;
+                            //setTimeout(function () {
+                            //console.log(team)
+                            player.fall = false;
+                            player.mesh.position.y = 100000 + player.mesh.position.y;
+
+                            //}, 50);
                             spawn = false;
+                            setTimeout(function () {
+                                //console.log(team)
+                                player.fall = true;
+                                player.mesh.position = new BABYLON.Vector3(spawns[team - 1].x, spawns[team - 1].y, spawns[team - 1].z);
+
+                            }, 1000);
                         }
                     }
                     index++;
                 }
+                //console.log(player.mesh.position);
+
                 if (team > 0) {
-                    let dist = (player.pos.x - spawns[2 - team].x) * (player.pos.x - spawns[2 - team].x) + (player.pos.z - spawns[2 - team].z) * (player.pos.z - spawns[2 - team].z);
+                    for (let i = 0; i < flags.length; i++) {
+                        flags[i].update();
+                        //console.log(flags[i]);
+                        if (!flags[i].hold) {
+                            //console.log("not held");
+                            if (i !== team - 1) {
+                                //console.log(flags[i].count);
+                                let dist = (player.pos.x - flags[i].mesh.position.x) * (player.pos.x - flags[i].mesh.position.x) + (player.pos.z - flags[i].mesh.position.z) * (player.pos.z - flags[i].mesh.position.z);
+                                //console.log(flags[i].count, dist)
+                                if (dist < 200) {
+                                    flags[i].count++;
+                                    //console.log("count: " + flags[i].count);
+                                } else if (flags[i].count > 0) {
+                                    flags[i].count -= 2;
+                                }
+                                if (flags[i].count >= 50) {
+                                    flags[i].taken(team, player.mesh, multiplayer.getID());
+                                    multiplayer.gotFlag(i);
+                                }
+                            } else {
+                                let dist = (player.pos.x - flags[i].mesh.position.x) * (player.pos.x - flags[i].mesh.position.x) + (player.pos.z - flags[i].mesh.position.z) * (player.pos.z - flags[i].mesh.position.z);
+                                //console.log(dist, flags[i].moved);
+                                if (dist < 200 && flags[i].moved && player.pos.y < 10000) {
+                                    flags[i].taken(team, player.mesh, multiplayer.getID());
+                                    multiplayer.gotFlag(i);
+                                }
+                            }
+                        } else {
+                            //console.log("held");
+                            if (i !== team - 1) {
+                                if (player.health <= 0 && flags[i].id === multiplayer.getID()) {
+                                    multiplayer.lostFlag(i);
+                                    //console.log('test3')
+                                    flags[i].pmesh = null;
+                                    //flags[i].moved = false;
+                                    flags[i].hold = false;
+                                    flags[i].id = 0;
+                                    flags[i].count = 0;
+                                }
+                                let dist2 = (player.pos.x - spawns[1 - i].x) * (player.pos.x - spawns[1 - i].x) + (player.pos.z - spawns[1 - i].z) * (player.pos.z - spawns[1 - i].z);
+                                if (dist2 < 200 && flags[i].id === multiplayer.getID()) {
+                                    //console.log('test2')
+                                    multiplayer.updateScore();
+                                    multiplayer.lostFlag(-(i + 1));
+                                    flags[i].mesh.dispose();
+                                    flags[i] = new Flag(spawns[i].x, spawns[i].y, spawns[i].z, i + 1);
+                                    //flags[i].updatePosition(spawns[i].x, spawns[i].y, spawns[i].z)
+                                }
+                            } else {
+                                let dist = (player.pos.x - spawns[i].x) * (player.pos.x - spawns[i].x) + (player.pos.z - spawns[i].z) * (player.pos.z - spawns[i].z);
+                                if (dist < 200 && flags[i].id === multiplayer.getID()) {
+                                    //console.log('test')
+                                    multiplayer.lostFlag(-(i + 1));
+                                    flags[i].mesh.dispose();
+                                    flags[i] = new Flag(spawns[i].x, spawns[i].y, spawns[i].z, i + 1);
+                                }
+                                if (player.health <= 0 && flags[i].id === multiplayer.getID()) {
+                                    multiplayer.lostFlag(i);
+                                    //console.log('test4')
+                                    flags[i].updatePosition(lastPlayerPos.x, lastPlayerPos.y, lastPlayerPos.z);
+                                    flags[i].pmesh = null;
+                                    //flags[i].moved = false;
+                                    flags[i].hold = false;
+                                    flags[i].id = 0;
+                                    flags[i].count = 0;
+                                }
+                            }
+                        }
+                    }
+                    /*let dist = (player.pos.x - spawns[i].x) * (player.pos.x - spawns[i].x) + (player.pos.z - spawns[i].z) * (player.pos.z - spawns[i].z);
                     if (dist < 200) {
                         flagCountDown++;
                     }
                     if (flagCountDown === 1) {
-                        highlight.addMesh(flags[2 - team].mesh, new BABYLON.Color3(2 - team, 2 - team, team - 1));
+                        highlight.addMesh(flags[i].mesh, new BABYLON.Color3(i, i, 1 - i));
                     }
                     if (flagCountDown === 0) {
-                        highlight.removeMesh(flags[2 - team].mesh);
+                        highlight.removeMesh(flags[i].mesh);
                     }
                     if (dist > 200 && flagCountDown > 0) {
                         flagCountDown -= 2;
                     }
-                    if (flagCountDown > 300) {
-                        highlight.removeMesh(flags[2 - team].mesh);
-                        flags[2 - team].taken = true;
+                    if (flagCountDown > 50) {
+                        highlight.removeMesh(flags[i].mesh);
+                        flags[i].taken(team, player.mesh);
+                        multiplayer.gotFlag(i);
                     }
-                    if (flags[2 - team].taken) {
-                        setTimeout(function () {
-                            flags[2 - team].updatePosition(player.mesh.position.x, player.mesh.position.y + 7, player.mesh.position.z)
-                        }, 10);
+                    if (player.health <= 0) {
+                        multiplayer.lostFlag(i);
                     }
-                    let dist2 = (player.pos.x - spawns[team - 1].x) * (player.pos.x - spawns[team - 1].x) + (player.pos.z - spawns[team - 1].z) * (player.pos.z - spawns[team - 1].z);
-                    if (dist2 < 200 && flags[2 - team].taken) {
-                        setTimeout(function () {
-                            flags[2 - team].updatePosition(spawns[2 - team].x, spawns[2 - team].y, spawns[1].z)
-                        }, 30);
-                        flags[2 - team].taken = false;
-                        flagCountDown = 0;
-                        multiplayer.updateScore();
+                    let dist2 = (player.pos.x - spawns[1 - i].x) * (player.pos.x - spawns[1 - i].x) + (player.pos.z - spawns[1 - i].z) * (player.pos.z - spawns[1 - i].z);
+                    if (dist2 < 200 && flags[i].taken) {
+                        if (i !== team - 1) {
+                            /*setTimeout(function () {
+                                flags[2 - team].updatePosition(spawns[2 - team].x, spawns[2 - team].y, spawns[1].z)
+                            }, 30);
+                            flags[i] = new Flag(spawns[i].x, spawns[i].y, spawns[i].z, i + 1)
+                            flagCountDown = 0;
+                            multiplayer.updateScore();
+                        } else {
+                            multiplayer.gotFlag(-(i + 1));
+                        }
                     }
+                }*/
                 }
             }
 
