@@ -3,6 +3,18 @@ let MMOC = (function () {
         throw new Error("Expected argument '" + name + "'")
     };
 
+    const SERVER_CODES = Object.freeze({
+        SET_PLAYER_DATA: 1,
+        SET_OBJECT_DATA: 2,
+        DELETE_OBJECT: 3,
+        BROADCAST: 4,
+        UPDATE_SCORE: 5,
+        TAKE_FLAG: 6,
+        RESET_FLAG: 7,
+        UPDATE_HEALTH: 8,
+        EVENT_FLAG: 9
+    });
+
     let _id = "";
     let _x = 0;
     let _y = 0;
@@ -11,6 +23,7 @@ let MMOC = (function () {
     let _other = {};
     let _data = {};
     let _broadcasts = {};
+    let _flag_events = {};
     let _connected = false;
 
 
@@ -30,24 +43,27 @@ let MMOC = (function () {
             };
 
             this.ws.onmessage = function (event) {
-
                 let broad = event.data;
                 let other = "";
                 let index = broad.indexOf("}\n{");
+                if (index === -1) index = broad.indexOf("}{");
+                if (index === -1) index = broad.indexOf("} {");
                 if (index !== -1) {
                     broad = broad.substring(index + 1);
                     other = event.data.substring(0, index + 1);
-
                     broad = JSON.parse(broad);
                     other = JSON.parse(other);
 
-                    if (broad.Type === 4) _broadcasts[broad.ID] = broad;
+                    if (broad.Type === SERVER_CODES.BROADCAST) _broadcasts[broad.ID] = broad;
+                    else if (broad.Type === SERVER_CODES.EVENT_FLAG) _flag_events = broad;
                     else _data = broad;
-                    if (other.Type === 4) _broadcasts[other.ID] = other;
+                    if (other.Type === SERVER_CODES.BROADCAST) _broadcasts[other.ID] = other;
+                    else if (other.Type === SERVER_CODES.EVENT_FLAG) _flag_events = other;
                     else _data = other;
                 } else {
                     let d = JSON.parse(event.data);
-                    if (d.Type === 4) _broadcasts[d.ID] = d;
+                    if (d.Type === SERVER_CODES.BROADCAST) _broadcasts[d.ID] = d;
+                    else if (d.Type === SERVER_CODES.EVENT_FLAG) _flag_events = d;
                     else _data = d;
                 }
             };
@@ -56,7 +72,7 @@ let MMOC = (function () {
         sendPlayerData() {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
-                type: 1,
+                type: SERVER_CODES.SET_PLAYER_DATA,
                 id: _id,
                 other: _other,
                 coordinates: {
@@ -71,7 +87,7 @@ let MMOC = (function () {
         sendObjectData(object = reqd('object')) {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
-                type: 2,
+                type: SERVER_CODES.SET_OBJECT_DATA,
                 id: object.id,
                 other: object.other,
                 coordinates: {
@@ -85,7 +101,7 @@ let MMOC = (function () {
         removeObject(object = reqd('object')) {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
-                type: 3,
+                type: SERVER_CODES.DELETE_OBJECT,
                 id: object.id
             }));
         }
@@ -93,7 +109,7 @@ let MMOC = (function () {
         broadcast(id = reqd('id'), x = reqd('x'), y = reqd('y'), z = reqd('z'), dx = reqd('dx'), dy = reqd('dy'), dz = reqd('dz')) {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
-                type: 4,
+                type: SERVER_CODES.BROADCAST,
                 id: id,
                 vel: {
                     x: dx,
@@ -106,6 +122,55 @@ let MMOC = (function () {
                     z: z
                 }
             }))
+        }
+
+        getScores() {
+            return _data["Scores"];
+        }
+
+        updateScore() {
+            if (!_connected) return;
+            this.ws.send(JSON.stringify({
+                type: SERVER_CODES.UPDATE_SCORE,
+                id: _id
+            }));
+        }
+
+        gotFlag(flag) {
+            if (!_connected) return;
+            this.ws.send(JSON.stringify({
+                type: SERVER_CODES.EVENT_FLAG,
+                id: _id,
+                flag: flag,
+                action: 1
+            }));
+            this.ws.send(JSON.stringify({
+                type: SERVER_CODES.TAKE_FLAG,
+                id: _id
+            }));
+        }
+
+        lostFlag(flag) {
+            if (!_connected) return;
+            this.ws.send(JSON.stringify({
+                type: SERVER_CODES.EVENT_FLAG,
+                id: _id,
+                flag: flag,
+                action: 0
+            }));
+            this.ws.send(JSON.stringify({
+                type: SERVER_CODES.RESET_FLAG,
+                id: _id
+            }));
+        }
+
+        changeHealth(by, id) {
+            if (!_connected) return;
+            this.ws.send(JSON.stringify({
+                type: SERVER_CODES.UPDATE_HEALTH,
+                id: id,
+                health: by
+            }));
         }
 
         getData() {
@@ -125,10 +190,15 @@ let MMOC = (function () {
         }
 
         getBroadcasts() {
-            setTimeout(() => {
-                _broadcasts = {}
-            }, 1);
-            return _broadcasts;
+            let temp = JSON.parse(JSON.stringify(_broadcasts));
+            _broadcasts = {};
+            return temp;
+        }
+
+        getFlagEvents() {
+            let temp = JSON.parse(JSON.stringify(_flag_events));
+            _flag_events = {};
+            return temp;
         }
 
         setPosition(x = reqd('x'), y = reqd('y'), z = reqd('z')) {
@@ -141,8 +211,8 @@ let MMOC = (function () {
             return _id;
         }
 
-        changeOrientation(by = reqd("by")) {
-            _orientation += by;
+        setOrientation(by = reqd("by")) {
+            _orientation = by;
         }
 
         setOther(key = reqd("key"), value = reqd("value")) {

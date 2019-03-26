@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -14,6 +15,16 @@ const (
 	pongWait       = 60 * time.Second
 	pingPeriod     = (pongWait * 9) / 10
 	maxMessageSize = 512
+
+	SetPlayerData	= 1
+	SetObjectData	= 2
+	DeleteObject	= 3
+	Broadcast		= 4
+	UpdateScore		= 5
+	TakeFlag		= 6
+	ResetFlag		= 7
+	UpdateHealth	= 8
+	EventFlag		= 9
 )
 
 var (
@@ -35,6 +46,17 @@ type Client struct {
 }
 
 func (c *Client) readPump() {
+	fmt.Println(SetPlayerData)
+	fmt.Println(SetObjectData)
+	fmt.Println(DeleteObject)
+	fmt.Println(Broadcast)
+	fmt.Println(UpdateScore)
+	fmt.Println(TakeFlag)
+	fmt.Println(ResetFlag)
+	fmt.Println(UpdateHealth)
+	fmt.Println(EventFlag)
+
+
 	defer func() {
 		c.hub.unregister <- c
 		c.conn.Close()
@@ -75,7 +97,7 @@ func (c *Client) readPump() {
 		}
 
 		switch msg.Type {
-		case 1:
+		case SetPlayerData:
 			id = msg.ID
 
 			data.SetUserData(
@@ -84,7 +106,6 @@ func (c *Client) readPump() {
 				msg.Coordinates.Y,
 				msg.Coordinates.Z,
 				msg.Orientation,
-				msg.Other,
 			)
 
 			if data.Users[msg.ID].Team == 0 {
@@ -92,21 +113,20 @@ func (c *Client) readPump() {
 			}
 			break
 
-		case 2:
+		case SetObjectData:
 			data.SetObject(
 				msg.ID,
 				msg.Coordinates.X,
 				msg.Coordinates.Y,
 				msg.Coordinates.Z,
-				msg.Other,
 			)
 			break
 
-		case 3:
+		case DeleteObject:
 			data.DeleteObject(msg.ID)
 			break
 
-		case 4:
+		case Broadcast:
 			if out, err := json.Marshal(msg); err != nil {
 				log.Printf("JSON Encode Error: %v", err)
 			} else {
@@ -114,11 +134,31 @@ func (c *Client) readPump() {
 			}
 			break
 
-		case 5:
+		case UpdateScore:
 			if data.Users[msg.ID].Team == 1 {
 				data.IncrementScoreTeam1()
 			} else {
 				data.IncrementScoreTeam2()
+			}
+			break
+
+		case TakeFlag:
+			data.SetFlagTaken(msg.ID, data.Users[msg.ID].Team)
+			break
+
+		case ResetFlag:
+			data.ResetFlagTaken(data.Users[msg.ID].Team)
+			break
+
+		case UpdateHealth:
+			data.UpdateHealth(msg.ID, msg.Health)
+			break
+
+		case EventFlag:
+			if out, err := json.Marshal(msg); err != nil {
+				log.Printf("JSON Encode Error: %v", err)
+			} else {
+				c.hub.broadcast <- out
 			}
 			break
 		}
