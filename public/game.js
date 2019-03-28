@@ -23,7 +23,9 @@ var decalList = [];
 
 var playerModel;
 
-var spawns = [{x: 243.85, y: 132, z: -218.78}, {x: -343.63, y: 132, z: 293.73}];
+var spawns = [{x: 243.85, y: 132, z: -218.78}, {x: 243.85, y: 132, z: -218.78}/*{x: -343.63, y: 132, z: 293.73}*/];
+
+var healthbar;
 
 var createScene = function () {
     var gravityVector = new BABYLON.Vector3(0, -100, 0);
@@ -179,6 +181,14 @@ var createScene = function () {
                     }
                 }, 1000);
             }
+            let color;
+            if (player.health < 15) color = "#e74c3c"; else if (player.health < 50) color = "#f39c12"; else color = "#2ecc71";
+            healthbar[0].style.left = "-" + (100 - player.health) + "%";
+            healthbar[0].style.background = color;
+            document.querySelectorAll("#health-text")[0].innerHTML = player.health;
+            document.querySelectorAll("#health")[0].style.color = color;
+            document.querySelectorAll('#armor-bar .level')[0].style.left = "-" + (100 - player.maxSpeed) + "%";
+            document.querySelectorAll("#armor-text")[0].innerHTML = player.maxSpeed;
 
             if (player.health <= 0) {
                 spawn = true;
@@ -193,6 +203,7 @@ var createScene = function () {
                 } else if (id !== 0 && id !== -1) {
                     multiplayer.broadcast(id.pickedMesh.tempID, id.pickedPoint.x, id.pickedPoint.y, id.pickedPoint.z, team, 0, 0);
                     proj.splice(i, 1);
+                    console.log(id.pickedMesh.tempID)
                 } else if (id === -1) {
                     multiplayer.broadcast("-1" + multiplayer.getID(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, 0, 0, 0);
                     proj.splice(i, 1);
@@ -210,13 +221,16 @@ var createScene = function () {
                         proj.push(new Projectile(pos, tvel, team, false));
                     } else if (dec.ID.slice(0, 2) !== "-1" && dec.ID !== '') {
                         if (dec.ID === multiplayer.getID()) {
+                            console.log(dec.ID)
                             if (dec.Vel.X === team) {
                                 player.friendHit();
+                                console.log("fh");
                             } else {
                                 player.enemyHit();
                             }
-                        } else if (otherPlayers[dec.ID])
+                        } else if (otherPlayers[dec.ID]) {
                             decalList.push(new Decal(pos, (Vector.sub(fromBabylon(otherPlayers[dec.ID].mesh.position), fromBabylon(pos)).normalize()).toBabylon(), otherPlayers[dec.ID].mesh, scene));
+                        }
                     } else if (dec.ID !== 0 && dec.ID !== '' && dec.ID !== "-1" + multiplayer.getID()) {
                         var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
                         decalMaterial.diffuseColor = new BABYLON.Color3(0, 1, 0);
@@ -498,6 +512,7 @@ assetsManager.onProgress = function (remainingCount, totalCount, lastFinishedTas
 };
 assetsManager.onFinish = function (tasks) {
     createScene();
+    healthbar = document.querySelectorAll('#health-bar .level');
 
     engine.runRenderLoop(function () {
         if (scene) {
@@ -543,7 +558,7 @@ assetsManager.load();
 
 // Resize
 window.addEventListener("resize", function () {
-    //engine.resize();
+    engine.resize();
 });
 
 //update key list

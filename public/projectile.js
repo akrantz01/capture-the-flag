@@ -40,7 +40,7 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
         if (players) {
             let meshes = [];
             for (var i = 0; i < Object.keys(players).length; i++) {
-                players[Object.keys(players)[i]].mesh.tempID = Object.keys(oPlayers)[i];
+                players[Object.keys(players)[i]].mesh.tempID = Object.keys(players)[i];
                 meshes.push(players[Object.keys(players)[i]].mesh);
             }
             var hitInfo = this.ray.intersectsMeshes(meshes);

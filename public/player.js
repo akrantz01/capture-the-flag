@@ -145,6 +145,9 @@ Player.prototype.update = function (ground) {
                 angbet = Vector.angleBetween(normal.mult(-1), this.vel);
                 let multi = 0;
                 console.log(angbet);
+                if (angbet === null) {
+                    angbet = 0;
+                }
                 avgvel = new Vector();
                 for (let i = 0; i < this.lastVels.length; i++) {
                     avgvel.add(this.lastVels[i]);
@@ -240,6 +243,15 @@ Player.prototype.update = function (ground) {
     } else {
         this.jump = false;
     }
+
+    if (this.vel === null || this.vel.x === null || this.vel.y === null || this.vel.z === null) {
+        this.vel = this.lastVels[this.lastVels.length-1];
+    }
+
+    if (this.pos === null || this.pos.x === null || this.pos.y === null || this.pos.z === null) {
+        this.pos = this.oldPos;
+    }
+
     this.mesh.physicsImpostor.applyImpulse(new BABYLON.Vector3(0, 100, 0), this.mesh.getAbsolutePosition());
     this.mesh.physicsImpostor.setLinearVelocity(this.vel.toBabylon());
 
