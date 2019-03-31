@@ -179,6 +179,20 @@
                 }).catch(err => toastr.error(capitalizeFirstLetter(err.toString()), "Unable to Sign Up"))
                     .finally(() => e.target.disabled = false);
             });
+
+            $("#account-save").on("click", function (e) {
+                e.target.disabled = true;
+                userUpdate($("#account-name").val(), $("#account-email").val(), $("#account-password").val(), $("#account-username").val()).then(() => {
+                    userData().then(data => {
+                        localStorage.setItem("user", JSON.stringify(data));
+
+                        $("#account-name").attr("placeholder", `Current: ${data.name}`).val("");
+                        $("#account-username").attr("placeholder", `Current: ${data.username}`).val("");
+                        $("#account-email").attr("placeholder", `Current: ${data.email}`).val("");
+                    }).catch(err => toastr.error(capitalizeFirstLetter(err), "Unable to retrieve data"));
+                }).catch(err => toastr.error(capitalizeFirstLetter(err), "Unable to update information"))
+                    .finally(() => e.target.disabled = false);
+            });
         });
     </script>
 </body>
