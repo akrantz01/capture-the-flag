@@ -93,6 +93,34 @@
             let panelOne = form_panel_two.height(),
                 panelTwo = form_panel_two[0].scrollHeight;
 
+            let submit_login = $("#submit-login"), submit_register = $("#submit-register");
+            submit_login.attr("disabled", true);
+            submit_register.attr("disabled", true);
+
+            verifyToken().then(status => {
+                if (status) {
+                    let user = JSON.parse(localStorage.getItem("user"));
+
+                    $(".form-toggle")[0].style.display = "none";
+                    $(".form-panel.one")[0].style.display = "none";
+                    $(".form-panel.two")[0].style.display = "none";
+                    $(".form-panel.three")[0].style.display = "block";
+
+                    $("#account-name").attr("placeholder", `Current: ${user.name}`);
+                    $("#account-username").attr("placeholder", `Current: ${user.username}`);
+                    $("#account-email").attr("placeholder", `Current: ${user.email}`);
+                } else {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("user");
+                }
+            }).catch(() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+            }).finally(() => {
+                submit_login.attr("disabled", false);
+                submit_register.attr("disabled", false);
+            });
+
             form_panel_two.not('.form-panel.two.active').on('click', function(e) {
                 e.preventDefault();
 
@@ -114,7 +142,7 @@
                 }, 200);
             });
 
-            $('#submit-login').on('click', function (e) {
+            submit_login.on('click', function (e) {
                 e.preventDefault();
                 e.target.disabled = true;
 
@@ -137,7 +165,7 @@
                     .finally(() => e.target.disabled = false);
             });
 
-            $('#submit-register').on('click', function (e) {
+            submit_register.on('click', function (e) {
                 e.preventDefault();
                 e.target.disabled = true;
 
