@@ -159,6 +159,9 @@
                         $("#account-username").attr("placeholder", `Current: ${data.username}`);
                         $("#account-email").attr("placeholder", `Current: ${data.email}`);
 
+                        $("#email-login").val("");
+                        $("#password-login").val("");
+
                         toastr.success("", "Successfully logged in");
                     }).catch(err => toastr.error(capitalizeFirstLetter(err.toString()), "Unable to get account data"));
                 }).catch(err => toastr.error(capitalizeFirstLetter(err.toString()), "Unable to login"))
@@ -176,6 +179,11 @@
                     } else {
                         toastr.error("An unknown error occurred", "Unable to create user");
                     }
+
+                    $("#name-register").val("");
+                    $("#username-register").val("");
+                    $("#email-register").val("");
+                    $("#password-register").val("");
                 }).catch(err => toastr.error(capitalizeFirstLetter(err.toString()), "Unable to Sign Up"))
                     .finally(() => e.target.disabled = false);
             });
@@ -189,8 +197,29 @@
                         $("#account-name").attr("placeholder", `Current: ${data.name}`).val("");
                         $("#account-username").attr("placeholder", `Current: ${data.username}`).val("");
                         $("#account-email").attr("placeholder", `Current: ${data.email}`).val("");
+                        $("#account-password").val("");
+
+                        toastr.success("", "Successfully updated information");
                     }).catch(err => toastr.error(capitalizeFirstLetter(err), "Unable to retrieve data"));
                 }).catch(err => toastr.error(capitalizeFirstLetter(err), "Unable to update information"))
+                    .finally(() => e.target.disabled = false);
+            });
+
+            $("#account-logout").on("click", function (e) {
+                e.target.disabled = true;
+                userLogout().then(() => {
+                    $("#account-name").val("");
+                    $("#account-username").val("");
+                    $("#account-email").val("");
+                    $("#account-password").val("");
+
+                    $(".form-toggle")[0].style.display = "block";
+                    $(".form-panel.one")[0].style.display = "block";
+                    $(".form-panel.two")[0].style.display = "block";
+                    $(".form-panel.three")[0].style.display = "none";
+
+                    toastr.success("", "Successfully logged out");
+                }).catch(err => toastr.error(capitalizeFirstLetter(err), "Unable to logout"))
                     .finally(() => e.target.disabled = false);
             });
         });
