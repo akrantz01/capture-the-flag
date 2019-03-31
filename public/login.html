@@ -4,14 +4,22 @@
     <meta charset="UTF-8">
     <title>Login</title>
 
+    <!--
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js" integrity="sha256-yNbKY1y6h2rbVcQtf0b8lq4a+xpktyFc3pSYoGAY1qQ=" crossorigin="anonymous"></script>
+    -->
+    <script src="lib/jquery.min.js"></script>
+    <script src="lib/toastr.min.js"></script>
 
     <script src="login.js"></script>
-    <!--<script src="login-view.js"></script>-->
 
     <link rel="stylesheet" type="text/css" href="login.css">
+
+    <!--
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" integrity="sha256-R91pD48xW+oHbpJYGn5xR0Q7tMhH4xOrWn1QqMRINtA=" crossorigin="anonymous" />
+    -->
+    <link rel="stylesheet" type="text/css" href="lib/toastr.min.css"/>
+
 </head>
 <body>
     <div class="form">
@@ -41,6 +49,21 @@
                     <div class="form-group"><label for="password-register">Password</label><input type="password" id="password-register" name="password" required="required" /></div>
                     <div class="form-group register"><button type="submit" id="submit-register">Register</button></div>
                 </form>
+            </div>
+        </div>
+        <div class="form-panel three" style="display: none">
+            <div class="form-header">
+                <h1>Account</h1>
+            </div>
+            <div class="form-content">
+                <div class="form-group"><label for="account-name">Name</label><input type="text" id="account-name" name="name" placeholder="Current: " /></div>
+                <div class="form-group"><label for="account-username">Username</label><input type="text" id="account-username" name="username" placeholder="Current: " /></div>
+                <div class="form-group"><label for="account-email">Email</label><input type="email" id="account-email" name="email" placeholder="Current: " /></div>
+                <div class="form-group"><label for="account-password">Password</label><input type="password" id="account-password" name="password" /></div>
+                <div class="form-group half"><button id="account-save">Save</button></div>
+                <br><br>
+                <div class="form-group"><button id="account-logout">Log Out</button></div>
+                <div class="form-group"><button id="account-play">Play</button></div>
             </div>
         </div>
     </div>
@@ -99,7 +122,16 @@
                     userData().then(data => {
                         localStorage.setItem("user", JSON.stringify(data));
 
-                        toastr.success("We will be redirecting you soon", "Successfully logged in");
+                        $(".form-toggle")[0].style.display = "none";
+                        $(".form-panel.one")[0].style.display = "none";
+                        $(".form-panel.two")[0].style.display = "none";
+                        $(".form-panel.three")[0].style.display = "block";
+
+                        $("#account-name").attr("placeholder", `Current: ${data.name}`);
+                        $("#account-username").attr("placeholder", `Current: ${data.username}`);
+                        $("#account-email").attr("placeholder", `Current: ${data.email}`);
+
+                        toastr.success("", "Successfully logged in");
                     }).catch(err => toastr.error(capitalizeFirstLetter(err.toString()), "Unable to get account data"));
                 }).catch(err => toastr.error(capitalizeFirstLetter(err.toString()), "Unable to login"))
                     .finally(() => e.target.disabled = false);

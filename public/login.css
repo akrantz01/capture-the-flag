@@ -280,3 +280,7 @@ body {
     background: #FFFFFF !important;
     color: #4285F4 !important;
 }
+
+.form-group.half {
+    width: 50%;
+}
