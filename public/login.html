@@ -222,6 +222,10 @@
                 }).catch(err => toastr.error(capitalizeFirstLetter(err), "Unable to logout"))
                     .finally(() => e.target.disabled = false);
             });
+
+            $("#account-play").on("click", function () {
+                window.location.href = "/index.html";
+            });
         });
     </script>
 </body>
