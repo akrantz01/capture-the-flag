@@ -4,11 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gorilla/handlers"
+	"gopkg.in/gomail.v2"
 	"gopkg.in/hlandau/passlib.v1"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 )
@@ -28,6 +30,7 @@ var (
 	}
 	hub = newHub()
 	db = connectDatabase()
+	mail = make(chan *gomail.Message)
 )
 
 func main() {
@@ -60,6 +63,7 @@ func main() {
 		os.Exit(0)
 	}()
 
+	// Send data to connected clients
 	go func() {
 		log.Println("Started pushing data...")
 		for {
@@ -69,6 +73,61 @@ func main() {
 				hub.broadcast <- out
 			}
 			time.Sleep(15 * time.Millisecond)
+		}
+	}()
+
+	// Password reset email sender
+	go func() {
+		if os.Getenv("EMAIL_HOST") == "" || os.Getenv("EMAIL_PORT") == "" || os.Getenv("EMAIL_USERNAME") == "" || os.Getenv("EMAIL_PASSWORD") == "" || os.Getenv("EMAIL_SSL") == "" || os.Getenv("DOMAIN") == "" {
+			panic("Environment variables: EMAIL_HOST, EMAIL_PORT, EMAIL_USERNAME, EMAIL_PASSWORD, EMAIL_SSL, and DOMAIN must be defined")
+		}
+
+		port, err := strconv.Atoi(os.Getenv("EMAIL_PORT"))
+		if err != nil {
+			panic("EMAIL_PORT must be an integer")
+		}
+		ssl, err := strconv.ParseBool(os.Getenv("EMAIL_SSL"))
+		if err != nil {
+			panic("EMAIL_SSL must be a boolean")
+		}
+
+		d := gomail.NewDialer(os.Getenv("EMAIL_HOST"), port, os.Getenv("EMAIL_USERNAME"), os.Getenv("EMAIL_PASSWORD"))
+		d.SSL = ssl
+
+		log.Print("Connecting to mail server...")
+		var s gomail.SendCloser
+		if s, err = d.Dial(); err != nil {
+			panic(fmt.Sprintf("Unable to connect to mail server: %v\n", err))
+		}
+		log.Print("Connected")
+
+		open := true
+
+		for {
+			select {
+			case m, ok := <- mail:
+				if !ok {
+					return
+				}
+				if !open {
+					if s, err = d.Dial(); err != nil {
+						panic(err)
+					}
+					open = true
+				}
+				if err := gomail.Send(s, m); err != nil {
+					log.Print(err)
+				}
+				break
+
+				case <- time.After(30 * time.Second):
+					if open {
+						if err := s.Close(); err != nil {
+							panic(err)
+						}
+						open = false
+					}
+			}
 		}
 	}()
 

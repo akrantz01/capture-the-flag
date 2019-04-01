@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"gopkg.in/gomail.v2"
 	"gopkg.in/hlandau/passlib.v1"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -658,7 +660,13 @@ func ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	pr.Token = signed
 	db.Save(&pr)
 
-	// TODO: send email w/ reset token
+	// Send mail
+	m := gomail.NewMessage()
+	m.SetHeader("From", os.Getenv("EMAIL_USERNAME"))
+	m.SetHeader("To", pr.Email)
+	m.SetHeader("Subject", "Reset Your Password")
+	m.SetBody("text/html", fmt.Sprintf("To reset your password for capture the flag: <a href=\"http://%s/reset-password.html?token=%s\">Click Here</a>", os.Getenv("DOMAIN"), pr.Token))
+	mail <- m
 
 	w.WriteHeader(http.StatusOK)
 	if _, err := fmt.Fprintf(w, "{\"status\": \"success\"}"); err != nil {
