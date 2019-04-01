@@ -542,7 +542,6 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 	// Check method
 	if r.Method != "GET" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.WriteHeader(http.StatusMethodNotAllowed)
 		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"method not allowed\"}"); err != nil {
 			log.Printf("Unable to send response: %v\n", err)
 		}
@@ -592,6 +591,202 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	if _, err := fmt.Fprintf(w, "{\"status\": \"success\", \"user\": {\"name\": \"%s\", \"email\": \"%s\", \"username\": \"%s\", \"statistics\": {\"highscore\": %d, \"time_played\": %f}}}", user.Name, user.Email, account.Username, account.HighScore, account.TimePlayed); err != nil {
+		log.Printf("Unable to send response: %v\n", err)
+	}
+}
+
+func ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	// Check method
+	if r.Method != "GET" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"method not allowed\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Check query parameters
+	if _, ok := r.URL.Query()["email"]; !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"expected query parameter 'email'\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Generate signing key
+	signingKey := make([]byte, 128)
+	if _, err := rand.Read(signingKey); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"unable to generate JWT signing key\"}"); err != nil {
+			log.Printf("Unable to send request: %v\n", err)
+		}
+		return
+	}
+	b64SigningKey := base64.StdEncoding.EncodeToString(signingKey)
+
+	// Save token to db
+	pr := &PasswordReset{
+		Email: r.URL.Query()["email"][0],
+		SigningKey: b64SigningKey,
+		Token: "",
+	}
+	db.NewRecord(pr)
+	db.Create(&pr)
+
+	// Create claims
+	claims := &jwt.StandardClaims{
+		ExpiresAt: time.Now().Unix() + (60*60*24),
+		Issuer: "capture-the-flag",
+		IssuedAt: time.Now().Unix(),
+		Subject: r.URL.Query()["email"][0],
+	}
+
+	// Generate token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token.Header["kid"] = pr.ID
+
+	// Sign token
+	signed, err := token.SignedString(signingKey)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"unable to sign JWT\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+	pr.Token = signed
+	db.Save(&pr)
+
+	// TODO: send email w/ reset token
+
+	w.WriteHeader(http.StatusOK)
+	if _, err := fmt.Fprintf(w, "{\"status\": \"success\"}"); err != nil {
+		log.Printf("Unable to send response: %v\n", err)
+	}
+}
+
+func ResetPassword(w http.ResponseWriter, r *http.Request) {
+	// Check method
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"method not allowed\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Decode json body
+	decoder := json.NewDecoder(r.Body)
+	var reset struct{
+		Password	string	`json:"password"`
+	}
+	if err := decoder.Decode(&reset); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"unable to unmarshal json: %v\"}", err); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Check password exists
+	if reset.Password == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"password field is required\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Check password length
+	if len(reset.Password) != 64 {
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"password must be 64 characters\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Check headers
+	if r.Header.Get("Token") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"header 'Token' does not exist\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Verify JWT
+	token, err := jwt.Parse(r.Header.Get("Token"), func(token *jwt.Token) (i interface{}, e error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		} else if _, ok := token.Header["kid"]; !ok {
+			return nil, fmt.Errorf("unable to find key id in token")
+		}
+
+		// Get token
+		pq := new(PasswordReset)
+		db.Where("id = ?", token.Header["kid"]).First(&pq)
+		if pq.SigningKey == "" {
+			return nil, fmt.Errorf("unable to find signing key for token: %v", token.Header["kid"])
+		}
+
+		// Decode signing key
+		signingKey, err := base64.StdEncoding.DecodeString(pq.SigningKey)
+		if err != nil {
+			return nil, fmt.Errorf("unable to decode signing key")
+		}
+
+		return signingKey, nil
+	})
+	if err != nil || !token.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"invalid token: %s\"}", err); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	// Get token claims
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"invalid claims format\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
+	user := new(User)
+	db.Where("email = ?", claims["sub"]).First(&user)
+	if user.ID == 0 {
+		w.WriteHeader(http.StatusUnauthorized)
+		if _, err := fmt.Fprintf(w, "{\"status\": \"error\", \"reason\": \"no user exists at email: %s\"}", claims["sub"]); err != nil {
+			log.Printf("Unable to send request: %v\n", err)
+		}
+		return
+	}
+
+	// Hash the password
+	hashed, err := passlib.Hash(reset.Password)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		if _, err := fmt.Fprint(w, "{\"status\": \"error\", \"reason\": \"unable to hash password\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		log.Printf("Error hashing password: %v\n", err)
+		return
+	}
+
+	user.Password = hashed
+	db.Save(&user)
+
+	pq := new(PasswordReset)
+	db.Where("id = ?", token.Header["kid"]).First(&pq)
+	db.Delete(&pq)
+
+	w.WriteHeader(http.StatusOK)
+	if _, err := fmt.Fprint(w, "{\"status\": \"success\"}"); err != nil {
 		log.Printf("Unable to send response: %v\n", err)
 	}
 }

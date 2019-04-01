@@ -32,6 +32,13 @@ type Token struct {
 	SigningKey	string
 }
 
+type PasswordReset struct {
+	gorm.Model
+	Email		string
+	Token		string
+	SigningKey	string
+}
+
 func connectDatabase() *gorm.DB {
 	if os.Getenv("DB_USERNAME") == "" || os.Getenv("DB_PASSWORD" ) == "" || os.Getenv("DB_DATABASE") == "" || os.Getenv("DB_HOST") == "" || os.Getenv("DB_PORT") == "" {
 		panic("Environment variables: DB_USERNAME, DB_PASSWORD, DB_DATABASE, DB_HOST, and DB_PORT must be defined")
@@ -53,7 +60,7 @@ func connectDatabase() *gorm.DB {
 }
 
 func createSchema(db *gorm.DB) {
-	for _, model := range []interface{}{&User{}, &Account{}, &Token{}} {
+	for _, model := range []interface{}{&User{}, &Account{}, &Token{}, &PasswordReset{}} {
 		if !db.HasTable(model) {
 			db.CreateTable(model)
 		}

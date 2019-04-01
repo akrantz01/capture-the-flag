@@ -82,6 +82,8 @@ func main() {
 	http.Handle("/api/verify", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(VerifyHandler)))
 	http.Handle("/api/update", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(UpdateHandler)))
 	http.Handle("/api/user", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(UserHandler)))
+	http.Handle("/api/forgot-password", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(ForgotPasswordHandler)))
+	http.Handle("/api/reset-password", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(ResetPassword)))
 
 	// Debug routes
 	if *debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
