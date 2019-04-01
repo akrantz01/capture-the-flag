@@ -32,7 +32,7 @@
                 <form>
                     <div class="form-group"><label for="email-login">Email</label><input type="email" id="email-login" name="email" required="required" /></div>
                     <div class="form-group"><label for="password-login">Password</label><input type="password" id="password-login" name="password" required="required" /></div>
-                    <div class="form-group"><a class="form-recovery" href="#">Forgot Password?</a></div>
+                    <div class="form-group"><a class="form-recovery" href="#" id="forgot-password">Forgot Password?</a></div>
                     <div class="form-group login"><button type="submit" id="submit-login">Log In</button></div>
                 </form>
             </div>
@@ -64,6 +64,17 @@
                 <br><br>
                 <div class="form-group"><button id="account-logout">Log Out</button></div>
                 <div class="form-group"><button id="account-play">Play</button></div>
+            </div>
+        </div>
+        <div class="form-panel four" style="display: none;">
+            <div class="form-header">
+                <h1>Forgot Password?</h1>
+            </div>
+            <div class="form-content">
+                <div class="form-group"><label for="fp-email">Email</label><input type="email" id="fp-email" name="email"/></div>
+                <br>
+                <div class="form-group"><a class="form-recovery" href="#" id="fp-back">Back</a></div>
+                <div class="form-group half"><button id="submit-fp">Reset</button></div>
             </div>
         </div>
     </div>
@@ -185,6 +196,36 @@
                     $("#email-register").val("");
                     $("#password-register").val("");
                 }).catch(err => toastr.error(capitalizeFirstLetter(err.toString()), "Unable to Sign Up"))
+                    .finally(() => e.target.disabled = false);
+            });
+
+            $("#forgot-password").on("click", function (e) {
+                e.preventDefault();
+
+                $(".form-toggle")[0].style.display = "none";
+                $(".form-panel.one")[0].style.display = "none";
+                $(".form-panel.two")[0].style.display = "none";
+                $(".form-panel.four")[0].style.display = "block";
+            });
+
+            $("#fp-back").on("click", function (e) {
+                e.preventDefault();
+
+                $(".form-toggle")[0].style.display = "block";
+                $(".form-panel.one")[0].style.display = "block";
+                $(".form-panel.two")[0].style.display = "block";
+                $(".form-panel.four")[0].style.display = "none";
+            });
+
+            $("#submit-fp").on("click", function (e) {
+                e.target.disabled = true;
+                userForgotPassword($("#fp-email").val()).then(() => {
+                    toastr.success("You will recieve an email in 0 to 15mins", "Successfully send reset email");
+                    $(".form-toggle")[0].style.display = "block";
+                    $(".form-panel.one")[0].style.display = "block";
+                    $(".form-panel.two")[0].style.display = "block";
+                    $(".form-panel.four")[0].style.display = "none";
+                }).catch(err => toastr.error(capitalizeFirstLetter(err), "Unable to reset password"))
                     .finally(() => e.target.disabled = false);
             });
 

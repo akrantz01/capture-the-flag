@@ -229,3 +229,28 @@ function userData() {
         })
     });
 }
+
+function userForgotPassword(email) {
+    return new Promise((resolve, reject) => {
+        let token = localStorage.getItem("token");
+        if (token !== null) {
+            resolve(false);
+            return;
+        }
+
+        fetch(`/api/forgot-password?email=${email}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        }).then(res => res.json()).then(res => {
+            if (res.state === "error") {
+                reject(res.reason);
+                return;
+            }
+            resolve(true);
+        }).catch(err => {
+            reject(err);
+        });
+    });
+}
