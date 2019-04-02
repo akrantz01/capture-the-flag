@@ -254,3 +254,18 @@ function userForgotPassword(email) {
         });
     });
 }
+
+function checkPasswords(p, c) {
+    let pw = document.getElementById(p);
+    let pw_conf = document.getElementById(c);
+
+    return function () {
+        if (pw.value !== pw_conf.value) {
+            pw.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+            pw_conf.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+        } else {
+            pw.style.backgroundColor = "rgba(0, 0, 0, 0.1)";
+            pw_conf.style.backgroundColor = "rgba(0, 0, 0, 0.1)";
+        }
+    };
+}

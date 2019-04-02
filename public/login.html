@@ -47,6 +47,7 @@
                     <div class="form-group"><label for="username-register">Username</label><input type="text" id="username-register" name="username" required="required" /></div>
                     <div class="form-group"><label for="email-register">Email</label><input type="email" id="email-register" name="email" required="required" /></div>
                     <div class="form-group"><label for="password-register">Password</label><input type="password" id="password-register" name="password" required="required" /></div>
+                    <div class="form-group"><label for="password-register-conf">Confirm Password</label><input type="password" id="password-register-conf" name="password-conf" required="required" /></div>
                     <div class="form-group register"><button type="submit" id="submit-register">Register</button></div>
                 </form>
             </div>
@@ -180,10 +181,17 @@
             });
 
             submit_register.on('click', function (e) {
+                let pw = $("#password-register");
+
+                if (pw.css("background-color") === "rgba(255, 0, 0, 0.5)") {
+                    toastr.error("Passwords must match to signup", "Passwords do not match");
+                    return;
+                }
+
                 e.preventDefault();
                 e.target.disabled = true;
 
-                userSignup($("#name-register").val(), $("#email-register").val(), $("#password-register").val(), $("#username-register").val()).then(status => {
+                userSignup($("#name-register").val(), $("#email-register").val(), pw.val(), $("#username-register").val()).then(status => {
                     if (status) {
                         $(".form-toggle").click();
                         toastr.success("You may now login", "Successfully created user");
@@ -195,6 +203,7 @@
                     $("#username-register").val("");
                     $("#email-register").val("");
                     $("#password-register").val("");
+                    $("#password-register-conf").val("");
                 }).catch(err => toastr.error(capitalizeFirstLetter(err.toString()), "Unable to Sign Up"))
                     .finally(() => e.target.disabled = false);
             });
@@ -267,6 +276,10 @@
             $("#account-play").on("click", function () {
                 window.location.href = "/index.html";
             });
+
+
+            $("#password-register").on("input", checkPasswords("password-register", "password-register-conf"));
+            $("#password-register-conf").on("input", checkPasswords("password-register", "password-register-conf"));
         });
     </script>
 </body>
