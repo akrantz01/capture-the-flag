@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/gorilla/handlers"
 	"gopkg.in/gomail.v2"
@@ -16,6 +15,7 @@ import (
 )
 
 var (
+	config = getConfig()
 	data = GameData{
 		Users: make(map[string]*UserValue),
 		Objects: make(map[string]Object),
@@ -34,12 +34,6 @@ var (
 )
 
 func main() {
-	// Get host, port and debug enabled
-	host := flag.String("host", "127.0.0.1", "Host to run on")
-	port := flag.String("port", "8080", "Port to run on")
-	debug := flag.Bool("debug", false, "Enable debug info")
-	flag.Parse()
-
 	// Configure hashing
 	if err := passlib.UseDefaults(passlib.DefaultsLatest); err != nil {
 		panic(err)
@@ -78,24 +72,12 @@ func main() {
 
 	// Password reset email sender
 	go func() {
-		if os.Getenv("EMAIL_HOST") == "" || os.Getenv("EMAIL_PORT") == "" || os.Getenv("EMAIL_USERNAME") == "" || os.Getenv("EMAIL_PASSWORD") == "" || os.Getenv("EMAIL_SSL") == "" || os.Getenv("DOMAIN") == "" {
-			panic("Environment variables: EMAIL_HOST, EMAIL_PORT, EMAIL_USERNAME, EMAIL_PASSWORD, EMAIL_SSL, and DOMAIN must be defined")
-		}
-
-		port, err := strconv.Atoi(os.Getenv("EMAIL_PORT"))
-		if err != nil {
-			panic("EMAIL_PORT must be an integer")
-		}
-		ssl, err := strconv.ParseBool(os.Getenv("EMAIL_SSL"))
-		if err != nil {
-			panic("EMAIL_SSL must be a boolean")
-		}
-
-		d := gomail.NewDialer(os.Getenv("EMAIL_HOST"), port, os.Getenv("EMAIL_USERNAME"), os.Getenv("EMAIL_PASSWORD"))
-		d.SSL = ssl
+		d := gomail.NewDialer(config.Email.Host, config.Email.Port, config.Email.Username, config.Email.Password)
+		d.SSL = config.Email.SSL
 
 		log.Print("Connecting to mail server...")
 		var s gomail.SendCloser
+		var err error
 		if s, err = d.Dial(); err != nil {
 			panic(fmt.Sprintf("Unable to connect to mail server: %v\n", err))
 		}
@@ -145,12 +127,12 @@ func main() {
 	http.Handle("/api/reset-password", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(ResetPassword)))
 
 	// Debug routes
-	if *debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
+	if config.Server.Debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
 
 	// Start server
-	log.Printf("Running on %s:%s with debug: %t", *host, *port, *debug)
+	log.Printf("Running on %s:%s with debug: %t", config.Server.Host, config.Server.Port, config.Server.Debug)
 	go hub.run()
-	log.Fatal(http.ListenAndServe(*host + ":" + *port, nil))
+	log.Fatal(http.ListenAndServe(config.Server.Host + ":" + strconv.Itoa(config.Server.Port), nil))
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {

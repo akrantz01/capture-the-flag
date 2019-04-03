@@ -5,7 +5,6 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"log"
-	"os"
 )
 
 type User struct {
@@ -40,12 +39,8 @@ type PasswordReset struct {
 }
 
 func connectDatabase() *gorm.DB {
-	if os.Getenv("DB_USERNAME") == "" || os.Getenv("DB_PASSWORD" ) == "" || os.Getenv("DB_DATABASE") == "" || os.Getenv("DB_HOST") == "" || os.Getenv("DB_PORT") == "" {
-		panic("Environment variables: DB_USERNAME, DB_PASSWORD, DB_DATABASE, DB_HOST, and DB_PORT must be defined")
-	}
-
 	log.Print("Connecting to database...")
-	db, err := gorm.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USERNAME"), os.Getenv("DB_DATABASE"), os.Getenv("DB_PASSWORD")))
+	db, err := gorm.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s", config.Database.Host, config.Database.Port, config.Database.Username, config.Database.Database, config.Database.Password, config.Database.SSL))
 	if err != nil {
 		panic(fmt.Sprintf("Unable to connect to database: %v\n", err))
 	}

@@ -3,3 +3,4 @@ releases/
 secret/
 public/test.html
 lib/
+config.yaml
