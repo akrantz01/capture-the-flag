@@ -71,6 +71,7 @@
                     <div class="form-group"><label for="account-username">Username</label><input type="text" id="account-username" name="username" placeholder="Current: " /></div>
                     <div class="form-group"><label for="account-email">Email</label><input type="email" id="account-email" name="email" placeholder="Current: " /></div>
                     <div class="form-group"><label for="account-password">Password</label><input type="password" id="account-password" name="password" /></div>
+                    <div class="form-group"><label for="account-password-conf">Confirm Password</label><input type="password" id="account-password-conf" name="password-conf" /></div>
                     <div class="form-group half"><button id="account-save">Update</button></div>
                 </details>
             </div>
@@ -196,8 +197,8 @@
                     return;
                 }
 
-                for (let check in checked) {
-                    if (!checked[check]) {
+                for (let check in register_checked) {
+                    if (!register_checked[check]) {
                         toastr.error("All 5 password requirements must be met to signup", "Password requirements not met");
                         return;
                     }
@@ -254,8 +255,22 @@
             });
 
             $("#account-save").on("click", function (e) {
+                let pw = $("#account-password");
+
+                if (pw.css("background-color") === "rgba(255, 0, 0, 0.5)") {
+                    toastr.error("Passwords must match to signup", "Passwords do not match");
+                    return;
+                }
+
+                for (let check in account_checked) {
+                    if (!account_checked[check]) {
+                        toastr.error("All 5 password requirements must be met to signup", "Password requirements not met");
+                        return;
+                    }
+                }
+
                 e.target.disabled = true;
-                userUpdate($("#account-name").val(), $("#account-email").val(), $("#account-password").val(), $("#account-username").val()).then(() => {
+                userUpdate($("#account-name").val(), $("#account-email").val(), pw.val(), $("#account-username").val()).then(() => {
                     userData().then(data => {
                         localStorage.setItem("user", JSON.stringify(data));
 
@@ -293,7 +308,7 @@
             });
 
 
-            let checked = {
+            let register_checked = {
                 lc: false,
                 uc: false,
                 sc: false,
@@ -304,16 +319,36 @@
             pw_register.on("input", function() {
                 checkPasswords("password-register", "password-register-conf")();
                 let pw = pw_register.val();
-                checked.lc = pw.match(/^(?=.*?[a-z]).*$/g) !== null;
-                checked.uc = pw.match(/^(?=.*?[A-Z]).*$/g) !== null;
-                checked.sc = pw.match(/^(?=.*?[#?!@$%^&*\-_]).*$/g) !== null;
-                checked.n = pw.match(/^(?=.*?[0-9]).*$/g) !== null;
-                checked.l = pw.match(/^.{8,}$/g) !== null;
-                WebuiPopovers.updateContent("#password-register", `At least:<ul style='list-style-type: none; padding-left: 4px; margin: 0;'><li><input class='valid-invalid' type='checkbox' name='lc' value='lc' id='pw-req-lc' disabled ${(checked.lc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-lc'>&nbsp;&nbsp;1 lowercase character (a-z)</label></li><li><input class='valid-invalid' type='checkbox' name='uc' value='uc' id='pw-req-uc' disabled ${(checked.uc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-uc'>&nbsp;&nbsp;1 uppercase character (A-Z)</label></li><li><input class='valid-invalid' type='checkbox' name='sc' value='sc' id='pw-req-sc' disabled ${(checked.sc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-sc'>&nbsp;&nbsp;1 special character (!@#$%^&*-_)</label></li><li><input class='valid-invalid' type='checkbox' name='n' value='n' id='pw-req-n' disabled ${(checked.n) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-n'>&nbsp;&nbsp;1 number (0-9)</label></li><li><input class='valid-invalid' type='checkbox' name='l' value='l' id='pw-req-l' disabled ${(checked.l) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-l'>&nbsp;&nbsp;8 characters long</label></li></ul>`);
+                register_checked.lc = pw.match(/^(?=.*?[a-z]).*$/g) !== null;
+                register_checked.uc = pw.match(/^(?=.*?[A-Z]).*$/g) !== null;
+                register_checked.sc = pw.match(/^(?=.*?[#?!@$%^&*\-_]).*$/g) !== null;
+                register_checked.n = pw.match(/^(?=.*?[0-9]).*$/g) !== null;
+                register_checked.l = pw.match(/^.{8,}$/g) !== null;
+                WebuiPopovers.updateContent("#password-register", `At least:<ul style='list-style-type: none; padding-left: 4px; margin: 0;'><li><input class='valid-invalid' type='checkbox' name='lc' value='lc' id='pw-req-lc' disabled ${(register_checked.lc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-lc'>&nbsp;&nbsp;1 lowercase character (a-z)</label></li><li><input class='valid-invalid' type='checkbox' name='uc' value='uc' id='pw-req-uc' disabled ${(register_checked.uc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-uc'>&nbsp;&nbsp;1 uppercase character (A-Z)</label></li><li><input class='valid-invalid' type='checkbox' name='sc' value='sc' id='pw-req-sc' disabled ${(register_checked.sc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-sc'>&nbsp;&nbsp;1 special character (!@#$%^&*-_)</label></li><li><input class='valid-invalid' type='checkbox' name='n' value='n' id='pw-req-n' disabled ${(register_checked.n) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-n'>&nbsp;&nbsp;1 number (0-9)</label></li><li><input class='valid-invalid' type='checkbox' name='l' value='l' id='pw-req-l' disabled ${(register_checked.l) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-l'>&nbsp;&nbsp;8 characters long</label></li></ul>`);
             });
             $("#password-register-conf").on("input", checkPasswords("password-register", "password-register-conf"));
-            pw_register.on("focus", () => pw_register.webuiPopover({title: "Password Requirements", content: `At least:<ul style='list-style-type: none; padding-left: 4px; margin: 0;'><li><input class='valid-invalid' type='checkbox' name='lc' value='lc' id='pw-req-lc' disabled ${(checked.lc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-lc'>&nbsp;&nbsp;1 lowercase character (a-z)</label></li><li><input class='valid-invalid' type='checkbox' name='uc' value='uc' id='pw-req-uc' disabled ${(checked.uc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-uc'>&nbsp;&nbsp;1 uppercase character (A-Z)</label></li><li><input class='valid-invalid' type='checkbox' name='sc' value='sc' id='pw-req-sc' disabled ${(checked.sc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-sc'>&nbsp;&nbsp;1 special character (!@#$%^&*-_)</label></li><li><input class='valid-invalid' type='checkbox' name='n' value='n' id='pw-req-n' disabled ${(checked.n) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-n'>&nbsp;&nbsp;1 number (0-9)</label></li><li><input class='valid-invalid' type='checkbox' name='l' value='l' id='pw-req-l' disabled ${(checked.l) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-l'>&nbsp;&nbsp;8 characters long</label></li></ul>`, placement: "right"}));
-            });
+            pw_register.on("focus", () => pw_register.webuiPopover({title: "Password Requirements", content: `At least:<ul style='list-style-type: none; padding-left: 4px; margin: 0;'><li><input class='valid-invalid' type='checkbox' name='lc' value='lc' id='pw-req-lc' disabled ${(register_checked.lc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-lc'>&nbsp;&nbsp;1 lowercase character (a-z)</label></li><li><input class='valid-invalid' type='checkbox' name='uc' value='uc' id='pw-req-uc' disabled ${(register_checked.uc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-uc'>&nbsp;&nbsp;1 uppercase character (A-Z)</label></li><li><input class='valid-invalid' type='checkbox' name='sc' value='sc' id='pw-req-sc' disabled ${(register_checked.sc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-sc'>&nbsp;&nbsp;1 special character (!@#$%^&*-_)</label></li><li><input class='valid-invalid' type='checkbox' name='n' value='n' id='pw-req-n' disabled ${(register_checked.n) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-n'>&nbsp;&nbsp;1 number (0-9)</label></li><li><input class='valid-invalid' type='checkbox' name='l' value='l' id='pw-req-l' disabled ${(register_checked.l) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-l'>&nbsp;&nbsp;8 characters long</label></li></ul>`, placement: "right"}))});
+
+        let account_checked = {
+            lc: false,
+            uc: false,
+            sc: false,
+            n: false,
+            l: false
+        };
+        let pw_account = $("#account-password");
+        pw_account.on("input", function() {
+            checkPasswords("account-password", "account-password-conf")();
+            let pw = pw_account.val();
+            account_checked.lc = pw.match(/^(?=.*?[a-z]).*$/g) !== null;
+            account_checked.uc = pw.match(/^(?=.*?[A-Z]).*$/g) !== null;
+            account_checked.sc = pw.match(/^(?=.*?[#?!@$%^&*\-_]).*$/g) !== null;
+            account_checked.n = pw.match(/^(?=.*?[0-9]).*$/g) !== null;
+            account_checked.l = pw.match(/^.{8,}$/g) !== null;
+            WebuiPopovers.updateContent("#account-password", `At least:<ul style='list-style-type: none; padding-left: 4px; margin: 0;'><li><input class='valid-invalid' type='checkbox' name='lc' value='lc' id='pw-req-lc' disabled ${(account_checked.lc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-lc'>&nbsp;&nbsp;1 lowercase character (a-z)</label></li><li><input class='valid-invalid' type='checkbox' name='uc' value='uc' id='pw-req-uc' disabled ${(account_checked.uc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-uc'>&nbsp;&nbsp;1 uppercase character (A-Z)</label></li><li><input class='valid-invalid' type='checkbox' name='sc' value='sc' id='pw-req-sc' disabled ${(account_checked.sc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-sc'>&nbsp;&nbsp;1 special character (!@#$%^&*-_)</label></li><li><input class='valid-invalid' type='checkbox' name='n' value='n' id='pw-req-n' disabled ${(account_checked.n) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-n'>&nbsp;&nbsp;1 number (0-9)</label></li><li><input class='valid-invalid' type='checkbox' name='l' value='l' id='pw-req-l' disabled ${(account_checked.l) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-l'>&nbsp;&nbsp;8 characters long</label></li></ul>`);
+        });
+        $("#account-password-conf").on("input", checkPasswords("account-password", "account-password-conf"));
+        pw_account.on("focus", () => pw_account.webuiPopover({title: "Password Requirements", content: `At least:<ul style='list-style-type: none; padding-left: 4px; margin: 0;'><li><input class='valid-invalid' type='checkbox' name='lc' value='lc' id='pw-req-lc' disabled ${(account_checked.lc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-lc'>&nbsp;&nbsp;1 lowercase character (a-z)</label></li><li><input class='valid-invalid' type='checkbox' name='uc' value='uc' id='pw-req-uc' disabled ${(account_checked.uc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-uc'>&nbsp;&nbsp;1 uppercase character (A-Z)</label></li><li><input class='valid-invalid' type='checkbox' name='sc' value='sc' id='pw-req-sc' disabled ${(account_checked.sc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-sc'>&nbsp;&nbsp;1 special character (!@#$%^&*-_)</label></li><li><input class='valid-invalid' type='checkbox' name='n' value='n' id='pw-req-n' disabled ${(account_checked.n) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-n'>&nbsp;&nbsp;1 number (0-9)</label></li><li><input class='valid-invalid' type='checkbox' name='l' value='l' id='pw-req-l' disabled ${(account_checked.l) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-l'>&nbsp;&nbsp;8 characters long</label></li></ul>`, placement: "right"}));
     </script>
 </body>
 </html>
