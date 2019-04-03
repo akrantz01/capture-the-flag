@@ -61,14 +61,18 @@
                 <h1>Account</h1>
             </div>
             <div class="form-content">
-                <div class="form-group"><label for="account-name">Name</label><input type="text" id="account-name" name="name" placeholder="Current: " /></div>
-                <div class="form-group"><label for="account-username">Username</label><input type="text" id="account-username" name="username" placeholder="Current: " /></div>
-                <div class="form-group"><label for="account-email">Email</label><input type="email" id="account-email" name="email" placeholder="Current: " /></div>
-                <div class="form-group"><label for="account-password">Password</label><input type="password" id="account-password" name="password" /></div>
-                <div class="form-group half"><button id="account-save">Save</button></div>
-                <br><br>
-                <div class="form-group"><button id="account-logout">Log Out</button></div>
-                <div class="form-group"><button id="account-play">Play</button></div>
+                <div class="form-group"><button style="background: forestgreen;" id="account-play">Play</button></div>
+                <div class="form-group half"><button id="account-logout">Log Out</button></div>
+                <br>
+                <details>
+                    <summary>Update Information</summary>
+                    <br>
+                    <div class="form-group"><label for="account-name">Name</label><input type="text" id="account-name" name="name" placeholder="Current: " /></div>
+                    <div class="form-group"><label for="account-username">Username</label><input type="text" id="account-username" name="username" placeholder="Current: " /></div>
+                    <div class="form-group"><label for="account-email">Email</label><input type="email" id="account-email" name="email" placeholder="Current: " /></div>
+                    <div class="form-group"><label for="account-password">Password</label><input type="password" id="account-password" name="password" /></div>
+                    <div class="form-group half"><button id="account-save">Update</button></div>
+                </details>
             </div>
         </div>
         <div class="form-panel four" style="display: none;">
