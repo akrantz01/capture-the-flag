@@ -284,3 +284,31 @@ body {
 .form-group.half {
     width: 50%;
 }
+
+input[type=checkbox].valid-invalid {
+    position:absolute; z-index:-1000; left:-1000px; overflow: hidden; clip: rect(0 0 0 0); height:1px; width:1px; margin:-1px; padding:0; border:0;
+}
+
+input[type=checkbox].valid-invalid + label.valid-invalid-label {
+    padding-left: 29px;
+    height: 16px;
+    display: inline-block;
+    line-height: 16px;
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    vertical-align: middle;
+    cursor: pointer;
+
+}
+
+input[type=checkbox].valid-invalid:checked + label.valid-invalid-label {
+    background-position: 0 -16px;
+}
+label.valid-invalid-label {
+    background-image: url(checkbox.png);
+    background-size: 16px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
