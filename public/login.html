@@ -245,7 +245,7 @@
             $("#submit-fp").on("click", function (e) {
                 e.target.disabled = true;
                 userForgotPassword($("#fp-email").val()).then(() => {
-                    toastr.success("You will recieve an email in 0 to 15mins", "Successfully send reset email");
+                    toastr.success("If there is an account with the email, you will receive an email between 0 and 10mins", "Successfully send reset email");
                     $(".form-toggle")[0].style.display = "block";
                     $(".form-panel.one")[0].style.display = "block";
                     $(".form-panel.two")[0].style.display = "block";

@@ -616,6 +616,17 @@ func ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if user exists
+	u := new(User)
+	db.Where("email = ?", r.URL.Query()["email"][0]).First(&u)
+	if u.ID == 0 {
+		w.WriteHeader(http.StatusOK)
+		if _, err := fmt.Fprint(w, "{\"status\": \"success\"}"); err != nil {
+			log.Printf("Unable to send response: %v\n", err)
+		}
+		return
+	}
+
 	// Generate signing key
 	signingKey := make([]byte, 128)
 	if _, err := rand.Read(signingKey); err != nil {
