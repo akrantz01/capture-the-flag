@@ -3,19 +3,19 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/handlers"
+	"github.com/jinzhu/gorm"
+	"github.com/spf13/viper"
 	"gopkg.in/gomail.v2"
 	"gopkg.in/hlandau/passlib.v1"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 )
 
 var (
-	config = getConfig()
 	data = GameData{
 		Users: make(map[string]*UserValue),
 		Objects: make(map[string]Object),
@@ -29,11 +29,17 @@ var (
 		},
 	}
 	hub = newHub()
-	db = connectDatabase()
+	db *gorm.DB
 	mail = make(chan *gomail.Message)
 )
 
 func main() {
+	// Get server config
+	parseConfiguration()
+
+	// Initialize database
+	db = connectDatabase()
+
 	// Configure hashing
 	if err := passlib.UseDefaults(passlib.DefaultsLatest); err != nil {
 		panic(err)
@@ -72,8 +78,8 @@ func main() {
 
 	// Password reset email sender
 	go func() {
-		d := gomail.NewDialer(config.Email.Host, config.Email.Port, config.Email.Username, config.Email.Password)
-		d.SSL = config.Email.SSL
+		d := gomail.NewDialer(viper.GetString("email.host"), viper.GetInt("email.port"), viper.GetString("email.username"), viper.GetString("email.password"))
+		d.SSL = viper.GetBool("email.ssl")
 
 		log.Print("Connecting to mail server...")
 		var s gomail.SendCloser
@@ -127,12 +133,12 @@ func main() {
 	http.Handle("/api/reset-password", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(ResetPassword)))
 
 	// Debug routes
-	if config.Server.Debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
+	if viper.GetBool("server.debug") { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
 
 	// Start server
-	log.Printf("Running on %s:%s with debug: %t", config.Server.Host, config.Server.Port, config.Server.Debug)
+	log.Printf("Running on %s:%s with debug: %t", viper.GetString("server.host"), viper.GetString("server.port"), viper.GetBool("server.debug"))
 	go hub.run()
-	log.Fatal(http.ListenAndServe(config.Server.Host + ":" + strconv.Itoa(config.Server.Port), nil))
+	log.Fatal(http.ListenAndServe(viper.GetString("server.host") + ":" + viper.GetString("server.port"), nil))
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {

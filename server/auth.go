@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/spf13/viper"
 	"gopkg.in/gomail.v2"
 	"gopkg.in/hlandau/passlib.v1"
 	"log"
@@ -676,7 +677,7 @@ func ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	m.SetHeader("From", os.Getenv("EMAIL_USERNAME"))
 	m.SetHeader("To", pr.Email)
 	m.SetHeader("Subject", "Reset Your Password")
-	m.SetBody("text/html", fmt.Sprintf("To reset your password for capture the flag: <a href=\"http://%s/reset-password.html?token=%s\">Click Here</a>", os.Getenv("DOMAIN"), pr.Token))
+	m.SetBody("text/html", fmt.Sprintf("To reset your password for capture the flag: <a href=\"http://%s/reset-password.html?token=%s\">Click Here</a>", viper.GetString("server.domain"), pr.Token))
 	mail <- m
 
 	w.WriteHeader(http.StatusOK)

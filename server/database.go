@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/spf13/viper"
 	"log"
 )
 
@@ -40,7 +41,7 @@ type PasswordReset struct {
 
 func connectDatabase() *gorm.DB {
 	log.Print("Connecting to database...")
-	db, err := gorm.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s", config.Database.Host, config.Database.Port, config.Database.Username, config.Database.Database, config.Database.Password, config.Database.SSL))
+	db, err := gorm.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", viper.GetString("database.host"), viper.GetString("database.port"), viper.GetString("database.username"), viper.GetString("database.password"), viper.GetString("database.database"), viper.GetString("database.ssl")))
 	if err != nil {
 		panic(fmt.Sprintf("Unable to connect to database: %v\n", err))
 	}
