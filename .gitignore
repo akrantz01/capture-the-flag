@@ -1,3 +1,5 @@
 .idea/
 releases/
 secret/
+public/lib/
+config.yaml
