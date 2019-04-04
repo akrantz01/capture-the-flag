@@ -43,7 +43,7 @@ func connectDatabase() *gorm.DB {
 	log.Print("Connecting to database...")
 	db, err := gorm.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", viper.GetString("database.host"), viper.GetString("database.port"), viper.GetString("database.username"), viper.GetString("database.password"), viper.GetString("database.database"), viper.GetString("database.ssl")))
 	if err != nil {
-		panic(fmt.Sprintf("Unable to connect to database: %v\n", err))
+		log.Fatalf("Unable to connect to database: %s", err)
 	}
 
 	log.Println("Connected")

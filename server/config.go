@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"log"
 )
 
 func parseConfiguration() {
@@ -30,7 +31,7 @@ func parseConfiguration() {
 
 	// Get from config file
 	if err := viper.ReadInConfig(); err != nil {
-		panic(err)
+		log.Fatalf("Unable to find config file: %s", err)
 	}
 
 	// Command line flags for overriding config file
@@ -41,9 +42,7 @@ func parseConfiguration() {
 	// Get from flags
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		panic(err)
-	}
+	if err := viper.BindPFlags(pflag.CommandLine); err != nil {/* Ignore error, will never occur - appeasing GoLand */}
 
 	// Add commandline overrides
 	if viper.GetString("host") != "" {

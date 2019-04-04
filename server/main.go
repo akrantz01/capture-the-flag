@@ -42,9 +42,7 @@ func main() {
 	db = connectDatabase()
 
 	// Configure hashing
-	if err := passlib.UseDefaults(passlib.DefaultsLatest); err != nil {
-		panic(err)
-	}
+	if err := passlib.UseDefaults(passlib.DefaultsLatest); err != nil {/* Ignore error, will never occur - appeasing GoLand */}
 
 	// Serve from static directory
 	http.Handle("/", handlers.LoggingHandler(os.Stdout, http.FileServer(http.Dir("public"))))
@@ -86,7 +84,7 @@ func main() {
 		var s gomail.SendCloser
 		var err error
 		if s, err = d.Dial(); err != nil {
-			panic(fmt.Sprintf("Unable to connect to mail server: %v\n", err))
+			log.Fatalf("Unable to connect to mail server: %s", err)
 		}
 		log.Print("Connected")
 
@@ -100,7 +98,7 @@ func main() {
 				}
 				if !open {
 					if s, err = d.Dial(); err != nil {
-						panic(err)
+						log.Fatalf("Unable to connect to mail server: %s", err)
 					}
 					open = true
 				}
@@ -112,7 +110,7 @@ func main() {
 				case <- time.After(30 * time.Second):
 					if open {
 						if err := s.Close(); err != nil {
-							panic(err)
+							log.Fatalf("Unable to close mail server connection: %s", err)
 						}
 						open = false
 					}
