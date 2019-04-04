@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -119,6 +120,9 @@ func main() {
 		}
 	}()
 
+	// Primary websockets handler
+	go hub.run()
+
 	// WebSocket route
 	http.Handle("/ws", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(wsHandler)))
 
@@ -135,9 +139,11 @@ func main() {
 	// Debug routes
 	if viper.GetBool("server.debug") { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
 
+	// Wait for stuff to initialize
+	time.Sleep(1 * time.Second)
+
 	// Start server
-	log.Printf("Running on %s:%s with debug: %t", viper.GetString("server.host"), viper.GetString("server.port"), viper.GetBool("server.debug"))
-	go hub.run()
+	startupMessage()
 	log.Fatal(http.ListenAndServe(viper.GetString("server.host") + ":" + viper.GetString("server.port"), nil))
 }
 
@@ -169,4 +175,32 @@ func (_ debugHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Fatalf("Unable to send response: %s", err)
 		}
 	}
+}
+
+func startupMessage() {
+	log.Printf("Successfully started server with configuration:")
+
+	// Display server config
+	log.Printf("\t=> Server:")
+	log.Printf("\t\t=> Host: %s", viper.GetString("server.host"))
+	log.Printf("\t\t=> Port: %s", viper.GetString("server.port"))
+	log.Printf("\t\t=> Debug: %t", viper.GetBool("server.debug"))
+	log.Printf("\t\t=> Domain: %s", viper.GetString("server.domain"))
+
+	// Display email config
+	log.Printf("\t=> Email:")
+	log.Printf("\t\t=> Host: %s", viper.GetString("email.host"))
+	log.Printf("\t\t=> Port: %s", viper.GetString("email.port"))
+	log.Printf("\t\t=> SSL: %t", viper.GetBool("email.ssl"))
+	log.Printf("\t\t=> Username: %s", viper.GetString("email.username"))
+	log.Printf("\t\t=> Password: %s", strings.Repeat("*", len(viper.GetString("email.password"))))
+
+	// Display database config
+	log.Printf("\t=> Database:")
+	log.Printf("\t\t=> Host: %s", viper.GetString("database.host"))
+	log.Printf("\t\t=> Port: %s", viper.GetString("database.port"))
+	log.Printf("\t\t=> SSL: %s", viper.GetString("database.ssl"))
+	log.Printf("\t\t=> Database: %s", viper.GetString("database.database"))
+	log.Printf("\t\t=> Username: %s", viper.GetString("database.username"))
+	log.Printf("\t\t=> Password: %s", strings.Repeat("*", len(viper.GetString("database.password"))))
 }
