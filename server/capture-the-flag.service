@@ -1,0 +1,12 @@
+[Unit]
+Description=Start the capture the flag server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=<PATH TO SERVER BINARY>
+WorkingDirectory=<PATH TO CONTAINING FOLDER>
+
+[Install]
+WantedBy=multi-user.target
