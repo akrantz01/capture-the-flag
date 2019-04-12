@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Babylon</title>
+    <title>Kai's Amazing Game</title>
     <link href="https://fonts.googleapis.com/css?family=Concert+One" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
@@ -33,57 +33,10 @@
             flex-direction: column;
         }
 
-        /* Style the header */
-        header {
-            -webkit-flex: 1;
-            -ms-flex: 1;
-            flex: 1;
-            border: solid black 1px;
-            text-align: center;
-            font-size: 65px;
-            padding: 0%;
-            font-family: 'Concert One', cursive;
-        }
-
-        /* Container for flexboxes */
-        section {
-            -webkit-flex: 6;
-            -ms-flex: 6;
-            flex: 6;
-            display: -webkit-flex;
-            display: flex;
-            border: solid black 1px;
-        }
-
-        /* Style the navigation menu */
-        nav {
-            -webkit-flex: 1;
-            -ms-flex: 1;
-            flex: 1;
-            border: solid black 1px;
-        }
-
-        /* Style the content */
-        article {
-            -webkit-flex: 3;
-            -ms-flex: 3;
-            flex: 3;
-            border: solid black 1px;
-        }
-
-        /* Style the footer */
-        footer {
-            -webkit-flex: 2;
-            -ms-flex: 2;
-            flex: 2;
-            border: solid black 1px;
-        }
-
         #crosshair {
             position: relative;
             top: 50%;
             left: 50%;
-            margin-top: 5%;
             margin-left: -8px;
             width: 20px;
 
@@ -92,84 +45,58 @@
         }
 
         #points {
-            position: relative;
-            left: 0;
-            top: 250%;
-            margin: -20%;
-        }
-
-        #temp {
             position: absolute;
-            top: 0;
-            width: 50%;
-            height: 50%;
+            bottom: 110px;
 
-            border: solid black 1px;
+            font-size: 45px;
+            font-family: 'Concert One', cursive;
         }
 
         #team1 {
-            left: -50px;
-            color: yellow;
+            position: absolute;
+            right: calc(100% - 55px);
+            color: /*#dbda28*/ #E74C3C;
+            text-align: right;
         }
 
         #team2 {
-            right: 50px;
-            color: blue;
+            position: absolute;
+            left: calc(75px);
+            color: /*#2c80ea*/ #3498db;
+            text-align: left;
         }
     </style>
 </head>
 <body>
 <canvas id="renderCanvas"></canvas>
 <div id="UI">
-    <header>
-        <div id="points">
-            <span id="team1"></span>
-            <span id="team2"></span>
-        </div>
-    </header>
-
-    <section>
-        <nav>
-        </nav>
-
-        <article>
-            <img src="crosshair.png" id="crosshair">
-        </article>
-
-        <nav>
-        </nav>
-    </section>
-
-    <footer>
-        <div id="player-container">
-            <div id="container2">
-                <div id="health">
-                    <i class="fa fa-heart"></i>
-                    <div id="health-text">100</div>
-                    <div id="health-bar">
-                        <div class="level"></div>
-                    </div>
+    <img src="crosshair.png" id="crosshair">
+    <div id="points">
+        <span id="team1">0</span>
+        <span id="team2">0</span>
+    </div>
+    <div id="player-container">
+        <div id="container2">
+            <div id="health">
+                <i class="fa fa-heart"></i>
+                <div id="health-text">100</div>
+                <div id="health-bar">
+                    <div class="level"></div>
                 </div>
+            </div>
 
-                <div id="armor">
+            <div id="armor">
 				<span class="fa-stack fa-lg">
 					<i class="fa fa-bolt fa-stack-2x"></i>
 					<i class="fa fa-plus fa-stack-1x"></i>
 				</span>
-                    <div id="armor-text">100</div>
-                    <div id="armor-bar">
-                        <div class="level"></div>
-                    </div>
+                <div id="armor-text">100</div>
+                <div id="armor-bar">
+                    <div class="level"></div>
                 </div>
             </div>
         </div>
-        <div id="ammo-container">
-            <div id="container2">
-                <span><span class="clip">/</span><sup class="reserve"></sup></span>
-
-            </div>
-        </div>
-    </footer>
+    </div>
 </div>
 
 <div id="temp">

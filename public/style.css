@@ -25,11 +25,12 @@
 
 /*health*/
 #player-container {
+    padding-top: 9px;
     position: fixed;
     bottom: 0px;
     left: -26px;
-    background-color: #2c3e50;
-    height: 50px;
+    background-color: transparent;
+    height: 55px;
     width: 420px;
     transform: skewX(40deg);
 }
@@ -117,33 +118,4 @@
 
 #armor-bar .level {
     background-color: #3498db;
-}
-
-/*ammo + reserve*/
-#ammo-container {
-    position: fixed;
-    bottom: 0px;
-    right: -26px;
-    background-color: #2c3e50;
-    height: 50px;
-    width: 260px;
-    transform: skewX(-40deg);
-}
-
-#ammo-container #container2 {
-    margin-right: 60px;
-    transform: skewX(40deg);
-    float: right;
-}
-
-#ammo-container span {
-    font-size: 40px;
-}
-
-#ammo-container .clip {
-    font-size: 40px;
-}
-
-#ammo-container .reserve {
-    font-size: 20px;
 }

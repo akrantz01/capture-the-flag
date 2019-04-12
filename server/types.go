@@ -36,6 +36,7 @@ type (
 		Health		int						`yaml:"health"`
 		Flag		int						`yaml:"flag"`
 		Action		int						`yaml:"action"`
+		Size		float32					`yaml:"size"`
 	}
 
 	// Store player coordinates (2d)

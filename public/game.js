@@ -23,7 +23,7 @@ var decalList = [];
 
 var playerModel;
 
-var spawns = [{x: 243.85, y: 132, z: -218.78}, {x: 243.85, y: 132, z: -218.78}/*{x: -343.63, y: 132, z: 293.73}*/];
+var spawns = [{x: 243.85, y: 132, z: -218.78}, {x: -343.63, y: 132, z: 293.73}];
 
 var healthbar;
 
@@ -84,8 +84,43 @@ var createScene = function () {
 
     var flags = [new Flag(spawns[0].x, spawns[0].y, spawns[0].z, 1), new Flag(spawns[1].x, spawns[1].y, spawns[1].z, 2)];
 
+    let gunOffset = new Vector(0, 1, 0);
+
+    function rotateGunOffset(alpha) {
+        gunOffset.x = Math.cos(alpha + Math.PI / 2);
+        gunOffset.z = Math.sin(alpha + Math.PI / 2);
+    }
+
+    let weaponTypes = {
+        normal: function (alpha, beta) {
+            rotateGunOffset(alpha);
+            alpha += 0.01;
+            let vel = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
+            proj.push(new Projectile(fromBabylon(player.mesh.position).add(gunOffset).add(vel.mult(-4)), vel.mult(3), team, true, 1));
+        },
+        machineGun: function (alpha, beta) {
+            rotateGunOffset(alpha);
+            alpha += 0.01;
+            alpha += (Math.random() - 0.5) / 30;
+            beta += (Math.random() - 0.5) / 30;
+            beta += 0.04;
+            let vel = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
+            let variance = -Math.random() - 1;
+            proj.push(new Projectile(fromBabylon(player.mesh.position).add(gunOffset).add(vel.mult(variance)), vel.mult(-6 / variance), team, true, 0.5));
+        },
+        sniper: function (alpha, beta) {
+            camera.angularSensibilityX = camera.angularSensibilityY = 1000;
+            setTimeout(function(){camera.fov = 1;}, 100);
+            let vel = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
+            proj.push(new Projectile(fromBabylon(player.mesh.position).add(gunOffset).add(vel.mult(-4)), vel.mult(300), team, true, 1));
+        },
+    };
+    let currentType = "sniper";
+    let mousedown = false;
+
     //create projectiles on click
-    document.addEventListener("click", function (e) {
+    document.addEventListener("mouseup", function (e) {
+        mousedown = false;
         if (e.which === 3) {
             let close = [];
 
@@ -120,10 +155,31 @@ var createScene = function () {
                 multiplayer.changeHealth(-10, closest[1]);
             }
         } else {
-            let alpha = camera.alpha;
-            let beta = camera.beta;
-            let vel = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
-            proj.push(new Projectile(fromBabylon(player.mesh.position).add(vel.mult(-4)), vel.mult(3), team, true));
+            switch (currentType) {
+                case "normal":
+                    weaponTypes[currentType](camera.alpha, camera.beta);
+                    break;
+                case "sniper":
+                    weaponTypes[currentType](camera.alpha, camera.beta);
+                    break;
+                default:
+                    break;
+            }
+        }
+    });
+    document.addEventListener("mousedown", function (e) {
+        mousedown = true;
+        if (e.which === 3) {
+            return;
+        } else {
+            switch (currentType) {
+                case "sniper":
+                    camera.fov = 0.1;
+                    camera.angularSensibilityX = camera.angularSensibilityY = 30000;
+                    break;
+                default:
+                    break;
+            }
         }
     });
 
@@ -139,6 +195,16 @@ var createScene = function () {
     let heal = false;
 
     scene.executeWhenReady(scene.registerBeforeRender(function () {
+        if (mousedown) {
+            switch (currentType) {
+                case "machineGun":
+                    if (delay % 3 === 0)
+                        weaponTypes[currentType](camera.alpha, camera.beta);
+                    break;
+                default:
+                    break;
+            }
+        }
         //add delay to ensure things load
         if (ground) {
             delay++;
@@ -187,7 +253,7 @@ var createScene = function () {
             healthbar[0].style.background = color;
             document.querySelectorAll("#health-text")[0].innerHTML = player.health;
             document.querySelectorAll("#health")[0].style.color = color;
-            document.querySelectorAll('#armor-bar .level')[0].style.left = "-" + (100 - player.maxSpeed) + "%";
+            document.querySelectorAll('#armor-bar .level')[0].style.left = "-" + (160 - player.maxSpeed) / 1.6 + "%";
             document.querySelectorAll("#armor-text")[0].innerHTML = player.maxSpeed;
 
             if (player.health <= 0) {
@@ -199,13 +265,13 @@ var createScene = function () {
             for (var i = 0; i < proj.length; i++) {
                 let id = proj[i].update(ground, scene, otherPlayers, players, decalList);
                 if (id === -2) {
-                    multiplayer.broadcast("-2" + multiplayer.getID(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, proj[i].vel.x, proj[i].vel.y, proj[i].vel.z);
+                    multiplayer.broadcast("-2" + multiplayer.getID(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, proj[i].vel.x, proj[i].vel.y, proj[i].vel.z, proj[i].type);
                 } else if (id !== 0 && id !== -1) {
-                    multiplayer.broadcast(id.pickedMesh.tempID, id.pickedPoint.x, id.pickedPoint.y, id.pickedPoint.z, team, 0, 0);
+                    multiplayer.broadcast(id.pickedMesh.tempID, id.pickedPoint.x, id.pickedPoint.y, id.pickedPoint.z, team, 0, 0, proj[i].type);
                     proj.splice(i, 1);
                     console.log(id.pickedMesh.tempID)
                 } else if (id === -1) {
-                    multiplayer.broadcast("-1" + multiplayer.getID(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, 0, 0, 0);
+                    multiplayer.broadcast("-1" + multiplayer.getID(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, 0, 0, 0, proj[i].type);
                     proj.splice(i, 1);
                 }
             }
@@ -218,7 +284,7 @@ var createScene = function () {
                     let pos = new BABYLON.Vector3(dec.Coordinates.X, dec.Coordinates.Y, dec.Coordinates.Z);
                     if (dec.ID.slice(0, 2) === "-2" & dec.ID !== "-2" + multiplayer.getID()) {
                         let tvel = new BABYLON.Vector3(dec.Vel.X, dec.Vel.Y, dec.Vel.Z);
-                        proj.push(new Projectile(pos, tvel, team, false));
+                        proj.push(new Projectile(pos, tvel, team, false, dec.Size));
                     } else if (dec.ID.slice(0, 2) !== "-1" && dec.ID !== '') {
                         if (dec.ID === multiplayer.getID()) {
                             console.log(dec.ID)
@@ -501,6 +567,8 @@ camera.attachControl(canvas, true);
 camera.keysDown = camera.keysUp = camera.keysLeft = camera.keysRight = [];
 camera.radius = 0.001;
 camera.maxZ = 1000;
+camera.fov = 1;
+console.log(camera);
 
 //asset loader
 var assetsManager = new BABYLON.AssetsManager(scene);

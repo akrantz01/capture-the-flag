@@ -1,10 +1,11 @@
-function Projectile(pos, vel, team, type) {
+function Projectile(pos, vel, team, dup, type) {
     this.pos = (pos instanceof BABYLON.Vector3) ? fromBabylon(pos) : pos;
     this.vel = (vel instanceof BABYLON.Vector3) ? fromBabylon(vel) : vel;
     this.team = team;
     this.created = true;
     this.type = type;
-    this.mesh = BABYLON.MeshBuilder.CreateSphere("proj" + Math.random(), {diameter: 1}, scene);
+    this.dup = dup;
+    this.mesh = BABYLON.MeshBuilder.CreateSphere("proj" + Math.random(), {diameter: type}, scene);
     this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
     this.ray = new BABYLON.Ray(this.pos.toBabylon(), this.vel.toBabylon(), this.vel.mag());
 }
@@ -12,12 +13,21 @@ function Projectile(pos, vel, team, type) {
 Projectile.prototype.update = function (ground, scene, players, oPlayers, decalList) {
     this.pos = fromBabylon(this.mesh.position);
     this.vel.y -= 0.1;
-    if (this.type) {
+    if (this.dup) {
         if (ground) {
+            this.ray = new BABYLON.Ray(this.pos.toBabylon(), this.vel.toBabylon(), this.vel.mag());
+            var hitInfo = this.ray.intersectsMeshes([ground]);
+            if (hitInfo.length) {
+                console.log(hitInfo);
+                hitInfo = hitInfo[0];
+                this.pos.x = hitInfo.pickedPoint.x;
+                this.pos.z = hitInfo.pickedPoint.z;
+                let mapHeight = hitInfo.pickedPoint.y;
+            //}
 
-            let mapHeight = ground.getHeightAtCoordinates(this.pos.x, this.pos.z);
+            //let mapHeight = ground.getHeightAtCoordinates(this.pos.x, this.pos.z);
 
-            if (this.pos.y < mapHeight) {
+            //if (this.pos.y < mapHeight) {
                 if (Math.abs(mapHeight - this.pos.y) > Math.abs(this.vel.y)) {
                     this.pos.sub(this.vel.div(1.5));
                     mapHeight = ground.getHeightAtCoordinates(this.pos.x, this.pos.z);
@@ -56,7 +66,7 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
     this.mesh.position = (this.pos.add(this.vel)).toBabylon();
     this.ray.origin = this.mesh.position;
     this.ray.direction = this.vel.toBabylon();
-    if (this.created && this.type) {
+    if (this.created && this.dup) {
         this.created = false;
         return -2;
     }
