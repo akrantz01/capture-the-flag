@@ -108,12 +108,13 @@ Player.prototype.update = function (ground) {
         this.rays[i] = (new BABYLON.Ray(tempPos, new BABYLON.Vector3(0, -1, 0), 400));
         hitInfo.push(this.rays[i].intersectsMeshes([ground]))
     }
+    let norm = null;
     let maxHeight = -Infinity;
-    console.log(hitInfo)
     for (let i = 0; i < hitInfo.length; i++) {
         if (hitInfo[i].length) {
             if (200 - hitInfo[i][0].distance > maxHeight) {
                 maxHeight = 200 - hitInfo[i][0].distance;
+                norm = hitInfo[i][0].getNormal(false, false);
             }
         }
     }
@@ -165,7 +166,8 @@ Player.prototype.update = function (ground) {
 
     if (this.onGround) {
         this.timeOfGround = 0;
-        let normal = fromBabylon(ground.getNormalAtCoordinates(this.pos.x, this.pos.z));
+        let normal = fromBabylon(norm);
+        //console.log(norm, ground.getNormalAtCoordinates(this.pos.x, this.pos.z))
         let incline = normal.y;
         this.down = normal.add(new Vector(0, -1, 0));
         if (incline < 0.65) {
@@ -173,8 +175,12 @@ Player.prototype.update = function (ground) {
             tempy = this.vel.y;
             this.vel.y = 0;
             normal.y = 0;
-            if (normal.x !== 0 || normal.z !== 0) {
-                angbet = Vector.angleBetween(normal.mult(-1), this.vel);
+            if ((normal.x !== 0 || normal.z !== 0)) {
+                try {
+                    angbet = Vector.angleBetween(normal.mult(-1), this.vel);
+                } catch (e) {
+                    angbet = 0;
+                }
                 if (angbet === null || isNaN(angbet)) {
                     angbet = 0;
                 }
@@ -188,6 +194,7 @@ Player.prototype.update = function (ground) {
                     signs.z = Math.sign(this.vel.z);
 
                     let spd = this.maxSpeed * Math.cos(angbet / 1.3) * 0.9;
+                    console.log(spd, angbet)
 
                     this.vel.x = signs.x * (Math.abs(this.vel.x) - Math.abs(normal.x) * spd * this.slow);
                     this.vel.z = signs.z * (Math.abs(this.vel.z) - Math.abs(normal.z) * spd * this.slow);
