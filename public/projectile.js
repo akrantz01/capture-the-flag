@@ -18,7 +18,6 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
             this.ray = new BABYLON.Ray(this.pos.toBabylon(), this.vel.toBabylon(), this.vel.mag());
             var hitInfo = this.ray.intersectsMeshes([ground]);
             if (hitInfo.length) {
-                console.log(hitInfo);
                 hitInfo = hitInfo[0];
                 this.pos.x = hitInfo.pickedPoint.x;
                 this.pos.z = hitInfo.pickedPoint.z;

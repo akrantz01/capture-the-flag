@@ -48,6 +48,7 @@ var createScene = function () {
     let height = 1000;
 
     var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "map2.png", width, height, 60, 0, 255 / 2, scene, false);
+    let ray = new BABYLON.Ray(new BABYLON.Vector3(0,200,0), new BABYLON.Vector3(0,-1,0), 400);
     //ground.position.set(500, 0, 500);
     /*BABYLON.Mesh.CreateGround("ground", width, height, 80, scene, true);
 
@@ -110,7 +111,9 @@ var createScene = function () {
         },
         sniper: function (alpha, beta) {
             camera.angularSensibilityX = camera.angularSensibilityY = 1000;
-            setTimeout(function(){camera.fov = 1;}, 100);
+            setTimeout(function () {
+                camera.fov = 1;
+            }, 100);
             let vel = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
             proj.push(new Projectile(fromBabylon(player.mesh.position).add(gunOffset).add(vel.mult(-4)), vel.mult(300), team, true, 1));
         },
