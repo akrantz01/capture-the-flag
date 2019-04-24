@@ -167,7 +167,7 @@ Player.prototype.update = function (ground) {
     if (this.onGround) {
         this.timeOfGround = 0;
         let normal = fromBabylon(norm);
-        //console.log(norm, ground.getNormalAtCoordinates(this.pos.x, this.pos.z))
+
         let incline = normal.y;
         this.down = normal.add(new Vector(0, -1, 0));
         if (incline < 0.65) {
@@ -194,7 +194,6 @@ Player.prototype.update = function (ground) {
                     signs.z = Math.sign(this.vel.z);
 
                     let spd = this.maxSpeed * Math.cos(angbet / 1.3) * 0.9;
-                    console.log(spd, angbet)
 
                     this.vel.x = signs.x * (Math.abs(this.vel.x) - Math.abs(normal.x) * spd * this.slow);
                     this.vel.z = signs.z * (Math.abs(this.vel.z) - Math.abs(normal.z) * spd * this.slow);

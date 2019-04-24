@@ -27,6 +27,8 @@ var spawns = [{x: 243.85, y: 132, z: -218.78}, {x: -343.63, y: 132, z: 293.73}];
 
 var healthbar;
 
+let mousedown = false;
+
 var createScene = function () {
     var gravityVector = new BABYLON.Vector3(0, -100, 0);
     var physicsPlugin = new BABYLON.CannonJSPlugin();
@@ -48,7 +50,7 @@ var createScene = function () {
     let height = 1000;
 
     var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "map2.png", width, height, 60, 0, 255 / 2, scene, false);
-    let ray = new BABYLON.Ray(new BABYLON.Vector3(0,200,0), new BABYLON.Vector3(0,-1,0), 400);
+    let ray = new BABYLON.Ray(new BABYLON.Vector3(0, 200, 0), new BABYLON.Vector3(0, -1, 0), 400);
     //ground.position.set(500, 0, 500);
     /*BABYLON.Mesh.CreateGround("ground", width, height, 80, scene, true);
 
@@ -92,6 +94,7 @@ var createScene = function () {
         gunOffset.z = Math.sin(alpha + Math.PI / 2);
     }
 
+    let startCamPos = [camera.beta, camera.alpha];
     let weaponTypes = {
         normal: function (alpha, beta) {
             rotateGunOffset(alpha);
@@ -119,7 +122,9 @@ var createScene = function () {
         },
     };
     let currentType = "sniper";
-    let mousedown = false;
+    mousedown = false;
+    let velOffset = [0, 0];
+    let posOffset = [0, 0];
 
     //create projectiles on click
     document.addEventListener("mouseup", function (e) {
@@ -177,11 +182,30 @@ var createScene = function () {
         } else {
             switch (currentType) {
                 case "sniper":
+                    velOffset = [0, 0];
                     camera.fov = 0.1;
                     camera.angularSensibilityX = camera.angularSensibilityY = 30000;
+                    startCamPos = [camera.beta, camera.alpha];
+                    posOffset = [0, 0];
                     break;
                 default:
                     break;
+            }
+        }
+    });
+    document.addEventListener("mousemove", function (e) {
+        if (mousedown) {
+            if (e.which === 3) {
+                return;
+            } else {
+                switch (currentType) {
+                    case "sniper":
+                        velOffset[1] -= e.movementX/10000;
+                        velOffset[0] -= e.movementY/10000;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     });
@@ -203,6 +227,13 @@ var createScene = function () {
                 case "machineGun":
                     if (delay % 3 === 0)
                         weaponTypes[currentType](camera.alpha, camera.beta);
+                    break;
+                case "sniper":
+                    posOffset[1] += velOffset[1];
+                    posOffset[0] += velOffset[0];
+                    camera.beta = startCamPos[0] + posOffset[0];
+                    camera.alpha = startCamPos[1] + posOffset[1];
+                    camera.update();
                     break;
                 default:
                     break;
