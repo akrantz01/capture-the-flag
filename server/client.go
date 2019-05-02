@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -46,17 +45,6 @@ type Client struct {
 }
 
 func (c *Client) readPump() {
-	fmt.Println(SetPlayerData)
-	fmt.Println(SetObjectData)
-	fmt.Println(DeleteObject)
-	fmt.Println(Broadcast)
-	fmt.Println(UpdateScore)
-	fmt.Println(TakeFlag)
-	fmt.Println(ResetFlag)
-	fmt.Println(UpdateHealth)
-	fmt.Println(EventFlag)
-
-
 	defer func() {
 		c.hub.unregister <- c
 		c.conn.Close()
