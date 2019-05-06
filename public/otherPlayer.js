@@ -1,5 +1,5 @@
 function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, scene) {
-    this.mesh = /*BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 5, diameterY: 4}, scene)*/
+    this.mesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 5, diameterY: 4}, scene)
                 playerModel.createInstance("i" + id);
     //var material = new BABYLON.StandardMaterial("PMaterial", scene);
     //material.diffuseColor = new BABYLON.Color3(1, 1, 0);

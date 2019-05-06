@@ -42,6 +42,7 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
                     size: decalSize
                 }, scene);
                 decal.material = decalMaterial;
+                groundDecalList.push(decal);
                 this.mesh.dispose();
                 return -1;
             }

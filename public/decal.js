@@ -17,12 +17,13 @@ function Decal(pos, norm, mesh, scene) {
     this.pivot.position = this.mesh.position;
     this.decal.parent = this.pivot;
     this.decal.position = this.offset;
+    this.time = d.getTime();
 }
 Decal.prototype.update = function() {
     this.pivot.position = (fromBabylon(this.mesh.position)).toBabylon();
     this.pivot.rotate(BABYLON.Axis.Y, this.mesh.deltar, BABYLON.Space.WORLD);
     //this.decal.position = (fromBabylon(this.mesh.position).sub(this.offset)).toBabylon();
-    if (this.mesh._isDisposed) {
+    if (this.mesh._isDisposed ||  d.getTime() - this.time > 60000) {
         this.decal.dispose();
         return true;
     }
