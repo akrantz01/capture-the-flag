@@ -65,6 +65,16 @@
             color: /*#2c80ea*/ #3498db;
             text-align: left;
         }
+
+        #controls {
+            margin: 10px;
+            position: absolute;
+            color: black;
+            font-family: Arial, serif;
+            font-weight: lighter;
+            width: 100%;
+            top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -102,11 +112,16 @@
 <div id="temp">
 
 </div>
+<div id="controls">
+    <input type="range" min="0" max="127" value="0" class="slider" id="coh">
+    <label for="coh"><span id="output">5.00</span></label>
+</div>
 
 <script src="mmoc.js"></script>
 
 <script src="https://preview.babylonjs.com/cannon.js"></script>
 <script src="https://preview.babylonjs.com/babylon.js"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/babylonjs/3.3.0-rc.5/babylon.js"></script>-->
 <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
 <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
 <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>

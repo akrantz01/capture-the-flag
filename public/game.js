@@ -136,7 +136,7 @@ var createScene = function () {
             proj.push(new Projectile(fromBabylon(player.mesh.position).add(gunOffset).add(vel.mult(-4)), vel.mult(300), team, true, 1));
         },
     };
-    let currentType = "machineGun";
+    let currentType = "normal";
     mousedown = false;
     let velOffset = [0, 0];
     let posOffset = [0, 0];
@@ -215,8 +215,8 @@ var createScene = function () {
             } else {
                 switch (currentType) {
                     case "sniper":
-                        velOffset[1] -= e.movementX/10000;
-                        velOffset[0] -= e.movementY/10000;
+                        velOffset[1] -= e.movementX / 10000;
+                        velOffset[0] -= e.movementY / 10000;
                         break;
                     default:
                         break;
@@ -604,6 +604,23 @@ var createScene = function () {
             camera.radius = 0.001;
         }
     }));
+
+    var slider = document.getElementById("coh");
+    var output = document.getElementById("output");
+    output.innerHTML = "0";
+
+    slider.oninput = function () {
+        let c = Object.keys(models);
+        for (let i = 0; i < c.length; i++) {
+            if (i === parseFloat(this.value)) {
+                models[c[i]].position.y = 5;
+                console.log(c[i]);
+            } else {
+                models[c[i]].position.y = 1;
+            }
+        }
+        output.innerHTML = this.value;
+    };//"cabinRoofChimney(Clone)_primitive03","cabinRoofChimney(Clone)_primitive14","cabinRoofChimney(Clone)_primitive25","cabinRoofChimney(Clone)_primitive36","cabinRoofChimney(Clone)_primitive36","door_primitive248","cabinDoor(Clone)49","frame_primitive050","frame_primitive151","frame_primitive252","frame_primitive353","cabinCorner(Clone)55","cabinWall(Clone)56","cabinWall(Clone)57","cabinWall(Clone)58","cabinCorner(Clone)59","cabinCorner(Clone)60","cabinWall(Clone)61","cabinWall(Clone)62","cabinRoof(Clone)_primitive063","cabinRoof(Clone)_primitive164","cabinRoof(Clone)_primitive065","cabinRoof(Clone)_primitive166","cabinRoof(Clone)_primitive067","cabinRoof(Clone)_primitive168","cabinSideCenter(Clone)69","cabinSideCenter(Clone)70","cabinRoof(Clone)_primitive071","cabinRoof(Clone)_primitive172","cabinFloor(Clone)73",
 };
 
 var multiplayer = new MMOC();
@@ -695,11 +712,80 @@ playerTask.onSuccess = function (task) {
 
 };*/
 
-var playerTask = assetsManager.addMeshTask("player task", "", "./", "lowpoly_Snowman.babylon");
+var playerTask = assetsManager.addMeshTask("player task", "", "./GLTF/", "christmas.glb");
+let models = {};
+let environment = new BABYLON.Mesh("environment", scene);
+let cabin1 = new BABYLON.Mesh("cabin1", scene);
+let cabin2 = new BABYLON.Mesh("cabin2", scene);
 playerTask.onSuccess = function (task) {
-    //console.log(task.loadedMeshes[0]);
+    let listdone = [];
+    let ball = new BABYLON.MeshBuilder.CreateSphere("Sphere", {diameter: 1}, scene);
+    ball.position = {x: 3.6899462734583444, y: 1, z: -0.21614524871613433};
+    let myMaterial = new BABYLON.StandardMaterial("myMaterial", scene);
+
+    myMaterial.diffuseColor = new BABYLON.Color3(0, 0, 1);
+
+    ball.material = myMaterial;
+    //let tar = [154, 157, 160, 163, 163, 503, 494, 510, 513, 516, 518, 522, 526, 530, 533, 535, 537, 540, 542, 546, 549, 554, 556, 559, 561, 564, 567, 570, 572, 575];
+
+    let i = 0;
+    (task).loadedMeshes.forEach((mesh) => {
+        /*if (mesh.name === "Group") {
+            mesh.position.x = 10;
+            mesh.position.y = 10;
+            mesh.scale = new BABYLON.Vector3(100,100,100);
+        }
+        else*/
+        //if (mesh.name.indexOf("cabin") !== -1 || mesh.name.indexOf("door") !== -1 || mesh.name.indexOf("frame") !== -1 || mesh.name.indexOf("wreath") !== -1 || mesh.name.indexOf("Red") !== -1) {
+        //console.log(mesh.name)
+        /*for (let i = 0; i < listdone.length; i++) {
+
+        }
+        let ball = new BABYLON.MeshBuilder.CreateSphere("Sphere", {diameter: 1}, scene);
+        ball.position = mesh.position;
+        //console.log((fromBabylon(mesh.position).sub(new Vector(3.6899462734583444, 1, -0.21614524871613433))).magSq())
+        if (ball.position.z > -1) {
+            cabin1.addChild(mesh);
+            let myMaterial = new BABYLON.StandardMaterial("myMaterial", scene);
+
+            myMaterial.diffuseColor = new BABYLON.Color3(1, 0, 1);
+            myMaterial.specularColor = new BABYLON.Color3(0.5, 0.6, 0.87);
+            myMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+            myMaterial.ambientColor = new BABYLON.Color3(0.23, 0.98, 0.53);
+
+            ball.material = myMaterial;
+        }
+        else {
+            cabin2.addChild(mesh);
+        }
+        //{x: 3.6899462734583444, y: 7.500999950000445, z: -0.21614524871613433}
+        //{x: 0.44800764952533495, y: 7.500999950000445, z: -3.6378826932399866}
+        //console.log(mesh.name)
+    } else {
+        environment.addChild(mesh);*/
+        //if (mesh.uniqueId)
+        if (mesh.name.indexOf("fence") > -1 || mesh.name.indexOf("group") > -1 || mesh.name.indexOf("log") > -1 || mesh.name.indexOf("wreath") > -1 || mesh.name.indexOf("wheel") > -1 || mesh.name.indexOf("track") > -1 || mesh.name.indexOf("tie") > -1 || mesh.name.indexOf("stone") > -1 || mesh.name.indexOf("rock") > -1 || mesh.name.indexOf("light") > -1 || mesh.name.indexOf("snow") > -1 || mesh.name.indexOf("train") > -1 || mesh.name.indexOf("wagon") > -1 || mesh.name.indexOf("tree") > -1) {
+
+        } else {
+            models[mesh.name + i] = mesh;
+            i++;
+        }
+        //}
+    });
+    console.log(models);
+    let cabin1list = ["cabinRoofChimney(Clone)_primitive03", "cabinRoofChimney(Clone)_primitive14", "cabinRoofChimney(Clone)_primitive25", "cabinRoofChimney(Clone)_primitive36", "cabinRoofChimney(Clone)_primitive36", "door_primitive248", "cabinDoor(Clone)49", "frame_primitive050", "frame_primitive151", "frame_primitive252", "frame_primitive353", "cabinCorner(Clone)55", "cabinWall(Clone)56", "cabinWall(Clone)57", "cabinWall(Clone)58", "cabinCorner(Clone)59", "cabinCorner(Clone)60", "cabinWall(Clone)61", "cabinWall(Clone)62", "cabinRoof(Clone)_primitive063", "cabinRoof(Clone)_primitive164", "cabinRoof(Clone)_primitive065", "cabinRoof(Clone)_primitive166", "cabinRoof(Clone)_primitive067", "cabinRoof(Clone)_primitive168", "cabinSideCenter(Clone)69", "cabinSideCenter(Clone)70", "cabinRoof(Clone)_primitive071", "cabinRoof(Clone)_primitive172", "cabinFloor(Clone)73",];
+    //let tar = [154, 157, 160, 163, 163, 503, 494, 510, 513, 516, 518, 522, 526, 530, 533, 535, 537, 540, 542, 546, 549, 554, 556, 559, 561, 564, 567, 570, 572, 575];
+    for (let i = 0; i < tar.length; i++) {
+        //tar.push(models[cabin1list[i]].uniqueId);
+        cabin1.addChild(models[cabin1list[i]]);
+    }
+    //cabin1.scale = new BABYLON.Vector3(100,100,100);
+    //cabin1.position.x += 20;
+    environment.scale = new BABYLON.Vector3(10, 10, 10);
+    environment.position.x += 10;
+    environment.position.y += 1;
     task.loadedMeshes[0].position = BABYLON.Vector3.Zero();
-    //task.loadedMeshes[0].position.y = -100;
+    task.loadedMeshes[0].position.x = 10;
     //task.loadedMeshes[0].rotation = new BABYLON.Vector3(-2 * Math.PI / 3, 0, -1.2);
     //task.loadedMeshes[0].rotation = new BABYLON.Vector3(-2 * Math.PI / 3, 0, -1.2);
     //task.loadedMeshes[0].material.ambientColor = new BABYLON.Color3(1, 1, 1);
@@ -716,7 +802,7 @@ playerTask.onSuccess = function (task) {
     }
 });
 
-var loader = BABYLON.SceneLoader.Append("./GLTF/", "Snowman-Generic3.gltf", scene, function () {
+var loader = BABYLON.SceneLoader.Append("./GLTF/", "Snowman-Generic3.glb", scene, function () {
 
 });
 loader.onMeshLoaded = function (mesh) {
