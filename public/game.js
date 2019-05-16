@@ -610,13 +610,13 @@ var createScene = function () {
     output.innerHTML = "0";
 
     slider.oninput = function () {
-        let c = Object.keys(models);
+        let c = Object.keys(cabinmeshes);
         for (let i = 0; i < c.length; i++) {
             if (i === parseFloat(this.value)) {
-                models[c[i]].position.y = 5;
+                cabinmeshes[c[i]].position.y = 5;
                 console.log(c[i]);
             } else {
-                models[c[i]].position.y = 1;
+                cabinmeshes[c[i]].position.y = 1;
             }
         }
         output.innerHTML = this.value;
@@ -717,6 +717,7 @@ let models = {};
 let environment = new BABYLON.Mesh("environment", scene);
 let cabin1 = new BABYLON.Mesh("cabin1", scene);
 let cabin2 = new BABYLON.Mesh("cabin2", scene);
+let cabinmeshes = {};
 playerTask.onSuccess = function (task) {
     let listdone = [];
     let ball = new BABYLON.MeshBuilder.CreateSphere("Sphere", {diameter: 1}, scene);
@@ -728,7 +729,7 @@ playerTask.onSuccess = function (task) {
     ball.material = myMaterial;
     //let tar = [154, 157, 160, 163, 163, 503, 494, 510, 513, 516, 518, 522, 526, 530, 533, 535, 537, 540, 542, 546, 549, 554, 556, 559, 561, 564, 567, 570, 572, 575];
 
-    let i = 0;
+    let cabinmark = 0;
     (task).loadedMeshes.forEach((mesh) => {
         /*if (mesh.name === "Group") {
             mesh.position.x = 10;
@@ -767,20 +768,25 @@ playerTask.onSuccess = function (task) {
         if (mesh.name.indexOf("fence") > -1 || mesh.name.indexOf("group") > -1 || mesh.name.indexOf("log") > -1 || mesh.name.indexOf("wreath") > -1 || mesh.name.indexOf("wheel") > -1 || mesh.name.indexOf("track") > -1 || mesh.name.indexOf("tie") > -1 || mesh.name.indexOf("stone") > -1 || mesh.name.indexOf("rock") > -1 || mesh.name.indexOf("light") > -1 || mesh.name.indexOf("snow") > -1 || mesh.name.indexOf("train") > -1 || mesh.name.indexOf("wagon") > -1 || mesh.name.indexOf("tree") > -1) {
 
         } else {
-            models[mesh.name + i] = mesh;
-            i++;
+            cabinmeshes[mesh.name + cabinmark] = mesh;
+            cabinmark++;
         }
         //}
     });
-    console.log(models);
-    let cabin1list = ["cabinRoofChimney(Clone)_primitive03", "cabinRoofChimney(Clone)_primitive14", "cabinRoofChimney(Clone)_primitive25", "cabinRoofChimney(Clone)_primitive36", "cabinRoofChimney(Clone)_primitive36", "door_primitive248", "cabinDoor(Clone)49", "frame_primitive050", "frame_primitive151", "frame_primitive252", "frame_primitive353", "cabinCorner(Clone)55", "cabinWall(Clone)56", "cabinWall(Clone)57", "cabinWall(Clone)58", "cabinCorner(Clone)59", "cabinCorner(Clone)60", "cabinWall(Clone)61", "cabinWall(Clone)62", "cabinRoof(Clone)_primitive063", "cabinRoof(Clone)_primitive164", "cabinRoof(Clone)_primitive065", "cabinRoof(Clone)_primitive166", "cabinRoof(Clone)_primitive067", "cabinRoof(Clone)_primitive168", "cabinSideCenter(Clone)69", "cabinSideCenter(Clone)70", "cabinRoof(Clone)_primitive071", "cabinRoof(Clone)_primitive172", "cabinFloor(Clone)73",];
+    console.log(cabinmeshes);
+    let cabin1list = ["cabinRoofChimney(Clone)_primitive03", "cabinWindowLarge(Clone)54", "cabinRoofChimney(Clone)_primitive14", "cabinRoofChimney(Clone)_primitive25", "cabinRoofChimney(Clone)_primitive36", "cabinRoofChimney(Clone)_primitive36", "door_primitive248", "cabinDoor(Clone)49", "frame_primitive050", "frame_primitive151", "frame_primitive252", "frame_primitive353", "cabinCorner(Clone)55", "cabinWall(Clone)56", "cabinWall(Clone)57", "cabinWall(Clone)58", "cabinCorner(Clone)59", "cabinCorner(Clone)60", "cabinWall(Clone)61", "cabinWall(Clone)62", "cabinRoof(Clone)_primitive063", "cabinRoof(Clone)_primitive164", "cabinRoof(Clone)_primitive065", "cabinRoof(Clone)_primitive166", "cabinRoof(Clone)_primitive067", "cabinRoof(Clone)_primitive168", "cabinSideCenter(Clone)69", "cabinSideCenter(Clone)70", "cabinRoof(Clone)_primitive071", "cabinRoof(Clone)_primitive172", "cabinFloor(Clone)73",];
+    let cabin2list = ["frame12", "door_primitive013", "door_primitive114", "door_primitive215", "cabinDoor(Clone)16", "cabinRoofCorner(Clone)_primitive017", "cabinRoofCorner(Clone)_primitive118", "cabinRoofCorner(Clone)_primitive019", "cabinRoofCorner(Clone)_primitive120", "cabinWall(Clone)21", "cabinWall(Clone)22", "cabinCorner(Clone)23", "cabinCorner(Clone)24", "cabinRoofCorner(Clone)_primitive025", "cabinRoofCorner(Clone)_primitive126", "cabinRoofCorner(Clone)_primitive027", "cabinRoofCorner(Clone)_primitive128", "cabinWall(Clone)29", "frame_primitive030", "frame_primitive131", "cabinWindow(Clone)32", "cabinWall(Clone)33", "cabinWall(Clone)34", "frame_primitive035", "frame_primitive136", "cabinWindow(Clone)37", "cabinWall(Clone)38", "cabinWall(Clone)39", "cabinWall(Clone)40", "cabinFloor(Clone)41"];
     //let tar = [154, 157, 160, 163, 163, 503, 494, 510, 513, 516, 518, 522, 526, 530, 533, 535, 537, 540, 542, 546, 549, 554, 556, 559, 561, 564, 567, 570, 572, 575];
-    for (let i = 0; i < tar.length; i++) {
+    for (let i = 0; i < cabin1list.length; i++) {
         //tar.push(models[cabin1list[i]].uniqueId);
-        cabin1.addChild(models[cabin1list[i]]);
+        cabin1.addChild(cabinmeshes[cabin1list[i]]);
+    }
+    for (let i = 0; i < cabin2list.length; i++) {
+        cabin2.addChild(cabinmeshes[cabin2list[i]]);
     }
     //cabin1.scale = new BABYLON.Vector3(100,100,100);
-    //cabin1.position.x += 20;
+    cabin1.position.x += 20;
+    cabin2.position.y += 20;
     environment.scale = new BABYLON.Vector3(10, 10, 10);
     environment.position.x += 10;
     environment.position.y += 1;
