@@ -721,7 +721,6 @@ playerTask.onSuccess = function (task) {
 
 var playerTask = assetsManager.addMeshTask("player task", "", "./GLTF/", "christmas.glb");
 let models = {};
-let environment = new BABYLON.Mesh("environment", scene);
 let cabin1 = new BABYLON.Mesh("cabin1", scene);
 let cabin2 = new BABYLON.Mesh("cabin2", scene);
 let sled = new BABYLON.Mesh("sled", scene);
@@ -817,10 +816,13 @@ playerTask.onSuccess = function (task) {
 
     let fencelist = ["fence6", "fence_simple0", "fence_simple1", "fence_simple2", "fence_corner3", "fence_simple2", "fence_corner3", "fence4", "fence5", "fence6"];
     for (let i = 0; i < fencelist.length; i++) {
+        models[fencelist[i]].scaling = new BABYLON.Vector3(16, 16, 16);
         fences.push(models[fencelist[i]]);
+
     }
     let stonelist = ["stone_tall107", "stone_tall98", "stone_tall89", "stone_tall510", "stone_tall411", "stone_tall312", "stone_tall213", "stone_tall114", "stone_smallTop215", "stone_smallTop116", "stone_smallFlat317", "stone_smallFlat218", "stone_smallFlat119", "stone_small920", "stone_small821", "stone_small722", "stone_large623", "stone_large524", "stone_large425", "stone_large326", "stone_large227", "stone_large128", "stone_statue_primitive029", "stone_statue_primitive130"];
     for (let i = 0; i < stonelist.length; i++) {
+        models[stonelist[i]].scaling = new BABYLON.Vector3(16, 16, 16);
         stones.push(models[stonelist[i]]);
     }
     let tree1list = ["treePineSnowed(Clone)_primitive036", "treePineSnowed(Clone)_primitive137"];
@@ -880,35 +882,66 @@ playerTask.onSuccess = function (task) {
     snowfort = models[snowfortlist[0]];
     let rockformationlist = ["rockFormationSmall(Clone)_primitive157", "rockFormationMedium(Clone)_primitive058", "rockFormationMedium(Clone)_primitive159"];
     for (let i = 0; i < rockformationlist.length; i++) {
+        models[rockformationlist[i]].scaling = new BABYLON.Vector3(16, 16, 16);
         rockformations.push(models[rockformationlist[i]]);
     }
     let largerockformationlist = ["rockFormationLarge(Clone)_primitive180", "rockFormationLarge(Clone)_primitive079"];
     let largerockform = new BABYLON.Mesh("lagrerockformation", scene);
     for (let i = 0; i < largerockformationlist.length; i++) {
         largerockform.addChild(models[largerockformationlist[i]]);
+        largerockform.scaling = new BABYLON.Vector3(16, 16, 16);
     }
     rockformations.push(largerockform);
     let rockformation2list = ["rockFormationLarge(Clone)_primitive093", "rockFormationLarge(Clone)_primitive194"];
     let largerockform2 = new BABYLON.Mesh("lagrerockformation2", scene);
     for (let i = 0; i < rockformation2list.length; i++) {
+        largerockform2.scaling = new BABYLON.Vector3(16, 16, 16);
         largerockform2.addChild(models[rockformation2list[i]]);
     }
     rockformations.push(largerockform2);
+
     let snowpatchlist = ["snowPatch(Clone)60", "snowPatch(Clone)83", "snowPatch(Clone)95"];
     for (let i = 0; i < snowpatchlist.length; i++) {
+        models[snowpatchlist[i]].scaling = new BABYLON.Vector3(16, 16, 16);
         snowpatches.push(models[snowpatchlist[i]]);
     }
 
     let trainlist = ["trackCorner(Clone)_primitive0109", "trackCorner(Clone)_primitive1110", "trackCorner(Clone)_primitive2111", "trackCornerLarge(Clone)_primitive0112", "trackCornerLarge(Clone)_primitive1113", "trackCornerLarge(Clone)_primitive2114", "trackStraight(Clone)_primitive0115", "trackStraight(Clone)_primitive1116", "trackStraight(Clone)_primitive2117", "trackCorner(Clone)_primitive0118", "trackCorner(Clone)_primitive1119", "trackCorner(Clone)_primitive2120", "trackStraight(Clone)_primitive0121", "trackStraight(Clone)_primitive1122", "trackStraight(Clone)_primitive2123", "trackCornerLarge(Clone)_primitive0124", "trackCornerLarge(Clone)_primitive1125", "trackCornerLarge(Clone)_primitive2126", "trackCornerLarge(Clone)_primitive0127", "trackCornerLarge(Clone)_primitive1128", "trackCornerLarge(Clone)_primitive2129", "trackStraight(Clone)_primitive0130", "trackStraight(Clone)_primitive1131", "trackStraight(Clone)_primitive2132", "trackCornerLarge(Clone)_primitive0133", "trackCornerLarge(Clone)_primitive1134", "trackCornerLarge(Clone)_primitive2135", "trackCorner(Clone)_primitive0136", "trackCorner(Clone)_primitive1137", "trackCorner(Clone)_primitive2138", "trackCorner(Clone)_primitive0139", "trackCorner(Clone)_primitive1140", "trackCorner(Clone)_primitive2141", "trackStraight(Clone)_primitive0142", "trackStraight(Clone)_primitive1143", "trackStraight(Clone)_primitive2144", "wheel_primitive0145", "wheel_primitive1146", "wheel_primitive0147", "wheel_primitive1148", "trainLocomotive(Clone)_primitive0149", "trainLocomotive(Clone)_primitive1150", "wheel_primitive0151", "wheel_primitive1152", "wheel_primitive0153", "wheel_primitive1154", "wheel_primitive0155", "wheel_primitive1156", "wheel_primitive0157", "wheel_primitive1158", "trainTender(Clone)_primitive0159", "trainTender(Clone)_primitive1160", "wheel_primitive0161", "wheel_primitive1162", "wheel_primitive0163", "wheel_primitive1164", "trainWagon(Clone)_primitive0165", "trainWagon(Clone)_primitive1166", "trainWagon(Clone)_primitive2167", "trainWagon(Clone)_primitive3168", "log169", "log170", "log171", "log172", "log173", "wheel_primitive0174", "wheel_primitive1175", "wheel_primitive0176", "wheel_primitive1177", "trainWagonFlat(Clone)_primitive0178", "trainWagonFlat(Clone)_primitive1179"];
     for (let i = 0; i < trainlist.length; i++) {
+        models[trainlist[i]].scaling = new BABYLON.Vector3(16, 16, 16);
         train.addChild(models[trainlist[i]]);
     }
     //cabin1.scale = new BABYLON.Vector3(100,100,100);
     cabin1.position.x += 20;
     cabin2.position.y += 20;
-    environment.scale = new BABYLON.Vector3(10, 10, 10);
-    environment.position.x += 10;
-    environment.position.y += 1;
+
+    sled.scaling = new BABYLON.Vector3(16, 16, 16);
+    campfire.scaling = new BABYLON.Vector3(16, 16, 16);
+    bench1.scaling = new BABYLON.Vector3(16, 16, 16);
+    bench2.scaling = new BABYLON.Vector3(16, 16, 16);
+    present1.scaling = new BABYLON.Vector3(16, 16, 16);
+    present2.scaling = new BABYLON.Vector3(16, 16, 16);
+    present3.scaling = new BABYLON.Vector3(16, 16, 16);
+
+    tree1.scaling = new BABYLON.Vector3(16, 16, 16);
+    tree2.scaling = new BABYLON.Vector3(16, 16, 16);
+    tree3.scaling = new BABYLON.Vector3(16, 16, 16);
+    tree4.scaling = new BABYLON.Vector3(16, 16, 16);
+    tree5.scaling = new BABYLON.Vector3(16, 16, 16);
+    tree6.scaling = new BABYLON.Vector3(16, 16, 16);
+    tree7.scaling = new BABYLON.Vector3(16, 16, 16);
+    tree8.scaling = new BABYLON.Vector3(16, 16, 16);
+    fancytree.scaling = new BABYLON.Vector3(16, 16, 16);
+    lightpost1.scaling = new BABYLON.Vector3(16, 16, 16);
+    lightpost2.scaling = new BABYLON.Vector3(16, 16, 16);
+
+    snowman1.scaling = new BABYLON.Vector3(16, 16, 16);
+    snowman2.scaling = new BABYLON.Vector3(16, 16, 16);
+
+    snowfort.scaling = new BABYLON.Vector3(16, 16, 16);
+
+    cabin1.scaling = new BABYLON.Vector3(16, 16, 16);
+    cabin2.scaling = new BABYLON.Vector3(16, 16, 16);
     task.loadedMeshes[0].position = BABYLON.Vector3.Zero();
     task.loadedMeshes[0].position.x = 10;
     //task.loadedMeshes[0].rotation = new BABYLON.Vector3(-2 * Math.PI / 3, 0, -1.2);
