@@ -610,13 +610,20 @@ var createScene = function () {
     output.innerHTML = "0";
 
     slider.oninput = function () {
-        let c = Object.keys(cabinmeshes);
+        let c = Object.keys(models);
         for (let i = 0; i < c.length; i++) {
-            if (i === parseFloat(this.value)) {
-                cabinmeshes[c[i]].position.y = 5;
+            let cont = true;
+            /*for (let a = 0; a < cabin1list.length; a++) {
+                if (c[i] === cabin1list[a]) {
+                    cont = false;
+                }
+            }*/
+
+            if (i === parseFloat(this.value) && cont) {
+                models[c[i]].position.y = 5;
                 console.log(c[i]);
             } else {
-                cabinmeshes[c[i]].position.y = 1;
+                models[c[i]].position.y = 1;
             }
         }
         output.innerHTML = this.value;
@@ -717,46 +724,41 @@ let models = {};
 let environment = new BABYLON.Mesh("environment", scene);
 let cabin1 = new BABYLON.Mesh("cabin1", scene);
 let cabin2 = new BABYLON.Mesh("cabin2", scene);
+let sled = new BABYLON.Mesh("sled", scene);
+let campfire = new BABYLON.Mesh("campfire", scene);
+let bench1 = new BABYLON.Mesh("bench1", scene);
+let bench2 = new BABYLON.Mesh("bench2", scene);
+let present1 = new BABYLON.Mesh("present1", scene);
+let present2 = new BABYLON.Mesh("present2", scene);
+let present3 = new BABYLON.Mesh("present3", scene);
+
+let fences = [];
+let stones = [];
+let tree1 = new BABYLON.Mesh("tree1", scene);
+let tree2 = new BABYLON.Mesh("tree2", scene);
+let tree3 = new BABYLON.Mesh("tree3", scene);
+let tree4 = new BABYLON.Mesh("tree4", scene);
+let tree5 = new BABYLON.Mesh("tree5", scene);
+let tree6 = new BABYLON.Mesh("tree6", scene);
+let tree7 = new BABYLON.Mesh("tree7", scene);
+let tree8 = new BABYLON.Mesh("tree8", scene);
+let fancytree = new BABYLON.Mesh("fancytree", scene);
+let lightpost1 = new BABYLON.Mesh("lightpost1", scene);
+let lightpost2 = new BABYLON.Mesh("lightpost2", scene);
+
+let snowman1 = new BABYLON.Mesh("snowman1", scene);
+let snowman2 = new BABYLON.Mesh("snowman2", scene);
+
+let snowfort = new BABYLON.Mesh("snowfort", scene);
+let rockformations = [];
+let snowpatches = [];
+
+let train = new BABYLON.Mesh("train", scene);
 let cabinmeshes = {};
 playerTask.onSuccess = function (task) {
-    //let tar = [154, 157, 160, 163, 163, 503, 494, 510, 513, 516, 518, 522, 526, 530, 533, 535, 537, 540, 542, 546, 549, 554, 556, 559, 561, 564, 567, 570, 572, 575];
-
     let cabinmark = 0;
     let mark = 0;
     (task).loadedMeshes.forEach((mesh) => {
-        /*if (mesh.name === "Group") {
-            mesh.position.x = 10;
-            mesh.position.y = 10;
-            mesh.scale = new BABYLON.Vector3(100,100,100);
-        }
-        else*/
-        //if (mesh.name.indexOf("cabin") !== -1 || mesh.name.indexOf("door") !== -1 || mesh.name.indexOf("frame") !== -1 || mesh.name.indexOf("wreath") !== -1 || mesh.name.indexOf("Red") !== -1) {
-        //console.log(mesh.name)
-        /*for (let i = 0; i < listdone.length; i++) {
-
-        }
-        let ball = new BABYLON.MeshBuilder.CreateSphere("Sphere", {diameter: 1}, scene);
-        ball.position = mesh.position;
-        //console.log((fromBabylon(mesh.position).sub(new Vector(3.6899462734583444, 1, -0.21614524871613433))).magSq())
-        if (ball.position.z > -1) {
-            cabin1.addChild(mesh);
-            let myMaterial = new BABYLON.StandardMaterial("myMaterial", scene);
-
-            myMaterial.diffuseColor = new BABYLON.Color3(1, 0, 1);
-            myMaterial.specularColor = new BABYLON.Color3(0.5, 0.6, 0.87);
-            myMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
-            myMaterial.ambientColor = new BABYLON.Color3(0.23, 0.98, 0.53);
-
-            ball.material = myMaterial;
-        }
-        else {
-            cabin2.addChild(mesh);
-        }
-        //{x: 3.6899462734583444, y: 7.500999950000445, z: -0.21614524871613433}
-        //{x: 0.44800764952533495, y: 7.500999950000445, z: -3.6378826932399866}
-        //console.log(mesh.name)
-    } else {
-        environment.addChild(mesh);*/
         //if (mesh.uniqueId)
         if (mesh.name.indexOf("fence") > -1 || mesh.name.indexOf("group") > -1 || mesh.name.indexOf("log") > -1 || mesh.name.indexOf("wreath") > -1 || mesh.name.indexOf("wheel") > -1 || mesh.name.indexOf("track") > -1 || mesh.name.indexOf("tie") > -1 || mesh.name.indexOf("stone") > -1 || mesh.name.indexOf("rock") > -1 || mesh.name.indexOf("light") > -1 || mesh.name.indexOf("snow") > -1 || mesh.name.indexOf("train") > -1 || mesh.name.indexOf("wagon") > -1 || mesh.name.indexOf("tree") > -1) {
             models[mesh.name + mark] = mesh;//"wreath(Clone)_primitive0101", "wreath(Clone)_primitive1102"
@@ -768,17 +770,138 @@ playerTask.onSuccess = function (task) {
         }
         //}
     });
-    console.log(models);
-    console.log(cabinmeshes);
+    //console.log(models);
+    //console.log(cabinmeshes);
     let cabin1list = ["cabinRoofChimney(Clone)_primitive03", "cabinWindowLarge(Clone)54", "cabinRoofChimney(Clone)_primitive14", "cabinRoofChimney(Clone)_primitive25", "cabinRoofChimney(Clone)_primitive36", "cabinRoofChimney(Clone)_primitive36", "door_primitive248", "cabinDoor(Clone)49", "frame_primitive050", "frame_primitive151", "frame_primitive252", "frame_primitive353", "cabinCorner(Clone)55", "cabinWall(Clone)56", "cabinWall(Clone)57", "cabinWall(Clone)58", "cabinCorner(Clone)59", "cabinCorner(Clone)60", "cabinWall(Clone)61", "cabinWall(Clone)62", "cabinRoof(Clone)_primitive063", "cabinRoof(Clone)_primitive164", "cabinRoof(Clone)_primitive065", "cabinRoof(Clone)_primitive166", "cabinRoof(Clone)_primitive067", "cabinRoof(Clone)_primitive168", "cabinSideCenter(Clone)69", "cabinSideCenter(Clone)70", "cabinRoof(Clone)_primitive071", "cabinRoof(Clone)_primitive172", "cabinFloor(Clone)73",];
+    //+"wreath(Clone)_primitive0101", "wreath(Clone)_primitive1102"
     let cabin2list = ["frame12", "door_primitive013", "door_primitive114", "door_primitive215", "cabinDoor(Clone)16", "cabinRoofCorner(Clone)_primitive017", "cabinRoofCorner(Clone)_primitive118", "cabinRoofCorner(Clone)_primitive019", "cabinRoofCorner(Clone)_primitive120", "cabinWall(Clone)21", "cabinWall(Clone)22", "cabinCorner(Clone)23", "cabinCorner(Clone)24", "cabinRoofCorner(Clone)_primitive025", "cabinRoofCorner(Clone)_primitive126", "cabinRoofCorner(Clone)_primitive027", "cabinRoofCorner(Clone)_primitive128", "cabinWall(Clone)29", "frame_primitive030", "frame_primitive131", "cabinWindow(Clone)32", "cabinWall(Clone)33", "cabinWall(Clone)34", "frame_primitive035", "frame_primitive136", "cabinWindow(Clone)37", "cabinWall(Clone)38", "cabinWall(Clone)39", "cabinWall(Clone)40", "cabinFloor(Clone)41"];
+    let campfirelist = ["campfireStones_blocks1", "campfire_large2"];
+    let benches = ["bench(Clone)11", "bench(Clone)44"];
+    let present1list = ["lid_primitive074", "lid_primitive175", "present(Clone)_primitive076", "present(Clone)_primitive177"];
+    //+tie_primitive1100
+    //+tie_primitive099
+    //"tie_primitive0103", "tie_primitive1104", "tie_primitive0105", "tie_primitive1106", "tie_primitive0107", "tie_primitive1108"
+    let present2list = ["lid_primitive078", "lid_primitive179", "presentLow(Clone)_primitive080", "presentLow(Clone)_primitive181"];
+    let present3list = ["presentLow(Clone)_primitive080", "presentLow(Clone)_primitive181", "Group_primitive082", "Group_primitive183", "lid_primitive084", "lid_primitive185"];
     //let tar = [154, 157, 160, 163, 163, 503, 494, 510, 513, 516, 518, 522, 526, 530, 533, 535, 537, 540, 542, 546, 549, 554, 556, 559, 561, 564, 567, 570, 572, 575];
     for (let i = 0; i < cabin1list.length; i++) {
         //tar.push(models[cabin1list[i]].uniqueId);
         cabin1.addChild(cabinmeshes[cabin1list[i]]);
     }
+    cabin1.addChild(models["wreath(Clone)_primitive0101"]);
+    cabin1.addChild(models["wreath(Clone)_primitive1102"]);
     for (let i = 0; i < cabin2list.length; i++) {
         cabin2.addChild(cabinmeshes[cabin2list[i]]);
+    }
+    let cabin2lightlist = ["lightsRed(Clone)_primitive061", "lightsRed(Clone)_primitive063", "lightsRed(Clone)_primitive162", "lightsRed(Clone)_primitive164", "lightsMulti(Clone)_primitive065", "lightsMulti(Clone)_primitive068", "lightsMulti(Clone)_primitive166", "lightsMulti(Clone)_primitive169", "lightsMulti(Clone)_primitive267", "lightsMulti(Clone)_primitive270", "lightpost(Clone)_primitive071", "lightpost(Clone)_primitive172"];
+
+    for (let i = 0; i < cabin2lightlist.length; i++) {
+        cabin2.addChild(models[cabin2lightlist[i]]);
+    }
+
+    for (let i = 0; i < campfirelist.length; i++) {
+        campfire.addChild(cabinmeshes[campfirelist[i]]);
+    }
+    sled.addChild(cabinmeshes["sled(Clone)8"]);
+    bench1.addChild(cabinmeshes[benches[0]]);
+    bench2.addChild(cabinmeshes[benches[1]]);
+    for (let i = 0; i < present1list.length; i++) {
+        present1.addChild(cabinmeshes[present1list[i]]);
+    }
+    for (let i = 0; i < present2list.length; i++) {
+        present2.addChild(cabinmeshes[present2list[i]]);
+    }
+    for (let i = 0; i < present3list.length; i++) {
+        present3.addChild(cabinmeshes[present3list[i]]);
+    }
+
+    let fencelist = ["fence6", "fence_simple0", "fence_simple1", "fence_simple2", "fence_corner3", "fence_simple2", "fence_corner3", "fence4", "fence5", "fence6"];
+    for (let i = 0; i < fencelist.length; i++) {
+        fences.push(models[fencelist[i]]);
+    }
+    let stonelist = ["stone_tall107", "stone_tall98", "stone_tall89", "stone_tall510", "stone_tall411", "stone_tall312", "stone_tall213", "stone_tall114", "stone_smallTop215", "stone_smallTop116", "stone_smallFlat317", "stone_smallFlat218", "stone_smallFlat119", "stone_small920", "stone_small821", "stone_small722", "stone_large623", "stone_large524", "stone_large425", "stone_large326", "stone_large227", "stone_large128", "stone_statue_primitive029", "stone_statue_primitive130"];
+    for (let i = 0; i < stonelist.length; i++) {
+        stones.push(models[stonelist[i]]);
+    }
+    let tree1list = ["treePineSnowed(Clone)_primitive036", "treePineSnowed(Clone)_primitive137"];
+    for (let i = 0; i < tree1list.length; i++) {
+        tree1.addChild(models[tree1list[i]]);
+    }
+    let tree2list = ["treePineSnow(Clone)_primitive044", "treePineSnow(Clone)_primitive145", "treePineSnow(Clone)_primitive246"];
+    for (let i = 0; i < tree2list.length; i++) {
+        tree2.addChild(models[tree2list[i]]);
+    }
+    let tree3list = ["treePineSnow(Clone)_primitive073", "treePineSnow(Clone)_primitive174", "treePineSnow(Clone)_primitive275"];
+    for (let i = 0; i < tree3list.length; i++) {
+        tree3.addChild(models[tree3list[i]]);
+    }
+    let tree4list = ["treePineSnow(Clone)_primitive076", "treePineSnow(Clone)_primitive177", "treePineSnow(Clone)_primitive278"];
+    for (let i = 0; i < tree4list.length; i++) {
+        tree4.addChild(models[tree4list[i]]);
+    }
+    let tree5list = ["treePineSnow(Clone)_primitive084", "treePineSnow(Clone)_primitive185", "treePineSnow(Clone)_primitive286"];
+    for (let i = 0; i < tree5list.length; i++) {
+        tree5.addChild(models[tree5list[i]]);
+    }
+    let tree6list = ["treePineSnow(Clone)_primitive087", "treePineSnow(Clone)_primitive188", "treePineSnow(Clone)_primitive289"];
+    for (let i = 0; i < tree6list.length; i++) {
+        tree6.addChild(models[tree6list[i]]);
+    }
+    let tree7list = ["treePineSnow(Clone)_primitive090", "treePineSnow(Clone)_primitive191", "treePineSnow(Clone)_primitive292"];
+    for (let i = 0; i < tree7list.length; i++) {
+        tree7.addChild(models[tree7list[i]]);
+    }
+    let tree8list = ["treePineSnow(Clone)_primitive096", "treePineSnow(Clone)_primitive197", "treePineSnow(Clone)_primitive298"];
+    for (let i = 0; i < tree8list.length; i++) {
+        tree8.addChild(models[tree8list[i]]);
+    }
+    let fancytreelist = ["treeDecorated(Clone)_primitive038", "treeDecorated(Clone)_primitive139", "treeDecorated(Clone)_primitive240", "treeDecorated(Clone)_primitive341"];
+    for (let i = 0; i < fancytreelist.length; i++) {
+        fancytree.addChild(models[fancytreelist[i]]);
+    }
+    fancytree.addChild(cabinmeshes["star7"]);
+    let lightpost1list = ["lightpost(Clone)_primitive042", "lightpost(Clone)_primitive143"];
+    for (let i = 0; i < lightpost1list.length; i++) {
+        lightpost1.addChild(models[lightpost1list[i]]);
+    }
+    let lightpost2list = ["lightpost(Clone)_primitive081", "lightpost(Clone)_primitive182"];
+    for (let i = 0; i < lightpost2list.length; i++) {
+        lightpost2.addChild(models[lightpost2list[i]]);
+    }
+    let snowman1list = ["snowman(Clone)_primitive047", "snowman(Clone)_primitive148", "snowman(Clone)_primitive249"];
+    for (let i = 0; i < snowman1list.length; i++) {
+        snowman1.addChild(models[snowman1list[i]]);
+    }
+    let snowman2list = ["snowmanFancy(Clone)_primitive050", "snowmanFancy(Clone)_primitive151", "snowmanFancy(Clone)_primitive252", "snowmanFancy(Clone)_primitive353", "snowmanFancy(Clone)_primitive454"];
+    for (let i = 0; i < snowman2list.length; i++) {
+        snowman2.addChild(models[snowman2list[i]]);
+    }
+    let snowfortlist = ["snowFort(Clone)55"];
+    snowfort = models[snowfortlist[0]];
+    let rockformationlist = ["rockFormationSmall(Clone)_primitive157", "rockFormationMedium(Clone)_primitive058", "rockFormationMedium(Clone)_primitive159"];
+    for (let i = 0; i < rockformationlist.length; i++) {
+        rockformations.push(models[rockformationlist[i]]);
+    }
+    let largerockformationlist = ["rockFormationLarge(Clone)_primitive180", "rockFormationLarge(Clone)_primitive079"];
+    let largerockform = new BABYLON.Mesh("lagrerockformation", scene);
+    for (let i = 0; i < largerockformationlist.length; i++) {
+        largerockform.addChild(models[largerockformationlist[i]]);
+    }
+    rockformations.push(largerockform);
+    let rockformation2list = ["rockFormationLarge(Clone)_primitive093", "rockFormationLarge(Clone)_primitive194"];
+    let largerockform2 = new BABYLON.Mesh("lagrerockformation2", scene);
+    for (let i = 0; i < rockformation2list.length; i++) {
+        largerockform2.addChild(models[rockformation2list[i]]);
+    }
+    rockformations.push(largerockform2);
+    let snowpatchlist = ["snowPatch(Clone)60", "snowPatch(Clone)83", "snowPatch(Clone)95"];
+    for (let i = 0; i < snowpatchlist.length; i++) {
+        snowpatches.push(models[snowpatchlist[i]]);
+    }
+
+    let trainlist = ["trackCorner(Clone)_primitive0109", "trackCorner(Clone)_primitive1110", "trackCorner(Clone)_primitive2111", "trackCornerLarge(Clone)_primitive0112", "trackCornerLarge(Clone)_primitive1113", "trackCornerLarge(Clone)_primitive2114", "trackStraight(Clone)_primitive0115", "trackStraight(Clone)_primitive1116", "trackStraight(Clone)_primitive2117", "trackCorner(Clone)_primitive0118", "trackCorner(Clone)_primitive1119", "trackCorner(Clone)_primitive2120", "trackStraight(Clone)_primitive0121", "trackStraight(Clone)_primitive1122", "trackStraight(Clone)_primitive2123", "trackCornerLarge(Clone)_primitive0124", "trackCornerLarge(Clone)_primitive1125", "trackCornerLarge(Clone)_primitive2126", "trackCornerLarge(Clone)_primitive0127", "trackCornerLarge(Clone)_primitive1128", "trackCornerLarge(Clone)_primitive2129", "trackStraight(Clone)_primitive0130", "trackStraight(Clone)_primitive1131", "trackStraight(Clone)_primitive2132", "trackCornerLarge(Clone)_primitive0133", "trackCornerLarge(Clone)_primitive1134", "trackCornerLarge(Clone)_primitive2135", "trackCorner(Clone)_primitive0136", "trackCorner(Clone)_primitive1137", "trackCorner(Clone)_primitive2138", "trackCorner(Clone)_primitive0139", "trackCorner(Clone)_primitive1140", "trackCorner(Clone)_primitive2141", "trackStraight(Clone)_primitive0142", "trackStraight(Clone)_primitive1143", "trackStraight(Clone)_primitive2144", "wheel_primitive0145", "wheel_primitive1146", "wheel_primitive0147", "wheel_primitive1148", "trainLocomotive(Clone)_primitive0149", "trainLocomotive(Clone)_primitive1150", "wheel_primitive0151", "wheel_primitive1152", "wheel_primitive0153", "wheel_primitive1154", "wheel_primitive0155", "wheel_primitive1156", "wheel_primitive0157", "wheel_primitive1158", "trainTender(Clone)_primitive0159", "trainTender(Clone)_primitive1160", "wheel_primitive0161", "wheel_primitive1162", "wheel_primitive0163", "wheel_primitive1164", "trainWagon(Clone)_primitive0165", "trainWagon(Clone)_primitive1166", "trainWagon(Clone)_primitive2167", "trainWagon(Clone)_primitive3168", "log169", "log170", "log171", "log172", "log173", "wheel_primitive0174", "wheel_primitive1175", "wheel_primitive0176", "wheel_primitive1177", "trainWagonFlat(Clone)_primitive0178", "trainWagonFlat(Clone)_primitive1179"];
+    for (let i = 0; i < trainlist.length; i++) {
+        train.addChild(models[trainlist[i]]);
     }
     //cabin1.scale = new BABYLON.Vector3(100,100,100);
     cabin1.position.x += 20;
