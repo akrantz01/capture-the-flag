@@ -133,6 +133,7 @@ Player.prototype.update = function (ground) {
 
     this.offset = new Vector(Math.cos(this.time) * Math.cos(cang), Math.sin(2 * this.time), Math.cos(this.time) * Math.sin(cang));
     this.offset.mult(this.timeHeld / 16 * 0.6 * (1 - Math.abs(this.down.y)));
+    this.offset.y = 60;
     //update camera position and rotation to follow player
     let tempR = camera.radius;
     let tempalpha = camera.alpha;
