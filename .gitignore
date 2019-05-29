@@ -2,5 +2,5 @@
 releases/
 secret/
 public/test.html
-lib/
+public/lib/
 config.yaml

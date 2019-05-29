@@ -13,6 +13,7 @@ type (
 		Objects				map[string]Object
 		Scores				Scores
 		PlayerStatistics	PlayerStats
+		Flags				Flags
 	}
 
 	// User value
@@ -21,18 +22,20 @@ type (
 		Y	 	float32
 		Z		float32
 		Orientation	float32
+		Health	int
 		Team	int
-		Other	map[string]interface{}
 	}
 
 	// Message container
 	Message struct {
 		Type		int						`yaml:"type"`
 		ID			string					`yaml:"id"`
-		Other		map[string]interface{}	`yaml:"other"`
 		Coordinates Coordinates				`yaml:"coordinates"`
 		Orientation	float32					`yaml:"orientation"`
-		Vel Coordinates						`yaml:"vel"`
+		Vel 		Coordinates				`yaml:"vel"`
+		Health		int						`yaml:"health"`
+		Flag		int						`yaml:"flag"`
+		Action		int						`yaml:"action"`
 	}
 
 	// Store player coordinates (2d)
@@ -45,7 +48,6 @@ type (
 	// Store objects
 	Object struct {
 		Coordinates Coordinates				`yaml:"coordinates"`
-		Other		map[string]interface{}	`yaml:"other"`
 	}
 
 	// Store game data
@@ -59,17 +61,34 @@ type (
 		Team1	int
 		Team2	int
 	}
+
+	// Flag positions
+	Flags struct {
+		Team1 string
+		Team2 string
+	}
 )
 
-func (g *GameData) SetUserData(id string, x, y, z, orientation float32, other map[string]interface{}) {
+func (g *GameData) SetUserData(id string, x, y, z, orientation float32) {
 	g.Lock()
 	defer g.Unlock()
-	g.Users[id] = &UserValue{
-		X: x,
-		Y: y,
-		Z: z,
-		Orientation: orientation,
-		Other: other,
+
+	if _, ok := g.Users[id]; !ok {
+		g.Users[id] = &UserValue{
+			X: x,
+			Y: y,
+			Z: z,
+			Orientation: orientation,
+			Health: 100,
+		}
+	} else {
+		g.Users[id] = &UserValue{
+			X: x,
+			Y: y,
+			Z: z,
+			Orientation: orientation,
+			Health: g.Users[id].Health,
+		}
 	}
 }
 
@@ -79,7 +98,14 @@ func (g *GameData) SetTeam(id string, team int) {
 	g.Users[id].Team = team
 }
 
-func (g *GameData) SetObject(id string, x, y, z float32, other map[string]interface{}) {
+func (g *GameData) UpdateHealth(id string, amount int) {
+	g.Lock()
+	defer g.Unlock()
+
+	g.Users[id].Health += amount
+}
+
+func (g *GameData) SetObject(id string, x, y, z float32) {
 	g.Lock()
 	defer g.Unlock()
 	g.Objects[id] = Object{
@@ -88,7 +114,6 @@ func (g *GameData) SetObject(id string, x, y, z float32, other map[string]interf
 			Y: y,
 			Z: z,
 		},
-		Other: other,
 	}
 }
 
@@ -173,10 +198,31 @@ func (g *GameData) GetPlayerData() ([]byte, error) {
 	return j, nil
 }
 
+func (g *GameData) SetFlagTaken(id string, team int) {
+	g.Lock()
+	defer g.Unlock()
+
+	if team == 1 {
+		g.Flags.Team1 = id
+	} else if team == 2 {
+		g.Flags.Team2 = id
+	}
+}
+
+func (g *GameData) ResetFlagTaken(team int) {
+	g.Lock()
+	defer g.Unlock()
+
+	if team == 1 {
+		g.Flags.Team1 = ""
+	} else if team == 2 {
+		g.Flags.Team2 = ""
+	}
+}
+
 func (u UserValue) equals (u2 UserValue) bool {
 	if u.X != u2.X {return false}
 	if u.Y != u2.Y {return false}
 	if u.Z != u2.Z {return false}
-	if len(u.Other) != len(u2.Other) {return false}
 	return true
 }
