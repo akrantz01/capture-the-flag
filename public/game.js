@@ -13,6 +13,7 @@ var UP = 87; // 38;
 var RIGHT = 68; // 39;
 var DOWN = 83; // 40;
 var SPACE = 32;
+var ESC = 27;
 
 function runGame() {
     //list of pressed keys
@@ -601,4 +602,27 @@ function runGame() {
         }
         return true;
     }
+
+    // Allow exiting to account screen
+    setInterval(() => {if (keys[ESC]) window.location.href = `${window.location.protocol}//${window.location.host}/login.html`}, 15);
+
+    // Display exiting to account info
+    toastr.options = {
+        "closeButton": false,
+        "debug": false,
+        "newestOnTop": false,
+        "progressBar": false,
+        "positionClass": "toast-bottom-center",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
+    setTimeout(() => toastr.info("Press 'ESC' to exit to your account"), 1000);
 }
