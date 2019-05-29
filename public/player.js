@@ -167,7 +167,12 @@ Player.prototype.update = function (ground) {
 
     if (this.onGround) {
         this.timeOfGround = 0;
-        let normal = fromBabylon(norm);
+        let normal = null;
+        try {
+            normal = fromBabylon(norm);
+        } catch (e) {
+            normal = new Vector(0,1,0);
+        }
 
         let incline = normal.y;
         this.down = normal.add(new Vector(0, -1, 0));
