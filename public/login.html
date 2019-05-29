@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Capture the Flag</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js" integrity="sha256-yNbKY1y6h2rbVcQtf0b8lq4a+xpktyFc3pSYoGAY1qQ=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/webui-popover@1.2.18/dist/jquery.webui-popover.min.js" integrity="sha256-xmUJjA+NhE7L+BzymP0QIuYSOwiQi5wurUcZQaTAOH0=" crossorigin="anonymous"></script>
+    <script src="login.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" integrity="sha256-R91pD48xW+oHbpJYGn5xR0Q7tMhH4xOrWn1QqMRINtA=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/webui-popover@1.2.18/src/jquery.webui-popover.css" integrity="sha256-tD+++hZBaaL26NNBgvOtJ+iKv9yNqRZ9CmlkFwKJGow=" crossorigin="anonymous" />
+
+</head>
+<body>
+    <div class="form">
+        <div class="form-toggle"></div>
+        <div class="form-panel one">
+            <div class="form-header">
+                <h1>Login</h1>
+            </div>
+            <div class="form-content">
+                <form>
+                    <div class="form-group"><label for="email-login">Email</label><input type="email" id="email-login" name="email" required="required" /></div>
+                    <div class="form-group"><label for="password-login">Password</label><input type="password" id="password-login" name="password" required="required" /></div>
+                    <div class="form-group"><a class="form-recovery" href="#" id="forgot-password">Forgot Password?</a></div>
+                    <div class="form-group login"><button type="submit" id="submit-login">Log In</button></div>
+                </form>
+            </div>
+        </div>
+        <div class="form-panel two">
+            <div class="form-header">
+                <h1>Register</h1>
+            </div>
+            <div class="form-content">
+                <form>
+                    <div class="form-group"><label for="name-register">Name</label><input type="text" id="name-register" name="name" required="required" /></div>
+                    <div class="form-group"><label for="username-register">Username</label><input type="text" id="username-register" name="username" required="required" /></div>
+                    <div class="form-group"><label for="email-register">Email</label><input type="email" id="email-register" name="email" required="required" /></div>
+                    <div class="form-group"><label for="password-register">Password</label><input type="password" id="password-register" name="password" required="required" /></div>
+                    <div class="form-group"><label for="password-register-conf">Confirm Password</label><input type="password" id="password-register-conf" name="password-conf" required="required" /></div>
+                    <div class="form-group register"><button type="submit" id="submit-register">Register</button></div>
+                </form>
+            </div>
+        </div>
+        <div class="form-panel three" style="display: none">
+            <div class="form-header">
+                <h1>Account</h1>
+            </div>
+            <div class="form-content">
+                <div class="form-group"><button style="background: forestgreen;" id="account-play">Play</button></div>
+                <div class="form-group half"><button id="account-logout">Log Out</button></div>
+                <br>
+                <details>
+                    <summary>Update Information</summary>
+                    <br>
+                    <div class="form-group"><label for="account-name">Name</label><input type="text" id="account-name" name="name" placeholder="Current: " /></div>
+                    <div class="form-group"><label for="account-username">Username</label><input type="text" id="account-username" name="username" placeholder="Current: " /></div>
+                    <div class="form-group"><label for="account-email">Email</label><input type="email" id="account-email" name="email" placeholder="Current: " /></div>
+                    <div class="form-group"><label for="account-password">Password</label><input type="password" id="account-password" name="password" /></div>
+                    <div class="form-group"><label for="account-password-conf">Confirm Password</label><input type="password" id="account-password-conf" name="password-conf" /></div>
+                    <div class="form-group half"><button id="account-save">Update</button></div>
+                </details>
+            </div>
+        </div>
+        <div class="form-panel four" style="display: none;">
+            <div class="form-header">
+                <h1>Forgot Password?</h1>
+            </div>
+            <div class="form-content">
+                <div class="form-group"><label for="fp-email">Email</label><input type="email" id="fp-email" name="email"/></div>
+                <br>
+                <div class="form-group"><a class="form-recovery" href="#" id="fp-back">Back</a></div>
+                <div class="form-group half"><button id="submit-fp">Reset</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-bottom-center",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+
+            let form_panel_two = $('.form-panel.two');
+
+            let panelOne = form_panel_two.height(),
+                panelTwo = form_panel_two[0].scrollHeight;
+
+            let submit_login = $("#submit-login"), submit_register = $("#submit-register");
+            submit_login.attr("disabled", true);
+            submit_register.attr("disabled", true);
+
+            verifyToken().then(status => {
+                if (status) {
+                    let user = JSON.parse(localStorage.getItem("user"));
+
+                    $(".form-toggle")[0].style.display = "none";
+                    $(".form-panel.one")[0].style.display = "none";
+                    $(".form-panel.two")[0].style.display = "none";
+                    $(".form-panel.three")[0].style.display = "block";
+
+                    $("#account-name").attr("placeholder", `Current: ${user.name}`);
+                    $("#account-username").attr("placeholder", `Current: ${user.username}`);
+                    $("#account-email").attr("placeholder", `Current: ${user.email}`);
+                } else {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("user");
+                }
+            }).catch(() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+            }).finally(() => {
+                submit_login.attr("disabled", false);
+                submit_register.attr("disabled", false);
+            });
+
+            form_panel_two.not('.form-panel.two.active').on('click', function(e) {
+                e.preventDefault();
+
+                $('.form-toggle').addClass('visible');
+                $('.form-panel.one').addClass('hidden');
+                $('.form-panel.two').addClass('active');
+                $('.form').animate({
+                    'height': panelTwo
+                }, 200);
+            });
+
+            $('.form-toggle').on('click', function(e) {
+                e.preventDefault();
+                $(this).removeClass('visible');
+                $('.form-panel.one').removeClass('hidden');
+                $('.form-panel.two').removeClass('active');
+                $('.form').animate({
+                    'height': panelOne
+                }, 200);
+            });
+
+            submit_login.on('click', function (e) {
+                e.preventDefault();
+                e.target.disabled = true;
+
+                userLogin($("#email-login").val(), $("#password-login").val()).then(() => {
+                    userData().then(data => {
+                        localStorage.setItem("user", JSON.stringify(data));
+
+                        $(".form-toggle")[0].style.display = "none";
+                        $(".form-panel.one")[0].style.display = "none";
+                        $(".form-panel.two")[0].style.display = "none";
+                        $(".form-panel.three")[0].style.display = "block";
+
+                        $("#account-name").attr("placeholder", `Current: ${data.name}`);
+                        $("#account-username").attr("placeholder", `Current: ${data.username}`);
+                        $("#account-email").attr("placeholder", `Current: ${data.email}`);
+
+                        $("#email-login").val("");
+                        $("#password-login").val("");
+
+                        toastr.success("", "Successfully logged in");
+                    }).catch(err => toastr.error(capitalizeFirstLetter(err.toString()), "Unable to get account data"));
+                }).catch(err => toastr.error(capitalizeFirstLetter(err.toString()), "Unable to login"))
+                    .finally(() => e.target.disabled = false);
+            });
+
+            submit_register.on('click', function (e) {
+                let pw = $("#password-register");
+
+                if (pw.css("background-color") === "rgba(255, 0, 0, 0.5)") {
+                    toastr.error("Passwords must match to signup", "Passwords do not match");
+                    return;
+                }
+
+                for (let check in register_checked) {
+                    if (!register_checked[check]) {
+                        toastr.error("All 5 password requirements must be met to signup", "Password requirements not met");
+                        return;
+                    }
+                }
+
+                e.preventDefault();
+                e.target.disabled = true;
+
+                userSignup($("#name-register").val(), $("#email-register").val(), pw.val(), $("#username-register").val()).then(status => {
+                    if (status) {
+                        $(".form-toggle").click();
+                        toastr.success("You may now login", "Successfully created user");
+                    } else {
+                        toastr.error("An unknown error occurred", "Unable to create user");
+                    }
+
+                    $("#name-register").val("");
+                    $("#username-register").val("");
+                    $("#email-register").val("");
+                    $("#password-register").val("");
+                    $("#password-register-conf").val("");
+                }).catch(err => toastr.error(capitalizeFirstLetter(err.toString()), "Unable to Sign Up"))
+                    .finally(() => e.target.disabled = false);
+            });
+
+            $("#forgot-password").on("click", function (e) {
+                e.preventDefault();
+
+                $(".form-toggle")[0].style.display = "none";
+                $(".form-panel.one")[0].style.display = "none";
+                $(".form-panel.two")[0].style.display = "none";
+                $(".form-panel.four")[0].style.display = "block";
+            });
+
+            $("#fp-back").on("click", function (e) {
+                e.preventDefault();
+
+                $(".form-toggle")[0].style.display = "block";
+                $(".form-panel.one")[0].style.display = "block";
+                $(".form-panel.two")[0].style.display = "block";
+                $(".form-panel.four")[0].style.display = "none";
+            });
+
+            $("#submit-fp").on("click", function (e) {
+                e.target.disabled = true;
+                userForgotPassword($("#fp-email").val()).then(() => {
+                    toastr.success("If there is an account with the email, you will receive an email between 0 and 10mins", "Successfully send reset email");
+                    $(".form-toggle")[0].style.display = "block";
+                    $(".form-panel.one")[0].style.display = "block";
+                    $(".form-panel.two")[0].style.display = "block";
+                    $(".form-panel.four")[0].style.display = "none";
+                }).catch(err => toastr.error(capitalizeFirstLetter(err), "Unable to reset password"))
+                    .finally(() => e.target.disabled = false);
+            });
+
+            $("#account-save").on("click", function (e) {
+                let pw = $("#account-password");
+
+                if (pw.css("background-color") === "rgba(255, 0, 0, 0.5)") {
+                    toastr.error("Passwords must match to signup", "Passwords do not match");
+                    return;
+                }
+
+                for (let check in account_checked) {
+                    if (!account_checked[check]) {
+                        toastr.error("All 5 password requirements must be met to signup", "Password requirements not met");
+                        return;
+                    }
+                }
+
+                e.target.disabled = true;
+                userUpdate($("#account-name").val(), $("#account-email").val(), pw.val(), $("#account-username").val()).then(() => {
+                    userData().then(data => {
+                        localStorage.setItem("user", JSON.stringify(data));
+
+                        $("#account-name").attr("placeholder", `Current: ${data.name}`).val("");
+                        $("#account-username").attr("placeholder", `Current: ${data.username}`).val("");
+                        $("#account-email").attr("placeholder", `Current: ${data.email}`).val("");
+                        $("#account-password").val("");
+
+                        toastr.success("", "Successfully updated information");
+                    }).catch(err => toastr.error(capitalizeFirstLetter(err), "Unable to retrieve data"));
+                }).catch(err => toastr.error(capitalizeFirstLetter(err), "Unable to update information"))
+                    .finally(() => e.target.disabled = false);
+            });
+
+            $("#account-logout").on("click", function (e) {
+                e.target.disabled = true;
+                userLogout().then(() => {
+                    $("#account-name").val("");
+                    $("#account-username").val("");
+                    $("#account-email").val("");
+                    $("#account-password").val("");
+
+                    $(".form-toggle")[0].style.display = "block";
+                    $(".form-panel.one")[0].style.display = "block";
+                    $(".form-panel.two")[0].style.display = "block";
+                    $(".form-panel.three")[0].style.display = "none";
+
+                    toastr.success("", "Successfully logged out");
+                }).catch(err => toastr.error(capitalizeFirstLetter(err), "Unable to logout"))
+                    .finally(() => e.target.disabled = false);
+            });
+
+            $("#account-play").on("click", function () {
+                window.location.href = "/index.html";
+            });
+
+
+            let register_checked = {
+                lc: false,
+                uc: false,
+                sc: false,
+                n: false,
+                l: false
+            };
+            let pw_register = $("#password-register");
+            pw_register.on("input", function() {
+                checkPasswords("password-register", "password-register-conf")();
+                let pw = pw_register.val();
+                register_checked.lc = pw.match(/^(?=.*?[a-z]).*$/g) !== null;
+                register_checked.uc = pw.match(/^(?=.*?[A-Z]).*$/g) !== null;
+                register_checked.sc = pw.match(/^(?=.*?[#?!@$%^&*\-_]).*$/g) !== null;
+                register_checked.n = pw.match(/^(?=.*?[0-9]).*$/g) !== null;
+                register_checked.l = pw.match(/^.{8,}$/g) !== null;
+                WebuiPopovers.updateContent("#password-register", `At least:<ul style='list-style-type: none; padding-left: 4px; margin: 0;'><li><input class='valid-invalid' type='checkbox' name='lc' value='lc' id='pw-req-lc' disabled ${(register_checked.lc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-lc'>&nbsp;&nbsp;1 lowercase character (a-z)</label></li><li><input class='valid-invalid' type='checkbox' name='uc' value='uc' id='pw-req-uc' disabled ${(register_checked.uc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-uc'>&nbsp;&nbsp;1 uppercase character (A-Z)</label></li><li><input class='valid-invalid' type='checkbox' name='sc' value='sc' id='pw-req-sc' disabled ${(register_checked.sc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-sc'>&nbsp;&nbsp;1 special character (!@#$%^&*-_)</label></li><li><input class='valid-invalid' type='checkbox' name='n' value='n' id='pw-req-n' disabled ${(register_checked.n) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-n'>&nbsp;&nbsp;1 number (0-9)</label></li><li><input class='valid-invalid' type='checkbox' name='l' value='l' id='pw-req-l' disabled ${(register_checked.l) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-l'>&nbsp;&nbsp;8 characters long</label></li></ul>`);
+            });
+            $("#password-register-conf").on("input", checkPasswords("password-register", "password-register-conf"));
+            pw_register.on("focus", () => pw_register.webuiPopover({title: "Password Requirements", content: `At least:<ul style='list-style-type: none; padding-left: 4px; margin: 0;'><li><input class='valid-invalid' type='checkbox' name='lc' value='lc' id='pw-req-lc' disabled ${(register_checked.lc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-lc'>&nbsp;&nbsp;1 lowercase character (a-z)</label></li><li><input class='valid-invalid' type='checkbox' name='uc' value='uc' id='pw-req-uc' disabled ${(register_checked.uc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-uc'>&nbsp;&nbsp;1 uppercase character (A-Z)</label></li><li><input class='valid-invalid' type='checkbox' name='sc' value='sc' id='pw-req-sc' disabled ${(register_checked.sc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-sc'>&nbsp;&nbsp;1 special character (!@#$%^&*-_)</label></li><li><input class='valid-invalid' type='checkbox' name='n' value='n' id='pw-req-n' disabled ${(register_checked.n) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-n'>&nbsp;&nbsp;1 number (0-9)</label></li><li><input class='valid-invalid' type='checkbox' name='l' value='l' id='pw-req-l' disabled ${(register_checked.l) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-l'>&nbsp;&nbsp;8 characters long</label></li></ul>`, placement: "right"}))
+
+            let account_checked = {
+                lc: false,
+                uc: false,
+                sc: false,
+                n: false,
+                l: false
+            };
+            let pw_account = $("#account-password");
+            pw_account.on("input", function() {
+                checkPasswords("account-password", "account-password-conf")();
+                let pw = pw_account.val();
+                account_checked.lc = pw.match(/^(?=.*?[a-z]).*$/g) !== null;
+                account_checked.uc = pw.match(/^(?=.*?[A-Z]).*$/g) !== null;
+                account_checked.sc = pw.match(/^(?=.*?[#?!@$%^&*\-_]).*$/g) !== null;
+                account_checked.n = pw.match(/^(?=.*?[0-9]).*$/g) !== null;
+                account_checked.l = pw.match(/^.{8,}$/g) !== null;
+                WebuiPopovers.updateContent("#account-password", `At least:<ul style='list-style-type: none; padding-left: 4px; margin: 0;'><li><input class='valid-invalid' type='checkbox' name='lc' value='lc' id='pw-req-lc' disabled ${(account_checked.lc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-lc'>&nbsp;&nbsp;1 lowercase character (a-z)</label></li><li><input class='valid-invalid' type='checkbox' name='uc' value='uc' id='pw-req-uc' disabled ${(account_checked.uc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-uc'>&nbsp;&nbsp;1 uppercase character (A-Z)</label></li><li><input class='valid-invalid' type='checkbox' name='sc' value='sc' id='pw-req-sc' disabled ${(account_checked.sc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-sc'>&nbsp;&nbsp;1 special character (!@#$%^&*-_)</label></li><li><input class='valid-invalid' type='checkbox' name='n' value='n' id='pw-req-n' disabled ${(account_checked.n) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-n'>&nbsp;&nbsp;1 number (0-9)</label></li><li><input class='valid-invalid' type='checkbox' name='l' value='l' id='pw-req-l' disabled ${(account_checked.l) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-l'>&nbsp;&nbsp;8 characters long</label></li></ul>`);
+            });
+            $("#account-password-conf").on("input", checkPasswords("account-password", "account-password-conf"));
+            pw_account.on("focus", () => pw_account.webuiPopover({title: "Password Requirements", content: `At least:<ul style='list-style-type: none; padding-left: 4px; margin: 0;'><li><input class='valid-invalid' type='checkbox' name='lc' value='lc' id='pw-req-lc' disabled ${(account_checked.lc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-lc'>&nbsp;&nbsp;1 lowercase character (a-z)</label></li><li><input class='valid-invalid' type='checkbox' name='uc' value='uc' id='pw-req-uc' disabled ${(account_checked.uc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-uc'>&nbsp;&nbsp;1 uppercase character (A-Z)</label></li><li><input class='valid-invalid' type='checkbox' name='sc' value='sc' id='pw-req-sc' disabled ${(account_checked.sc) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-sc'>&nbsp;&nbsp;1 special character (!@#$%^&*-_)</label></li><li><input class='valid-invalid' type='checkbox' name='n' value='n' id='pw-req-n' disabled ${(account_checked.n) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-n'>&nbsp;&nbsp;1 number (0-9)</label></li><li><input class='valid-invalid' type='checkbox' name='l' value='l' id='pw-req-l' disabled ${(account_checked.l) ? "checked" : ""}><label class='valid-invalid-label' for='pw-req-l'>&nbsp;&nbsp;8 characters long</label></li></ul>`, placement: "right"}));
+        });
+    </script>
+</body>
+</html>

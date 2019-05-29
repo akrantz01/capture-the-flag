@@ -48,11 +48,8 @@ var createScene = function () {
     var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "map2.png", width, height, 60, 0, 255 / 2, scene, false);
     //ground.position.set(500, 0, 500);
     /*BABYLON.Mesh.CreateGround("ground", width, height, 80, scene, true);
-
     ground.position.set(0, -30, 0);
-
     var positions = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-
     let dx = width / map.length;
     let index = 0;
     for (var y = 0; y < 80; y++) {
@@ -61,7 +58,6 @@ var createScene = function () {
             index += 3;
         }
     }
-
     ground.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
     ground.occlusionType = BABYLON.AbstractMesh.OCCLUSION_TYPE_NONE;*/
 
