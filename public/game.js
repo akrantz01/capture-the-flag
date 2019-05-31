@@ -5,7 +5,7 @@ verifyToken().then(status => {
     window.location.href = `${window.location.protocol}//${window.location.host}/login.html`;
 });
 
-var scene, camera;
+var scene, camera, currentType;
 // Key codes
 // The commented numbers are for arrow keys
 var LEFT = 65; // 37;

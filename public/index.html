@@ -68,10 +68,11 @@
                     <h1>Select Your Class</h1>
                 </div>
                 <div class="form-content">
-                    <div class="form-group"><button id="class-normal">Normal</button></div>
-                    <div class="form-group"><button id="class-machine">Machine Gun</button></div>
-                    <div class="form-group"><button id="class-sniper">Sniper</button></div>
-                    <div class="form-group"><button style="background: red" id="exit">Back</button></div>
+                    <div class="form-group"><button id="class-normal" onclick="currentType = 'normal'; runGame()">Normal Shot</button></div>
+                    <div class="form-group"><button id="class-machine" onclick="currentType = 'machineGun'; runGame()">Fast Shot</button></div>
+                    <div class="form-group"><button id="class-sniper" onclick="currentType = 'sniper'; runGame()">Precise Shot</button></div>
+                    <div class="form-group"><button id="class-random" onclick="currentType = ['normal', 'machineGun', 'sniper'][Math.floor(Math.random()*3)]; runGame()">Choose for Me</button></div>
+                    <div class="form-group"><button style="background: red" id="exit" onclick="window.location.href = `${window.location.protocol}//${window.location.host}/login.html`">Back</button></div>
                 </div>
             </div>
         </div>
