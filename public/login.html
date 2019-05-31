@@ -12,7 +12,6 @@
     <link rel="stylesheet" type="text/css" href="login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" integrity="sha256-R91pD48xW+oHbpJYGn5xR0Q7tMhH4xOrWn1QqMRINtA=" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/webui-popover@1.2.18/src/jquery.webui-popover.css" integrity="sha256-tD+++hZBaaL26NNBgvOtJ+iKv9yNqRZ9CmlkFwKJGow=" crossorigin="anonymous" />
-
 </head>
 <body>
     <div class="form">
@@ -51,6 +50,7 @@
             </div>
             <div class="form-content">
                 <div class="form-group"><button style="background: forestgreen;" id="account-play">Play</button></div>
+                <div class="form-group"><button style="background: #4e6d9e;" id="account-how-to-play">How to Play</button></div>
                 <div class="form-group half"><button id="account-logout">Log Out</button></div>
                 <br>
                 <details>
@@ -78,6 +78,37 @@
         </div>
     </div>
 
+    <div id="how-to-play" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-close" id="modal-close">&times;</span>
+                <h2>How to Play</h2>
+            </div>
+            <div class="modal-body" style="font-weight: 500">
+                <p style="margin-bottom: 0"><b>Movement:</b></p>
+                <ul style="margin-top: 0">
+                    <li>W -> forward</li>
+                    <li>A -> left</li>
+                    <li>S -> backward</li>
+                    <li>D -> right</li>
+                    <li>Mouse -> move camera</li>
+                </ul>
+                <p style="margin-bottom: 0"><b>Actions:</b></p>
+                <ul style="margin-top: 0">
+                    <li>Left Mouse -> shoot balls to slow the other team and speed up your team</li>
+                    <li>Right Mouse -> punch other players to lower their health</li>
+                </ul>
+                <p><b>Objective:</b> Get the other team's flag and stop them from getting yours</p>
+                <p style="margin-bottom: 0;"><b>HUD:</b></p>
+                <ul style="margin-top: 0">
+                    <li>Score: two numbers in the bottom left; bigger font size is your team</li>
+                    <li>Health: green bar below the score; the lower it is, the less health you have</li>
+                    <li>Speed: blue bar below the health; the lower it is, the slower you are</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <script>
         $(document).ready(function() {
             toastr.options = {
@@ -97,6 +128,11 @@
                 "showMethod": "fadeIn",
                 "hideMethod": "fadeOut"
             };
+
+            let modal = $("#how-to-play");
+            $("#account-how-to-play").on("click", () => modal.css("display", "block"));
+            $("#modal-close").on("click", () => modal.css("display", "none"));
+            window.addEventListener("click", (e) => { if (e.target.id === "how-to-play") modal.css("display", "none") });
 
             let form_panel_two = $('.form-panel.two');
 
@@ -173,6 +209,7 @@
                         $("#password-login").val("");
 
                         toastr.success("", "Successfully logged in");
+                        setTimeout(() => window.location.reload(), 500);
                     }).catch(err => toastr.error(capitalizeFirstLetter(err.toString()), "Unable to get account data"));
                 }).catch(err => toastr.error(capitalizeFirstLetter(err.toString()), "Unable to login"))
                     .finally(() => e.target.disabled = false);
