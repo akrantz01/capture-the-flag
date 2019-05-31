@@ -1,5 +1,5 @@
 verifyToken().then(status => {
-    if (status) runGame();
+    if (status) console.log("running game"); //runGame();
     else window.location.href = `${window.location.protocol}//${window.location.host}/login.html`;
 }).catch(() => {
     window.location.href = `${window.location.protocol}//${window.location.host}/login.html`;
@@ -16,6 +16,10 @@ var SPACE = 32;
 var ESC = 27;
 
 function runGame() {
+    $("#renderCanvas").css("display", "block");
+    $("#points").css("display", "block");
+    $("#crosshair").css("display", "block");
+
     //list of pressed keys
     var keys = [];
 

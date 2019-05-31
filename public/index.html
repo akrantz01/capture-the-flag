@@ -38,11 +38,12 @@
             }
         </style>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" integrity="sha256-R91pD48xW+oHbpJYGn5xR0Q7tMhH4xOrWn1QqMRINtA=" crossorigin="anonymous" />
+        <link rel="stylesheet" type="text/css" href="base.css"/>
     </head>
-    <body>
-        <canvas id="renderCanvas"></canvas>
-        <img src="crosshair.png" id="crosshair">
-        <p id="points"><span id="team1"></span> : <span id="team2"></span></p>
+    <body style="background: linear-gradient(45deg, rgba(66, 183, 245, 0.8) 0%, rgba(66, 245, 189, 0.4) 100%)">
+        <canvas style="display: none;" id="renderCanvas"></canvas>
+        <img style="display: none" src="crosshair.png" id="crosshair">
+        <p style="display: none" id="points"><span id="team1"></span> : <span id="team2"></span></p>
 
         <script src="mmoc.js"></script>
 
@@ -60,5 +61,19 @@
         <script src="player.js"></script>
         <script src="otherPlayer.js"></script>
         <script src="game.js"></script>
+
+        <div class="form">
+            <div class="form-panel">
+                <div class="form-header">
+                    <h1>Select Your Class</h1>
+                </div>
+                <div class="form-content">
+                    <div class="form-group"><button id="class-normal">Normal</button></div>
+                    <div class="form-group"><button id="class-machine">Machine Gun</button></div>
+                    <div class="form-group"><button id="class-sniper">Sniper</button></div>
+                    <div class="form-group"><button style="background: red" id="exit">Back</button></div>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
