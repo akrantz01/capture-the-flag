@@ -33,7 +33,8 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
                 }
                 this.pos.y = mapHeight + 1;
                 var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
-                decalMaterial.diffuseColor = new BABYLON.Color3(0, 1, 0);
+                decalMaterial.diffuseTexture = new BABYLON.Texture("p1.png", scene);
+                decalMaterial.diffuseTexture.hasAlpha = true;
                 decalMaterial.zOffset = -2;
                 var decalSize = new BABYLON.Vector3(10, 10, 10);
                 var decal = BABYLON.MeshBuilder.CreateDecal("decal", ground, {
