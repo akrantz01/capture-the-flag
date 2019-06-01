@@ -17,6 +17,7 @@ import (
 )
 
 var (
+	// Set default game data
 	data = GameData{
 		Users: make(map[string]*UserValue),
 		Objects: make(map[string]Object),
@@ -29,6 +30,7 @@ var (
 			Team2: 0,
 		},
 	}
+	// Setup hub
 	hub = newHub()
 	db *gorm.DB
 	mail = make(chan *gomail.Message)
@@ -37,6 +39,9 @@ var (
 func main() {
 	// Get server config
 	parseConfiguration()
+
+	// Show the startup message
+	startupMessage()
 
 	// Initialize database
 	db = connectDatabase()
@@ -47,7 +52,7 @@ func main() {
 	// Serve from static directory
 	http.Handle("/", handlers.LoggingHandler(os.Stdout, http.FileServer(http.Dir("public"))))
 
-	// Gracefully stop goroutines
+	// Gracefully stop everything by listening for OS signals
 	c := make(chan os.Signal)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 	go func() {
@@ -65,21 +70,25 @@ func main() {
 	// Send data to connected clients
 	go func() {
 		log.Println("Started pushing data...")
+		// Constantly push data to all clients
 		for {
 			if out, err := data.GetPlayerData(); err != nil {
 				fmt.Printf("JSON Encoding Error: %v", err)
 			} else {
 				hub.broadcast <- out
 			}
+			// Wait for 15ms between push
 			time.Sleep(15 * time.Millisecond)
 		}
 	}()
 
 	// Password reset email sender
 	go func() {
+		// Initialize mail server connector
 		d := gomail.NewDialer(viper.GetString("email.host"), viper.GetInt("email.port"), viper.GetString("email.username"), viper.GetString("email.password"))
 		d.SSL = viper.GetBool("email.ssl")
 
+		// Connect and create writer
 		log.Print("Connecting to mail server...")
 		var s gomail.SendCloser
 		var err error
@@ -92,33 +101,37 @@ func main() {
 
 		for {
 			select {
+			// Wait for mail
 			case m, ok := <- mail:
 				if !ok {
 					return
 				}
+				// Connect if not open
 				if !open {
 					if s, err = d.Dial(); err != nil {
 						log.Fatalf("Unable to connect to mail server: %s", err)
 					}
 					open = true
 				}
+				// Send the message
 				if err := gomail.Send(s, m); err != nil {
 					log.Print(err)
 				}
 				break
 
-				case <- time.After(30 * time.Second):
-					if open {
-						if err := s.Close(); err != nil {
-							log.Fatalf("Unable to close mail server connection: %s", err)
-						}
-						open = false
+			// Close connection after 30 seconds
+			case <- time.After(30 * time.Second):
+				if open {
+					if err := s.Close(); err != nil {
+						log.Fatalf("Unable to close mail server connection: %s", err)
 					}
+					open = false
+				}
 			}
 		}
 	}()
 
-	// Primary websockets handler
+	// Start primary websockets handler
 	go hub.run()
 
 	// WebSocket route
@@ -141,28 +154,32 @@ func main() {
 	time.Sleep(1 * time.Second)
 
 	// Start server
-	startupMessage()
 	log.Fatal(http.ListenAndServe(viper.GetString("server.host") + ":" + viper.GetString("server.port"), nil))
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
+	// Upgrade connection to websockets
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
+	// Create new client with hub and websocket connection
 	client := &Client{
 		hub: hub,
 		conn: conn,
 		send: make(chan []byte, 256),
 	}
+	// Register with hub
 	client.hub.register <- client
 
+	// Start read and write goroutines
 	go client.readPump()
 	go client.writePump()
 }
 
+// View all data on the server
 type debugHandler struct {}
 func (_ debugHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if j, err := data.GetAllData(); err != nil {
@@ -175,6 +192,7 @@ func (_ debugHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Print the startup information
 func startupMessage() {
 	log.Printf("Successfully started server with configuration:")
 

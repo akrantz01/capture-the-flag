@@ -8,7 +8,7 @@ import (
 )
 
 func parseConfiguration() {
-	// Set defaults
+	// Set defaults for config options
 	viper.SetDefault("server.host", "127.0.0.1")
 	viper.SetDefault("server.port", 8080)
 	viper.SetDefault("server.debug", false)
