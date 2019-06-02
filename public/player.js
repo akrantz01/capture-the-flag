@@ -7,8 +7,8 @@ function Player(x, y, z) {
 
     this.meshv.rotate(BABYLON.Axis.Y, Math.PI - 0.4, BABYLON.Space.WORLD);
     var playerMaterial = new BABYLON.StandardMaterial("player", scene);
-    //playerMaterial.alpha = 0;
-    this.mesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 2, diameterY: 4}, scene);
+    playerMaterial.alpha = 0;
+    this.mesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 4, diameterY: 10}, scene);
     this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
     this.mesh.physicsImpostor = new BABYLON.PhysicsImpostor(this.mesh, BABYLON.PhysicsImpostor.SphereImpostor, {
         mass: 1,
@@ -134,7 +134,6 @@ Player.prototype.update = function (ground) {
 
     this.offset = new Vector(Math.cos(this.time) * Math.cos(cang), Math.sin(2 * this.time), Math.cos(this.time) * Math.sin(cang));
     this.offset.mult(this.timeHeld / 16 * 0.6 * (1 - Math.abs(this.down.y)));
-    this.offset.y = 10;
     //update camera position and rotation to follow player
     let tempR = camera.radius;
     let tempalpha = camera.alpha;

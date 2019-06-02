@@ -15,12 +15,30 @@ function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, scene) {
     let quaternion = new BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 0, 1), -Math.PI / 2);
     this.healthBar.rotationQuaternion = quaternion;
 
+    let outputplane = BABYLON.Mesh.CreatePlane("outputplane", 25, scene, false);
+    outputplane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
+    outputplane.material = new BABYLON.StandardMaterial("outputplane", scene);
+
+    let outputplaneTexture = new BABYLON.DynamicTexture("dynamic texture", 512, scene, true);
+    outputplane.material.diffuseTexture = outputplaneTexture;
+    outputplane.material.specularColor = new BABYLON.Color3(0, 0, 0);
+    outputplane.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+    outputplane.material.backFaceCulling = false;
+
+    //outputplaneTexture.getContext().clearRect(0, 140, 512, 512);
+    outputplaneTexture.drawText("test", null, 140, "bold 80px verdana", "white");
+
+    outputplaneTexture.hasAlpha = true;
+
     healthBarContainer.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
     this.healthBar.position = new BABYLON.Vector3(0, 0, -.01);
-    healthBarContainer.position = new BABYLON.Vector3(2, 15, -0.5);
+    healthBarContainer.position = new BABYLON.Vector3(2/16, 15/16, -0.5/16);
+    outputplane.position = new BABYLON.Vector3(0, 0, -.01);
 
     this.healthBar.parent = healthBarContainer;
+    outputplane.parent = healthBarContainer;
+    healthBarContainer.scaling = new BABYLON.Vector3(1/16, 1/16, 1/16);
     healthBarContainer.parent = this.mesh;
 
     this.healthBar.material = this.healthBarMaterial;

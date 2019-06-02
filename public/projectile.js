@@ -7,6 +7,10 @@ function Projectile(pos, vel, team, dup, type) {
     this.dup = dup;
     this.mesh = BABYLON.MeshBuilder.CreateSphere("proj" + Math.random(), {diameter: type}, scene);
     this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
+    var material = new BABYLON.StandardMaterial("material", scene);
+    material.diffuseColor = new BABYLON.Color3(231/255, 76/255, 60/255);
+    if (team === 2) material.diffuseColor = new BABYLON.Color3(31/255, 118/255, 234/255);
+    this.mesh.material = material;
     this.ray = new BABYLON.Ray(this.pos.toBabylon(), this.vel.toBabylon(), this.vel.mag());
 }
 

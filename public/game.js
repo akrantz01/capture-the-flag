@@ -55,8 +55,8 @@ var createScene = function () {
     document.onkeydown = (e) => {
         if (e.key === 'd') {
             let tempstr = [];
-            for (let i = 0; i < masterMeshList.length; i++) {
-                tempstr.push("{x: " + masterMeshList[i].position.x + ", y: " + masterMeshList[i].position.y + ", z: " + masterMeshList[i].position.z + "}");
+            for (let i = 0; i < boxes.length; i++) {
+                tempstr.push("{x: " + boxes[i].scaling.x + ", y: " + boxes[i].scaling.y + ", z: " + boxes[i].scaling.z + "}, ");
             }
             console.log(tempstr);
         }
@@ -68,7 +68,7 @@ var createScene = function () {
     //lights
     var light = new BABYLON.DirectionalLight("DirLight", new BABYLON.Vector3(-0.1, -1, 0.2), scene);
     light.specular = new BABYLON.Color3(0, 0, 0);
-    light.position = new BABYLON.Vector3(300, 0, 100);
+    light.position = new BABYLON.Vector3(300, 300, 100);
     light.shadowEnabled = true;
 
     var light3 = new BABYLON.HemisphericLight("HemiLight", new BABYLON.Vector3(0, -1, 0), scene);
@@ -80,12 +80,12 @@ var createScene = function () {
     let width = 1000;
     let height = 1000;
 
-    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "map2.png", width, height, 60, 0, 255 / 2, scene, false);
+    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "map3.png", width, height, 60*2, 0, 255 / 2, scene, false);
 
     var groundMaterial = new BABYLON.StandardMaterial("groundMat", scene);
-    groundMaterial.diffuseTexture = new BABYLON.Texture("grid.jpg", scene);
-    groundMaterial.diffuseTexture.uScale = 160 * 2;
-    groundMaterial.diffuseTexture.vScale = 160 * 2;
+    groundMaterial.diffuseTexture = new BABYLON.Texture("snow.jpg", scene);
+    groundMaterial.diffuseTexture.uScale = 4;
+    groundMaterial.diffuseTexture.vScale = 4;
     groundMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
     groundMaterial.emissiveColor = new BABYLON.Color3(0, 0, 0);
     groundMaterial.ambientColor = new BABYLON.Color3(0, 0, 0);
@@ -130,11 +130,13 @@ var createScene = function () {
             setTimeout(function () {
                 camera.fov = 1;
             }, 100);
+            camera.maxZ = 500;
+            scene.fogDensity = 0.01;
             let vel = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
             proj.push(new Projectile(fromBabylon(player.mesh.position).add(gunOffset).add(vel.mult(-4)), vel.mult(300), team, true, 1));
         },
     };
-    let currentType = "normal";
+    let currentType = "sniper";
     mousedown = false;
     let velOffset = [0, 0];
     let posOffset = [0, 0];
@@ -199,6 +201,8 @@ var createScene = function () {
                     velOffset = [0, 0];
                     camera.fov = 0.1;
                     camera.angularSensibilityX = camera.angularSensibilityY = 30000;
+                    camera.maxZ = 1000;
+                    scene.fogDensity = 0.003;
                     startCamPos = [camera.beta, camera.alpha];
                     posOffset = [0, 0];
                     break;
@@ -234,6 +238,56 @@ var createScene = function () {
     let wait = null;
     let healtime = null;
     let heal = false;
+
+    scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
+    scene.fogDensity = 0.01;
+
+    let particleSystem = new BABYLON.GPUParticleSystem("particles", { capacity:40000 }, scene);
+
+    particleSystem.particleTexture = new BABYLON.Texture("snowflake.png", scene);
+
+    // Where the particles come from
+    particleSystem.emitter = player.mesh; // the starting object, the emitter
+    particleSystem.minEmitBox = new BABYLON.Vector3(-100, 30, -100); // Starting all from
+    particleSystem.maxEmitBox = new BABYLON.Vector3(100, 0, 100); // To...
+
+    // Colors of all particles
+    particleSystem.color1 = new BABYLON.Color4(1, 1, 1, 1.0);
+    particleSystem.color2 = new BABYLON.Color4(1, 1, 1, 1.0);
+    particleSystem.colorDead = new BABYLON.Color4(1, 1, 1, 0.5);
+
+    // Size of each particle (random between...
+    particleSystem.minSize = 0.1;
+    particleSystem.maxSize = 0.2;
+
+    // Life time of each particle (random between...
+    particleSystem.minLifeTime = 0.3;
+    particleSystem.maxLifeTime = 1.5;
+
+    // Emission rate
+    particleSystem.emitRate = 100000;
+
+    // Blend mode : BLENDMODE_ONEONE, or BLENDMODE_STANDARD
+    particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+
+    // Set the gravity of all particles
+    particleSystem.gravity = new BABYLON.Vector3(0, -20, 0);
+
+    // Direction of each particle after it has been emitted
+    particleSystem.direction1 = new BABYLON.Vector3(-7, -8, 3);
+    particleSystem.direction2 = new BABYLON.Vector3(7, -8, -3);
+
+    // Angular speed, in radians
+    particleSystem.minAngularSpeed = 0;
+    particleSystem.maxAngularSpeed = Math.PI;
+
+    // Speed
+    particleSystem.minEmitPower = 1;
+    particleSystem.maxEmitPower = 3;
+    particleSystem.updateSpeed = 0.0005;
+
+    // Start the particle system
+    particleSystem.start();
 
     scene.executeWhenReady(scene.registerBeforeRender(function () {
         if (mousedown) {
@@ -296,6 +350,7 @@ var createScene = function () {
                     }
                 }, 1000);
             }
+
             let color;
             if (player.health < 15) color = "#e74c3c"; else if (player.health < 50) color = "#f39c12"; else color = "#2ecc71";
             healthbar[0].style.left = "-" + (100 - player.health) + "%";
@@ -304,6 +359,10 @@ var createScene = function () {
             document.querySelectorAll("#health")[0].style.color = color;
             document.querySelectorAll('#armor-bar .level')[0].style.left = "-" + (160 - player.maxSpeed) / 1.6 + "%";
             document.querySelectorAll("#armor-text")[0].innerHTML = player.maxSpeed;
+
+            if (player.mesh.position.y < -100) {
+                spawn = true;
+            }
 
             if (player.health <= 0) {
                 spawn = true;
@@ -336,7 +395,6 @@ var createScene = function () {
                         proj.push(new Projectile(pos, tvel, team, false, dec.Size));
                     } else if (dec.ID.slice(0, 2) !== "-1" && dec.ID !== '') {
                         if (dec.ID === multiplayer.getID()) {
-                            console.log(dec.ID)
                             if (dec.Vel.X === team) {
                                 player.friendHit();
                                 console.log("fh");
@@ -613,8 +671,8 @@ var createScene = function () {
     output.innerHTML = "0";
 
     slider.oninput = function () {
-        curmod = masterMeshList[parseFloat(this.value)];
-        output.innerHTML = curmod.name + ", "  +this.value;
+        curmod = boxes[parseFloat(this.value)];
+        output.innerHTML = masterMeshList[parseFloat(this.value)].name + ", "  +this.value;
     };
 
     var sliderx = document.getElementById("x");
@@ -622,7 +680,7 @@ var createScene = function () {
     outputx.innerHTML = "0";
 
     sliderx.oninput = function () {
-        curmod.position.x = parseFloat(this.value);
+        curmod.scaling.x = parseFloat(this.value)/100;
         outputx.innerHTML = this.value;
     };
 
@@ -631,7 +689,7 @@ var createScene = function () {
     outputy.innerHTML = "0";
 
     slidery.oninput = function () {
-        curmod.position.y = parseFloat(this.value);
+        curmod.scaling.y = parseFloat(this.value)/100;
         outputy.innerHTML = this.value;
     };
 
@@ -640,7 +698,7 @@ var createScene = function () {
     outputz.innerHTML = "0";
 
     sliderz.oninput = function () {
-        curmod.position.z = parseFloat(this.value);
+        curmod.scaling.z = parseFloat(this.value)/100;
         outputz.innerHTML = this.value;
     };
 };
@@ -658,6 +716,7 @@ var scene = new BABYLON.Scene(engine);
 //camera
 var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0.8, 200, new BABYLON.Vector3.Zero(), scene);
 camera.attachControl(canvas, false);
+camera.maxZ = 500;
 
 //asset loader
 var assetsManager = new BABYLON.AssetsManager(scene);
@@ -723,6 +782,7 @@ let train = new BABYLON.Mesh("train", scene);
 
 let masterMeshList = [train, cabin1, cabin2, sled, campfire, bench1, bench2, present1, present2, present3, tree1,  tree2,  tree3,  tree4,  tree5,  tree6,  tree7,  tree8,  fancytree,  lightpost1,  lightpost2];
 let cabinmeshes = {};
+let boxes = [];
 
 playerTask.onSuccess = function (task) {
     let cabinmark = 0;
@@ -846,7 +906,7 @@ playerTask.onSuccess = function (task) {
         snowman2.addChild(models[snowman2list[i]]);
     }
     let snowfortlist = ["snowFort(Clone)55"];
-    snowfort = models[snowfortlist[0]];
+    snowfort = (new BABYLON.Mesh("snowfort", scene)).addChild(models[snowfortlist[0]]);
     masterMeshList.push(snowfort);
     let rockformationlist = ["rockFormationSmall(Clone)_primitive157", "rockFormationMedium(Clone)_primitive058", "rockFormationMedium(Clone)_primitive159"];
     for (let i = 0; i < rockformationlist.length; i++) {
@@ -881,7 +941,7 @@ playerTask.onSuccess = function (task) {
     let trainlist = ["trackCorner(Clone)_primitive0109", "trackCorner(Clone)_primitive1110", "trackCorner(Clone)_primitive2111", "trackCornerLarge(Clone)_primitive0112", "trackCornerLarge(Clone)_primitive1113", "trackCornerLarge(Clone)_primitive2114", "trackStraight(Clone)_primitive0115", "trackStraight(Clone)_primitive1116", "trackStraight(Clone)_primitive2117", "trackCorner(Clone)_primitive0118", "trackCorner(Clone)_primitive1119", "trackCorner(Clone)_primitive2120", "trackStraight(Clone)_primitive0121", "trackStraight(Clone)_primitive1122", "trackStraight(Clone)_primitive2123", "trackCornerLarge(Clone)_primitive0124", "trackCornerLarge(Clone)_primitive1125", "trackCornerLarge(Clone)_primitive2126", "trackCornerLarge(Clone)_primitive0127", "trackCornerLarge(Clone)_primitive1128", "trackCornerLarge(Clone)_primitive2129", "trackStraight(Clone)_primitive0130", "trackStraight(Clone)_primitive1131", "trackStraight(Clone)_primitive2132", "trackCornerLarge(Clone)_primitive0133", "trackCornerLarge(Clone)_primitive1134", "trackCornerLarge(Clone)_primitive2135", "trackCorner(Clone)_primitive0136", "trackCorner(Clone)_primitive1137", "trackCorner(Clone)_primitive2138", "trackCorner(Clone)_primitive0139", "trackCorner(Clone)_primitive1140", "trackCorner(Clone)_primitive2141", "trackStraight(Clone)_primitive0142", "trackStraight(Clone)_primitive1143", "trackStraight(Clone)_primitive2144", "wheel_primitive0145", "wheel_primitive1146", "wheel_primitive0147", "wheel_primitive1148", "trainLocomotive(Clone)_primitive0149", "trainLocomotive(Clone)_primitive1150", "wheel_primitive0151", "wheel_primitive1152", "wheel_primitive0153", "wheel_primitive1154", "wheel_primitive0155", "wheel_primitive1156", "wheel_primitive0157", "wheel_primitive1158", "trainTender(Clone)_primitive0159", "trainTender(Clone)_primitive1160", "wheel_primitive0161", "wheel_primitive1162", "wheel_primitive0163", "wheel_primitive1164", "trainWagon(Clone)_primitive0165", "trainWagon(Clone)_primitive1166", "trainWagon(Clone)_primitive2167", "trainWagon(Clone)_primitive3168", "log169", "log170", "log171", "log172", "log173", "wheel_primitive0174", "wheel_primitive1175", "wheel_primitive0176", "wheel_primitive1177", "trainWagonFlat(Clone)_primitive0178", "trainWagonFlat(Clone)_primitive1179"];
     for (let i = 0; i < trainlist.length; i++) {
         //models[trainlist[i]].scaling = new BABYLON.Vector3(16, 16, 16);
-        train.addChild(models[trainlist[i]]);
+        train.addChild((new BABYLON.Mesh("train" + i, scene)).addChild(models[trainlist[i]]));
     }
 
     cabin1.position.x += 20;
@@ -914,39 +974,68 @@ playerTask.onSuccess = function (task) {
     cabin1.scaling = new BABYLON.Vector3(16, 16, 16);
     cabin2.scaling = new BABYLON.Vector3(16, 16, 16);
     train.scaling = new BABYLON.Vector3(16, 16, 16);
-    let boxes = [];
+
+    let scaling = [{x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 0.44, y: 1, z: 0.55}, {x: 0.73, y: 2.98, z: 1.56}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 1, y: 1.57, z: 0.97}, {x: 0.2, y: 1, z: 0.06}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 0.66, y: 0.82, z: 0.63}, {x: 1, y: 1, z: 1}, {x: 0.34, y: 0.48, z: 1.18}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 1.8, y: 2.77, z: 2.16}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 0.57, y: 1.1, z: 0.48}, {x: 0.33, y: 2.55, z: 20}, {x: 0.35, y: 3, z: 20}, {x: 0.22, y: 1.01, z: 20}, {x: 1, y: 2.41, z: 1}, {x: 1, y: 3, z: 1}, {x: 1, y: 1, z: 1}, {x: 0.77, y: 2.23, z: 0.56}, {x: 0.59, y: 1.88, z: 0.73}, {x: 1, y: 2.01, z: 0.73}, {x: 0.59, y: 1.8, z: 0.77}, {x: 1, y: 1, z: 1}, {x: 0.7, y: 2.31, z: 0.74}, {x: 0.82, y: 3, z: 0.86}, {x: 1, y: 2.21, z: 1}, {x: 0.74, y: 3, z: 1}, {x: 0.93, y: 3, z: 1}, {x: 0.85, y: 2.38, z: 0.85}, {x: 0.87, y: 2.34, z: 0.84}, {x: 0.87, y: 2.68, z: 0.78}, {x: 1, y: 1, z: 1}, {x: 0.74, y: 3, z: 0.84}, {x: 0.87, y: 1.96, z: 0.89}, {x: 0.89, y: 2.33, z: 0.95}, {x: 0.89, y: 2.22, z: 0.91}, {x: 1, y: 2.42, z: 1}, {x: 1.21, y: 2.45, z: 1.53}, {x: 0, y: 0, z: 0}, {x: 0.91, y: 2.12, z: 1.12}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 1, y: 1.95, z: 1}, {x: 0.19, y: 0.04, z: 0.16}, {x: 1, y: 0.67, z: 1}, {x: 1, y: 0.57, z: 1}, {x: 1, y: 1, z: 1}];
+
     setTimeout(function() {
         for (let i = 0; i < boxes.length; i++) {
             boxes[i].position = masterMeshList[i].getBoundingInfo().boundingBox.centerWorld;
+            boxes[i].position.y -=3;
+
+            /*let outputplane = BABYLON.Mesh.CreatePlane("outputplane", 25, scene, false);
+            outputplane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
+            outputplane.material = new BABYLON.StandardMaterial("outputplane", scene);
+
+            let outputplaneTexture = new BABYLON.DynamicTexture("dynamic texture", 512, scene, true);
+            outputplane.material.diffuseTexture = outputplaneTexture;
+            outputplane.material.specularColor = new BABYLON.Color3(0, 0, 0);
+            outputplane.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+            outputplane.material.backFaceCulling = false;
+
+            //outputplaneTexture.getContext().clearRect(0, 140, 512, 512);
+            outputplaneTexture.drawText(masterMeshList[i].name, null, 140, "bold 80px verdana", "white");
+
+            outputplaneTexture.hasAlpha = true;
+
+            outputplane.position.x = boxes[i].position.x;
+            outputplane.position.y = boxes[i].position.y+30;
+            outputplane.position.z = boxes[i].position.z;*/
         }
     }, 1000);
     for (let i = 0; i < masterMeshList.length; i++) {
         masterMeshList[i].position.x = poss[i].x;
         masterMeshList[i].position.y = poss[i].y;
         masterMeshList[i].position.z = poss[i].z;
-        //let ball = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 2, diameterY: 4}, scene);
-        //ball.position.set(poss[i].x, poss[i].y, poss[i].z);
-        //let tempbound = masterMeshList[i][0] === undefined ? masterMeshList[i].getBoundingInfo() : totalBoundingInfo(masterMeshList[i].getChildren());
 
-        //boundingboxes = {x: tempbound.maximum.x - tempbound.minimum.x, y: tempbound.maximum.y - tempbound.minimum.y, z: tempbound.maximum.z - tempbound.minimum.z};
-        masterMeshList[i].setBoundingInfo(totalBoundingInfo(masterMeshList[i].getChildren()));
-        masterMeshList[i].showBoundingBox =true;
+        let bbb = null;
+        if (masterMeshList[i].getChildren().length > 0)
+            bbb = totalBoundingInfo(masterMeshList[i].getChildren());
+        else
+            bbb = masterMeshList[i].getBoundingInfo();
+        masterMeshList[i].setBoundingInfo(bbb);
+        //masterMeshList[i].showBoundingBox = true;
         var bb = masterMeshList[i].getBoundingInfo().boundingBox;
         var width = bb.maximum.x - bb.minimum.x;
         var height = bb.maximum.y - bb.minimum.y;
         var depth = bb.maximum.z - bb.minimum.z;
 
+
         var box = BABYLON.MeshBuilder.CreateBox("bb", {width:width*16, height:height*16, depth:depth*16}, scene);
         box.material = new BABYLON.StandardMaterial("sm", scene);
         box.material.diffuseColor = BABYLON.Color3.Red();
-        box.material.alpha = 0.2;
+        box.material.alpha = 0;
         box.position = bb.centerWorld;
+
+        box.scaling.x = scaling[i].x;
+        box.scaling.y = scaling[i].y;
+        box.scaling.z = scaling[i].z;
 
         box.physicsImpostor = new BABYLON.PhysicsImpostor(box, BABYLON.PhysicsImpostor.BoxImpostor, {
             mass: 0,
             restitution: 0.5,
             friction: 0.5
         }, scene);
+
         boxes.push(box);
     }
 };

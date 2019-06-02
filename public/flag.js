@@ -1,7 +1,7 @@
 function Flag(x, y, z, team) {
     this.mesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 5, diameterY: 4}, scene);
     var material = new BABYLON.StandardMaterial("PMaterial", scene);
-    material.diffuseColor = new BABYLON.Color3(219/255, 218/255, 40/255);
+    material.diffuseColor = new BABYLON.Color3(231/255, 76/255, 60/255);
     if (team === 2) material.diffuseColor = new BABYLON.Color3(31/255, 118/255, 234/255);
     //let a = rgb("#1f76ea");
     this.mesh.material = material;
