@@ -1,31 +1,5 @@
 function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, scene) {
-    this.mesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 5, diameterY: 4}, scene)
-                playerModel.createInstance("i" + id);
-    //var material = new BABYLON.StandardMaterial("PMaterial", scene);
-    //material.diffuseColor = new BABYLON.Color3(1, 1, 0);
-    //if (team === 2) material.diffuseColor = new BABYLON.Color3(0, 0, 1);
-    //this.mesh.material = material;
-    /*this.healthbar = new BABYLON.GUI.Rectangle();
-    this.healthbar.width = 0.2;
-    this.healthbar.height = 0.01;
-    this.healthbar.cornerRadius = 20;
-    this.healthbar.color = "transparent";
-    this.healthbar.background = "green";
-    advancedTexture.addControl(this.healthbar);
-
-    this.healthbar.linkWithMesh(this.mesh);
-    this.healthbar.linkOffsetY = -50;
-
-    this.label = new BABYLON.GUI.TextBlock();
-    this.name = name+"";
-    this.label.text = this.name;
-    advancedTexture.addControl(this.label);
-
-    //this.label.linkWithMesh(this.mesh);
-    this.label.linkOffsetY = -50;
-
-    this.label.linkWithMesh(this.mesh);
-    this.label.linkOffsetY = -50;*/
+    this.mesh = playerModel.createInstance("i" + id);
 
     this.healthBarMaterial = new BABYLON.StandardMaterial("hb1mat", scene);
     this.healthBarMaterial.diffuseColor = BABYLON.Color3.Green();

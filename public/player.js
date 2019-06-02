@@ -1,4 +1,4 @@
-function Player(x, y, z, playerModel) {
+function Player(x, y, z) {
     this.pos = new Vector(x, y, z);
     this.oldPos = this.pos;
     this.vel = new Vector();
@@ -7,7 +7,7 @@ function Player(x, y, z, playerModel) {
 
     this.meshv.rotate(BABYLON.Axis.Y, Math.PI - 0.4, BABYLON.Space.WORLD);
     var playerMaterial = new BABYLON.StandardMaterial("player", scene);
-    playerMaterial.alpha = 0;
+    //playerMaterial.alpha = 0;
     this.mesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 2, diameterY: 4}, scene);
     this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
     this.mesh.physicsImpostor = new BABYLON.PhysicsImpostor(this.mesh, BABYLON.PhysicsImpostor.SphereImpostor, {
@@ -15,6 +15,7 @@ function Player(x, y, z, playerModel) {
         restitution: 0,
         friction: 0
     }, scene);
+    this.mesh.checkCollisions = true;
     this.mesh.material = this.meshv.material = playerMaterial;
 
     this.oldAlpha = 0;
@@ -92,11 +93,11 @@ Player.prototype.input = function (keys) {
 Player.prototype.update = function (ground) {
     this.pos = fromBabylon(this.mesh.position);
     //prevent player vertical rotation
-    this.mesh.physicsImpostor.setAngularVelocity(new BABYLON.Quaternion(0, 0, 0, 0));
+    /*this.mesh.physicsImpostor.setAngularVelocity(new BABYLON.Quaternion(0, 0, 0, 0));
     this.mesh.physicsImpostor.executeNativeFunction(function (world, body) {
         body.fixedRotation = true;
         body.updateMassProperties();
-    });
+    });*/
 
     //update player height
     let tempPos = new BABYLON.Vector3(this.mesh.position.x, this.mesh.position.y, this.mesh.position.z);
@@ -133,7 +134,7 @@ Player.prototype.update = function (ground) {
 
     this.offset = new Vector(Math.cos(this.time) * Math.cos(cang), Math.sin(2 * this.time), Math.cos(this.time) * Math.sin(cang));
     this.offset.mult(this.timeHeld / 16 * 0.6 * (1 - Math.abs(this.down.y)));
-    this.offset.y = 60;
+    this.offset.y = 10;
     //update camera position and rotation to follow player
     let tempR = camera.radius;
     let tempalpha = camera.alpha;

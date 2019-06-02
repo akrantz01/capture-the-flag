@@ -36,8 +36,6 @@ var otherPlayers = {};
 
 var decalList = [];
 
-var playerModel;
-
 var spawns = [{x: 243.85, y: 132, z: -218.78}, {x: -343.63, y: 132, z: 293.73}];
 
 var healthbar;
@@ -47,9 +45,7 @@ let mousedown = false;
 let groundDecalList = [];
 let xdist = 0;
 var createScene = function () {
-    var gravityVector = new BABYLON.Vector3(0, -100, 0);
-    var physicsPlugin = new BABYLON.CannonJSPlugin();
-    scene.enablePhysics(gravityVector, physicsPlugin);
+
 
     //camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 100, 0), scene);
 //camera.keysDown = camera.keysUp = camera.keysLeft = camera.keysRight = [];
@@ -69,12 +65,6 @@ var createScene = function () {
     // Start by only enabling position control
     document.onkeydown({key: "w"})
 
-    //playerModel = task.loadedMeshes[0];
-    /*BABYLON.SceneLoader.ImportMesh("", "./OBJ/", "Snowman-Generic3.obj", scene, function (newMeshes) {
-        // Set the target of the camera to the first imported mesh
-        playerModel = newMeshes[0];
-    });*/
-
     //lights
     var light = new BABYLON.DirectionalLight("DirLight", new BABYLON.Vector3(-0.1, -1, 0.2), scene);
     light.specular = new BABYLON.Color3(0, 0, 0);
@@ -91,29 +81,6 @@ var createScene = function () {
     let height = 1000;
 
     var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "map2.png", width, height, 60, 0, 255 / 2, scene, false);
-    let ray = new BABYLON.Ray(new BABYLON.Vector3(0, 200, 0), new BABYLON.Vector3(0, -1, 0), 400);
-    //console.log(ground);
-
-
-
-    //ground.position.set(500, 0, 500);
-    /*BABYLON.Mesh.CreateGround("ground", width, height, 80, scene, true);
-
-    ground.position.set(0, -30, 0);
-
-    var positions = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-
-    let dx = width / map.length;
-    let index = 0;
-    for (var y = 0; y < 80; y++) {
-        for (var x = 0; x < 80; x++) {
-            positions[index + 1] = map[y][positions[index] / dx + 40];
-            index += 3;
-        }
-    }
-
-    ground.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
-    ground.occlusionType = BABYLON.AbstractMesh.OCCLUSION_TYPE_NONE;*/
 
     var groundMaterial = new BABYLON.StandardMaterial("groundMat", scene);
     groundMaterial.diffuseTexture = new BABYLON.Texture("grid.jpg", scene);
@@ -125,7 +92,7 @@ var createScene = function () {
     ground.material = groundMaterial;
 
     //create player/data
-    player = new Player(0, 0, 0, playerModel);
+    player = new Player(0, 0, 0);
 
     let spawn = true;
     let team = 0;
@@ -264,8 +231,6 @@ var createScene = function () {
     var team2 = document.getElementById("team2");
 
     let delay = 0;
-    let flagCountDown = 0;
-    var highlight = new BABYLON.HighlightLayer("hl1", scene);
     let wait = null;
     let healtime = null;
     let heal = false;
@@ -292,59 +257,6 @@ var createScene = function () {
         if (ground) {
             delay++;
         }
-        /*if (delay === 10) {
-            console.log(ground.getHeightAtCoordinates(409, 490));
-            var tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            sled.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            campfire.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            bench1.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            bench2.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            present1.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            present2.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            present3.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-
-            tree1.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            tree2.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            tree3.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            tree4.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            tree5.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            tree6.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            tree7.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            tree8.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            fancytree.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            lightpost1.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            lightpost2.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-
-            snowman1.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            snowman2.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-
-            snowfort.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-
-            cabin1.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-            tpos = [(Math.random()+0)/2*width, (Math.random()+0)/2*height];
-            cabin2.position = new BABYLON.Vector3(tpos[0], ground.getHeightAtCoordinates(tpos[0], tpos[1]), tpos[1]);
-        }*/
         if (delay > 100) {
             team1.innerText = multiplayer.getScores().Team1;
             team2.innerText = multiplayer.getScores().Team2;
@@ -465,9 +377,9 @@ var createScene = function () {
                         }
                         if (!found) {
                             if (players[s[i]].Team === 1)
-                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], "", 1, playerModel, scene);
+                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], "", 1, snowman1, scene);
                             else
-                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], "", 2, playerModel, scene);
+                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], "", 2, snowman2, scene);
                             /*if (s[i] === multiplayer.getID()) {
                                 otherPlayers[s[i]].mesh.dispose();
                                 advancedTexture.removeControl(otherPlayers[s[i]].healthbar);
@@ -701,25 +613,9 @@ var createScene = function () {
     output.innerHTML = "0";
 
     slider.oninput = function () {
-        //let c = Object.keys(models);
-        /*for (let i = 0; i < masterMeshList.length; i++) {
-            /*let cont = true;
-            for (let a = 0; a < cabin1list.length; a++) {
-                if (c[i] === cabin1list[a]) {
-                    cont = false;
-                }
-            }
-
-            if (i === parseFloat(this.value) && cont) {
-                models[c[i]].position.y = 5;
-                console.log(c[i]);
-            } else {
-                models[c[i]].position.y = 1;
-            }
-        }*/
         curmod = masterMeshList[parseFloat(this.value)];
         output.innerHTML = curmod.name + ", "  +this.value;
-    };//"cabinRoofChimney(Clone)_primitive03","cabinRoofChimney(Clone)_primitive14","cabinRoofChimney(Clone)_primitive25","cabinRoofChimney(Clone)_primitive36","cabinRoofChimney(Clone)_primitive36","door_primitive248","cabinDoor(Clone)49","frame_primitive050","frame_primitive151","frame_primitive252","frame_primitive353","cabinCorner(Clone)55","cabinWall(Clone)56","cabinWall(Clone)57","cabinWall(Clone)58","cabinCorner(Clone)59","cabinCorner(Clone)60","cabinWall(Clone)61","cabinWall(Clone)62","cabinRoof(Clone)_primitive063","cabinRoof(Clone)_primitive164","cabinRoof(Clone)_primitive065","cabinRoof(Clone)_primitive166","cabinRoof(Clone)_primitive067","cabinRoof(Clone)_primitive168","cabinSideCenter(Clone)69","cabinSideCenter(Clone)70","cabinRoof(Clone)_primitive071","cabinRoof(Clone)_primitive172","cabinFloor(Clone)73",
+    };
 
     var sliderx = document.getElementById("x");
     var outputx = document.getElementById("outputx");
@@ -763,8 +659,6 @@ var scene = new BABYLON.Scene(engine);
 var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0.8, 200, new BABYLON.Vector3.Zero(), scene);
 camera.attachControl(canvas, false);
 
-//console.log(camera);
-
 //asset loader
 var assetsManager = new BABYLON.AssetsManager(scene);
 assetsManager.onTaskErrorObservable.add(function (task) {
@@ -786,53 +680,11 @@ assetsManager.onFinish = function (tasks) {
     multiplayer.init();
 };
 
-/*
-//load map image and create coordinate map
-var imageTask = assetsManager.addImageTask("image task", "map2.png");
-imageTask.onSuccess = function (task) {
-    var canvas = document.createElement('canvas');
-    canvas.width = task.image.width;
-    canvas.height = task.image.height;
-    let context = canvas.getContext('2d');
-    context.drawImage(task.image, 0, 0, task.image.width, task.image.height);
-    let mapData = context.getImageData(0, 0, task.image.width, task.image.height);
-    for (var y = 0; y < task.image.width; y++) {
-        let temp = [];
-        for (var x = 0; x < task.image.height; x++) {
-            //double positions to make level planes
-            temp.push(mapData.data[y * (task.image.width * 4) + x * 4]);
-            temp.push(mapData.data[y * (task.image.width * 4) + x * 4]);
-        }
-        map.push(temp);
-        map.push(temp);
-    }
-};*/
+var gravityVector = new BABYLON.Vector3(0, -100, 0);
+var physicsPlugin = new BABYLON.CannonJSPlugin();
+scene.enablePhysics(gravityVector, physicsPlugin);
+scene.collisionsEnabled = true;
 
-/*var playerTask = assetsManager.addMeshTask("player task", "", "./Babylon/", "Snowman-Generic3.babylon");
-playerTask.onSuccess = function (task) {
-    console.log(task.loadedMeshes);
-    for (let i = 0; i < task.loadedMeshes.length; i++) {
-        if (i !== 8 && i !== 1) {
-            //task.loadedMeshes[i].position
-        }
-        //8,1 arms
-        //9 hat
-        //2 body
-        //0 nose
-    }
-    task.loadedMeshes[0].position.y /= 2;
-    task.loadedMeshes[0].position.x *= -1;
-    task.loadedMeshes[0].position.z *= -1;
-    task.loadedMeshes[0].parent = task.loadedMeshes[2];
-    task.loadedMeshes[9].parent = task.loadedMeshes[2];
-    task.loadedMeshes[1].parent = task.loadedMeshes[2];
-    task.loadedMeshes[8].parent = task.loadedMeshes[2];
-
-    //task.loadedMeshes[2].position.x = 20;
-    //task.loadedMeshes[0].material.ambientColor = new BABYLON.Color3(1, 1, 1);
-    //playerModel = task.loadedMeshes[0];
-
-};*/
 
 let playerTask = assetsManager.addMeshTask("player task", "", "./GLTF/", "christmas.glb");
 let models = {};
@@ -871,11 +723,11 @@ let train = new BABYLON.Mesh("train", scene);
 
 let masterMeshList = [train, cabin1, cabin2, sled, campfire, bench1, bench2, present1, present2, present3, tree1,  tree2,  tree3,  tree4,  tree5,  tree6,  tree7,  tree8,  fancytree,  lightpost1,  lightpost2];
 let cabinmeshes = {};
+
 playerTask.onSuccess = function (task) {
     let cabinmark = 0;
     let mark = 0;
     (task).loadedMeshes.forEach((mesh) => {
-        //if (mesh.uniqueId)
         if (mesh.name.indexOf("fence") > -1 || mesh.name.indexOf("group") > -1 || mesh.name.indexOf("log") > -1 || mesh.name.indexOf("wreath") > -1 || mesh.name.indexOf("wheel") > -1 || mesh.name.indexOf("track") > -1 || mesh.name.indexOf("tie") > -1 || mesh.name.indexOf("stone") > -1 || mesh.name.indexOf("rock") > -1 || mesh.name.indexOf("light") > -1 || mesh.name.indexOf("snow") > -1 || mesh.name.indexOf("train") > -1 || mesh.name.indexOf("wagon") > -1 || mesh.name.indexOf("tree") > -1) {
             models[mesh.name + mark] = mesh;//"wreath(Clone)_primitive0101", "wreath(Clone)_primitive1102"
             //"lightsRed(Clone)_primitive061", "lightsRed(Clone)_primitive062", "lightsRed(Clone)_primitive063", "lightsRed(Clone)_primitive064",
@@ -884,10 +736,8 @@ playerTask.onSuccess = function (task) {
             cabinmeshes[mesh.name + cabinmark] = mesh;
             cabinmark++;
         }
-        //}
     });
-    //console.log(models);
-    //console.log(cabinmeshes);
+
     let cabin1list = ["cabinRoofChimney(Clone)_primitive03", "cabinWindowLarge(Clone)54", "cabinRoofChimney(Clone)_primitive14", "cabinRoofChimney(Clone)_primitive25", "cabinRoofChimney(Clone)_primitive36", "cabinRoofChimney(Clone)_primitive36", "door_primitive248", "cabinDoor(Clone)49", "frame_primitive050", "frame_primitive151", "frame_primitive252", "frame_primitive353", "cabinCorner(Clone)55", "cabinWall(Clone)56", "cabinWall(Clone)57", "cabinWall(Clone)58", "cabinCorner(Clone)59", "cabinCorner(Clone)60", "cabinWall(Clone)61", "cabinWall(Clone)62", "cabinRoof(Clone)_primitive063", "cabinRoof(Clone)_primitive164", "cabinRoof(Clone)_primitive065", "cabinRoof(Clone)_primitive166", "cabinRoof(Clone)_primitive067", "cabinRoof(Clone)_primitive168", "cabinSideCenter(Clone)69", "cabinSideCenter(Clone)70", "cabinRoof(Clone)_primitive071", "cabinRoof(Clone)_primitive172", "cabinFloor(Clone)73",];
     //+"wreath(Clone)_primitive0101", "wreath(Clone)_primitive1102"
     let cabin2list = ["frame12", "door_primitive013", "door_primitive114", "door_primitive215", "cabinDoor(Clone)16", "cabinRoofCorner(Clone)_primitive017", "cabinRoofCorner(Clone)_primitive118", "cabinRoofCorner(Clone)_primitive019", "cabinRoofCorner(Clone)_primitive120", "cabinWall(Clone)21", "cabinWall(Clone)22", "cabinCorner(Clone)23", "cabinCorner(Clone)24", "cabinRoofCorner(Clone)_primitive025", "cabinRoofCorner(Clone)_primitive126", "cabinRoofCorner(Clone)_primitive027", "cabinRoofCorner(Clone)_primitive128", "cabinWall(Clone)29", "frame_primitive030", "frame_primitive131", "cabinWindow(Clone)32", "cabinWall(Clone)33", "cabinWall(Clone)34", "frame_primitive035", "frame_primitive136", "cabinWindow(Clone)37", "cabinWall(Clone)38", "cabinWall(Clone)39", "cabinWall(Clone)40", "cabinFloor(Clone)41"];
@@ -899,9 +749,8 @@ playerTask.onSuccess = function (task) {
     //"tie_primitive0103", "tie_primitive1104", "tie_primitive0105", "tie_primitive1106", "tie_primitive0107", "tie_primitive1108"
     let present2list = ["lid_primitive078", "lid_primitive179", "presentLow(Clone)_primitive080", "presentLow(Clone)_primitive181"];
     let present3list = ["presentLow(Clone)_primitive080", "presentLow(Clone)_primitive181", "Group_primitive082", "Group_primitive183", "lid_primitive084", "lid_primitive185"];
-    //let tar = [154, 157, 160, 163, 163, 503, 494, 510, 513, 516, 518, 522, 526, 530, 533, 535, 537, 540, 542, 546, 549, 554, 556, 559, 561, 564, 567, 570, 572, 575];
+
     for (let i = 0; i < cabin1list.length; i++) {
-        //tar.push(models[cabin1list[i]].uniqueId);
         cabin1.addChild(cabinmeshes[cabin1list[i]]);
     }
     cabin1.addChild(models["wreath(Clone)_primitive0101"]);
@@ -1031,10 +880,10 @@ playerTask.onSuccess = function (task) {
 
     let trainlist = ["trackCorner(Clone)_primitive0109", "trackCorner(Clone)_primitive1110", "trackCorner(Clone)_primitive2111", "trackCornerLarge(Clone)_primitive0112", "trackCornerLarge(Clone)_primitive1113", "trackCornerLarge(Clone)_primitive2114", "trackStraight(Clone)_primitive0115", "trackStraight(Clone)_primitive1116", "trackStraight(Clone)_primitive2117", "trackCorner(Clone)_primitive0118", "trackCorner(Clone)_primitive1119", "trackCorner(Clone)_primitive2120", "trackStraight(Clone)_primitive0121", "trackStraight(Clone)_primitive1122", "trackStraight(Clone)_primitive2123", "trackCornerLarge(Clone)_primitive0124", "trackCornerLarge(Clone)_primitive1125", "trackCornerLarge(Clone)_primitive2126", "trackCornerLarge(Clone)_primitive0127", "trackCornerLarge(Clone)_primitive1128", "trackCornerLarge(Clone)_primitive2129", "trackStraight(Clone)_primitive0130", "trackStraight(Clone)_primitive1131", "trackStraight(Clone)_primitive2132", "trackCornerLarge(Clone)_primitive0133", "trackCornerLarge(Clone)_primitive1134", "trackCornerLarge(Clone)_primitive2135", "trackCorner(Clone)_primitive0136", "trackCorner(Clone)_primitive1137", "trackCorner(Clone)_primitive2138", "trackCorner(Clone)_primitive0139", "trackCorner(Clone)_primitive1140", "trackCorner(Clone)_primitive2141", "trackStraight(Clone)_primitive0142", "trackStraight(Clone)_primitive1143", "trackStraight(Clone)_primitive2144", "wheel_primitive0145", "wheel_primitive1146", "wheel_primitive0147", "wheel_primitive1148", "trainLocomotive(Clone)_primitive0149", "trainLocomotive(Clone)_primitive1150", "wheel_primitive0151", "wheel_primitive1152", "wheel_primitive0153", "wheel_primitive1154", "wheel_primitive0155", "wheel_primitive1156", "wheel_primitive0157", "wheel_primitive1158", "trainTender(Clone)_primitive0159", "trainTender(Clone)_primitive1160", "wheel_primitive0161", "wheel_primitive1162", "wheel_primitive0163", "wheel_primitive1164", "trainWagon(Clone)_primitive0165", "trainWagon(Clone)_primitive1166", "trainWagon(Clone)_primitive2167", "trainWagon(Clone)_primitive3168", "log169", "log170", "log171", "log172", "log173", "wheel_primitive0174", "wheel_primitive1175", "wheel_primitive0176", "wheel_primitive1177", "trainWagonFlat(Clone)_primitive0178", "trainWagonFlat(Clone)_primitive1179"];
     for (let i = 0; i < trainlist.length; i++) {
-        models[trainlist[i]].scaling = new BABYLON.Vector3(16, 16, 16);
+        //models[trainlist[i]].scaling = new BABYLON.Vector3(16, 16, 16);
         train.addChild(models[trainlist[i]]);
     }
-    //cabin1.scale = new BABYLON.Vector3(100,100,100);
+
     cabin1.position.x += 20;
     cabin2.position.y += 20;
 
@@ -1064,49 +913,54 @@ playerTask.onSuccess = function (task) {
     snowfort.scaling = new BABYLON.Vector3(16, 16, 16);
     cabin1.scaling = new BABYLON.Vector3(16, 16, 16);
     cabin2.scaling = new BABYLON.Vector3(16, 16, 16);
-    task.loadedMeshes[0].position = BABYLON.Vector3.Zero();
-    task.loadedMeshes[0].position.x = 10;
-    //task.loadedMeshes[0].rotation = new BABYLON.Vector3(-2 * Math.PI / 3, 0, -1.2);
-    //task.loadedMeshes[0].rotation = new BABYLON.Vector3(-2 * Math.PI / 3, 0, -1.2);
-    //task.loadedMeshes[0].material.ambientColor = new BABYLON.Color3(1, 1, 1);
-    playerModel = task.loadedMeshes[0];
-
+    train.scaling = new BABYLON.Vector3(16, 16, 16);
+    let boxes = [];
+    setTimeout(function() {
+        for (let i = 0; i < boxes.length; i++) {
+            boxes[i].position = masterMeshList[i].getBoundingInfo().boundingBox.centerWorld;
+        }
+    }, 1000);
     for (let i = 0; i < masterMeshList.length; i++) {
         masterMeshList[i].position.x = poss[i].x;
         masterMeshList[i].position.y = poss[i].y;
         masterMeshList[i].position.z = poss[i].z;
+        //let ball = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 2, diameterY: 4}, scene);
+        //ball.position.set(poss[i].x, poss[i].y, poss[i].z);
+        //let tempbound = masterMeshList[i][0] === undefined ? masterMeshList[i].getBoundingInfo() : totalBoundingInfo(masterMeshList[i].getChildren());
+
+        //boundingboxes = {x: tempbound.maximum.x - tempbound.minimum.x, y: tempbound.maximum.y - tempbound.minimum.y, z: tempbound.maximum.z - tempbound.minimum.z};
+        masterMeshList[i].setBoundingInfo(totalBoundingInfo(masterMeshList[i].getChildren()));
+        masterMeshList[i].showBoundingBox =true;
+        var bb = masterMeshList[i].getBoundingInfo().boundingBox;
+        var width = bb.maximum.x - bb.minimum.x;
+        var height = bb.maximum.y - bb.minimum.y;
+        var depth = bb.maximum.z - bb.minimum.z;
+
+        var box = BABYLON.MeshBuilder.CreateBox("bb", {width:width*16, height:height*16, depth:depth*16}, scene);
+        box.material = new BABYLON.StandardMaterial("sm", scene);
+        box.material.diffuseColor = BABYLON.Color3.Red();
+        box.material.alpha = 0.2;
+        box.position = bb.centerWorld;
+
+        box.physicsImpostor = new BABYLON.PhysicsImpostor(box, BABYLON.PhysicsImpostor.BoxImpostor, {
+            mass: 0,
+            restitution: 0.5,
+            friction: 0.5
+        }, scene);
+        boxes.push(box);
     }
-    //playerModel = task.loadedMeshes[0];
 };
-
-/*BABYLON.SceneLoader.OnPluginActivatedObservable.add(function (plugin) {
-    currentPluginName = plugin.name;
-
-    if (plugin.name === "gltf" && plugin instanceof BABYLON.GLTFFileLoader) {
-        plugin.animationStartMode = BABYLON.GLTFLoaderAnimationStartMode.ALL;
-        plugin.compileMaterials = true;
+var totalBoundingInfo = function(meshes){
+    var boundingInfo = meshes[0].getBoundingInfo();
+    var min = boundingInfo.minimum.add(meshes[0].position);
+    var max = boundingInfo.maximum.add(meshes[0].position);
+    for(var i=1; i<meshes.length; i++){
+        boundingInfo = meshes[i].getBoundingInfo();
+        min = BABYLON.Vector3.Minimize(min, boundingInfo.minimum.add(meshes[i].position));
+        max = BABYLON.Vector3.Maximize(max, boundingInfo.maximum.add(meshes[i].position));
     }
-});
-
-var loader = BABYLON.SceneLoader.Append("./GLTF/", "Snowman-Generic3.glb", scene, function () {
-
-});
-loader.onMeshLoaded = function (mesh) {
-    playerModel = mesh;
-    console.log(mesh);
-    createScene();
-    healthbar = document.querySelectorAll('#health-bar .level');
-
-    engine.runRenderLoop(function () {
-        if (scene) {
-            scene.render();
-        }
-    });
-
-    multiplayer.init();
-};
-console.log(loader);*/
-
+    return new BABYLON.BoundingInfo(min, max);
+}
 assetsManager.load();
 
 // Resize
