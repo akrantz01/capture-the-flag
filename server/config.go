@@ -29,11 +29,6 @@ func parseConfiguration() {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
 
-	// Get from config file
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Unable to find config file: %s", err)
-	}
-
 	// Command line flags for overriding config file
 	flag.String("host", "", "Host to run on")
 	flag.Int("port", 0, "Port to run on")
@@ -43,6 +38,11 @@ func parseConfiguration() {
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {/* Ignore error, will never occur - appeasing GoLand */}
+
+	// Get from config file
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Unable to find config file: %s", err)
+	}
 
 	// Add commandline overrides
 	if viper.GetString("host") != "" {
