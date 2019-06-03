@@ -474,11 +474,10 @@ function runGame() {
                                     found = true;
                             }
                             if (!found) {
-                                //@TODO: replace "test"'s with actual player name
                                 if (players[s[i]].Team === 1)
-                                    otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], "test", 1, snowman1, snowman2, scene);
+                                    otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], players[s[i]].Name, 1, snowman1, snowman2, scene);
                                 else
-                                    otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], "test", 2, snowman2, snowman1, scene);
+                                    otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], players[s[i]].Name, 2, snowman2, snowman1, scene);
                                 /*if (s[i] === multiplayer.getID()) {
                                     otherPlayers[s[i]].mesh.dispose();
                                     advancedTexture.removeControl(otherPlayers[s[i]].healthbar);
