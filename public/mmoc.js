@@ -28,10 +28,8 @@ let MMOC = (function () {
 
 
     class MMOC {
-        init(id_len = 8, wsurl = "//" + document.domain + ":" + location.port + "/ws") {
-            if (location.protocol === "https") wsurl = "wss:" + wsurl;
-            else wsurl = "ws:" + wsurl;
-            this.ws = new WebSocket(wsurl);
+        init(id_len = 8) {
+            this.ws = new WebSocket(`wss://${document.domain}/ws`);
 
             this.ws.onopen = function (event) {
                 let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

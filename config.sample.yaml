@@ -1,0 +1,41 @@
+# General server configuration
+server:
+  # Host and port to run the server on
+  host: 127.0.0.1
+  port: 8080
+
+  # Enable debug information
+  debug: false
+
+  # Where the server is running (IP or FQDN)
+  domain: localhost
+
+# Email sending configuration
+email:
+  # Where to connect to send email
+  # Use the SMTP server
+  # For GMail see: https://support.google.com/a/answer/176600?hl=en
+  host: test.com
+  port: 465
+  ssl: true
+
+  # Login credentials
+  username: test@test.com
+  password: testpassword
+
+# Database connection configuration
+database:
+  # Where to connect to get/store data
+  host: 127.0.0.1
+  port: 5432
+
+  # Enable if you know what you are doing
+  # Possible values: disable, require, verify-ca, verify-full
+  ssl: disable
+
+  # Login credentials, must have access to specified database
+  username: ctf
+  password: ctf
+
+  # Database to use
+  database: ctf

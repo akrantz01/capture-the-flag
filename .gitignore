@@ -1,2 +1,6 @@
 .idea/
 releases/
+secret/
+public/test.html
+public/lib/
+config.yaml

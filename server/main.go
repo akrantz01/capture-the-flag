@@ -1,18 +1,23 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/gorilla/handlers"
+	"github.com/jinzhu/gorm"
+	"github.com/spf13/viper"
+	"gopkg.in/gomail.v2"
+	"gopkg.in/hlandau/passlib.v1"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 )
 
 var (
+	// Set default game data
 	data = GameData{
 		Users: make(map[string]*UserValue),
 		Objects: make(map[string]Object),
@@ -25,71 +30,156 @@ var (
 			Team2: 0,
 		},
 	}
+	// Setup hub
 	hub = newHub()
+	db *gorm.DB
+	mail = make(chan *gomail.Message)
 )
 
 func main() {
-	// Get host, port and debug enabled
-	host := flag.String("host", "127.0.0.1", "Host to run on")
-	port := flag.String("port", "8080", "Port to run on")
-	debug := flag.Bool("debug", false, "Enable debug info")
-	flag.Parse()
+	// Get server config
+	parseConfiguration()
+
+	// Show the startup message
+	startupMessage()
+
+	// Initialize database
+	db = connectDatabase()
+
+	// Configure hashing
+	if err := passlib.UseDefaults(passlib.DefaultsLatest); err != nil {/* Ignore error, will never occur - appeasing GoLand */}
 
 	// Serve from static directory
 	http.Handle("/", handlers.LoggingHandler(os.Stdout, http.FileServer(http.Dir("public"))))
 
-	// Gracefully stop goroutines
+	// Gracefully stop everything by listening for OS signals
 	c := make(chan os.Signal)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 	go func() {
 		log.Println("Listening for SIGINT, SIGTERM & SIGKILL...")
 		<-c
 		log.Println("Stopped goroutines")
+		if err := db.Close(); err != nil {
+			log.Printf("Unable to close database: %v\n", err)
+		} else {
+			log.Println("Closed connection to database")
+		}
 		os.Exit(0)
 	}()
 
+	// Send data to connected clients
 	go func() {
 		log.Println("Started pushing data...")
+		// Constantly push data to all clients
 		for {
 			if out, err := data.GetPlayerData(); err != nil {
 				fmt.Printf("JSON Encoding Error: %v", err)
 			} else {
 				hub.broadcast <- out
 			}
+			// Wait for 15ms between push
 			time.Sleep(15 * time.Millisecond)
 		}
 	}()
 
+	// Password reset email sender
+	go func() {
+		// Initialize mail server connector
+		d := gomail.NewDialer(viper.GetString("email.host"), viper.GetInt("email.port"), viper.GetString("email.username"), viper.GetString("email.password"))
+		d.SSL = viper.GetBool("email.ssl")
+
+		// Connect and create writer
+		log.Print("Connecting to mail server...")
+		var s gomail.SendCloser
+		var err error
+		if s, err = d.Dial(); err != nil {
+			log.Fatalf("Unable to connect to mail server: %s", err)
+		}
+		log.Print("Connected")
+
+		open := true
+
+		for {
+			select {
+			// Wait for mail
+			case m, ok := <- mail:
+				if !ok {
+					return
+				}
+				// Connect if not open
+				if !open {
+					if s, err = d.Dial(); err != nil {
+						log.Fatalf("Unable to connect to mail server: %s", err)
+					}
+					open = true
+				}
+				// Send the message
+				if err := gomail.Send(s, m); err != nil {
+					log.Print(err)
+				}
+				break
+
+			// Close connection after 4 seconds (fixes error w/ Amazon SES)
+			case <- time.After(4 * time.Second):
+				if open {
+					if err := s.Close(); err != nil {
+						log.Fatalf("Unable to close mail server connection: %s", err)
+					}
+					open = false
+				}
+			}
+		}
+	}()
+
+	// Start primary websockets handler
+	go hub.run()
+
 	// WebSocket route
-	http.HandleFunc("/ws", wsHandler)
+	http.Handle("/ws", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(wsHandler)))
+
+	// Authentication/authorization routes
+	http.Handle("/api/login", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(LoginHandler)))
+	http.Handle("/api/logout", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(LogoutHandler)))
+	http.Handle("/api/signup", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(SignUpHandler)))
+	http.Handle("/api/verify", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(VerifyHandler)))
+	http.Handle("/api/update", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(UpdateHandler)))
+	http.Handle("/api/user", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(UserHandler)))
+	http.Handle("/api/forgot-password", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(ForgotPasswordHandler)))
+	http.Handle("/api/reset-password", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(ResetPassword)))
 
 	// Debug routes
-	if *debug { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
+	if viper.GetBool("server.debug") { http.Handle("/debug", handlers.LoggingHandler(os.Stdout, debugHandler{})) }
+
+	// Wait for stuff to initialize
+	time.Sleep(1 * time.Second)
 
 	// Start server
-	log.Printf("Running on %s:%s with debug: %t", *host, *port, *debug)
-	go hub.run()
-	log.Fatal(http.ListenAndServe(*host + ":" + *port, nil))
+	log.Fatal(http.ListenAndServe(viper.GetString("server.host") + ":" + viper.GetString("server.port"), nil))
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
+	// Upgrade connection to websockets
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
+	// Create new client with hub and websocket connection
 	client := &Client{
 		hub: hub,
 		conn: conn,
 		send: make(chan []byte, 256),
 	}
+	// Register with hub
 	client.hub.register <- client
 
+	// Start read and write goroutines
 	go client.readPump()
 	go client.writePump()
 }
 
+// View all data on the server
 type debugHandler struct {}
 func (_ debugHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if j, err := data.GetAllData(); err != nil {
@@ -100,4 +190,33 @@ func (_ debugHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Fatalf("Unable to send response: %s", err)
 		}
 	}
+}
+
+// Print the startup information
+func startupMessage() {
+	log.Printf("Successfully started server with configuration:")
+
+	// Display server config
+	log.Printf("\t=> Server:")
+	log.Printf("\t\t=> Host: %s", viper.GetString("server.host"))
+	log.Printf("\t\t=> Port: %s", viper.GetString("server.port"))
+	log.Printf("\t\t=> Debug: %t", viper.GetBool("server.debug"))
+	log.Printf("\t\t=> Domain: %s", viper.GetString("server.domain"))
+
+	// Display email config
+	log.Printf("\t=> Email:")
+	log.Printf("\t\t=> Host: %s", viper.GetString("email.host"))
+	log.Printf("\t\t=> Port: %s", viper.GetString("email.port"))
+	log.Printf("\t\t=> SSL: %t", viper.GetBool("email.ssl"))
+	log.Printf("\t\t=> Username: %s", viper.GetString("email.username"))
+	log.Printf("\t\t=> Password: %s", strings.Repeat("*", len(viper.GetString("email.password"))))
+
+	// Display database config
+	log.Printf("\t=> Database:")
+	log.Printf("\t\t=> Host: %s", viper.GetString("database.host"))
+	log.Printf("\t\t=> Port: %s", viper.GetString("database.port"))
+	log.Printf("\t\t=> SSL: %s", viper.GetString("database.ssl"))
+	log.Printf("\t\t=> Database: %s", viper.GetString("database.database"))
+	log.Printf("\t\t=> Username: %s", viper.GetString("database.username"))
+	log.Printf("\t\t=> Password: %s", strings.Repeat("*", len(viper.GetString("database.password"))))
 }
