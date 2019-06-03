@@ -1,6 +1,5 @@
 verifyToken().then(status => {
-    if (status) console.log("running game"); //runGame();
-    else window.location.href = `${window.location.protocol}//${window.location.host}/login.html`;
+    if (!status) window.location.href = `${window.location.protocol}//${window.location.host}/login.html`;
 }).catch(() => {
     window.location.href = `${window.location.protocol}//${window.location.host}/login.html`;
 });
