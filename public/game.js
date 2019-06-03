@@ -128,7 +128,7 @@ function runGame() {
                 beta += 0.04;
                 let vel = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
                 let variance = -Math.random() - 1;
-                proj.push(new Projectile(fromBabylon(player.mesh.position).add(gunOffset).add(vel.mult(variance)), vel.mult(-6 / variance), team, true, 0.5));
+                proj.push(new Projectile(fromBabylon(player.mesh.position).add(gunOffset).add(vel.mult(variance)), vel.mult(-6 / variance), team, true, 0.2));
             },
             sniper: function (alpha, beta) {
                 camera.angularSensibilityX = camera.angularSensibilityY = 1000;
@@ -138,7 +138,7 @@ function runGame() {
                 camera.maxZ = 500;
                 scene.fogDensity = 0.01;
                 let vel = new Vector(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
-                proj.push(new Projectile(fromBabylon(player.mesh.position).add(gunOffset).add(vel.mult(-4)), vel.mult(300), team, true, 1));
+                proj.push(new Projectile(fromBabylon(player.mesh.position).add(gunOffset).add(vel.mult(-4)), vel.mult(300), team, true, 3));
             },
         };
         mousedown = false;
@@ -424,10 +424,9 @@ function runGame() {
                         } else if (dec.ID.slice(0, 2) !== "-1" && dec.ID !== '') {
                             if (dec.ID === multiplayer.getID()) {
                                 if (dec.Vel.X === team) {
-                                    player.friendHit();
-                                    console.log("fh");
+                                    player.friendHit(dec.Size*10);
                                 } else {
-                                    player.enemyHit();
+                                    player.enemyHit(dec.Size*10);
                                 }
                             } else if (otherPlayers[dec.ID]) {
                                 let t = "";

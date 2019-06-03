@@ -25,6 +25,7 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
                 players[Object.keys(players)[i]].bounding.tempID = Object.keys(players)[i];
                 players[Object.keys(players)[i]].bounding.subtempmesh = players[Object.keys(players)[i]].mesh;
                 players[Object.keys(players)[i]].bounding.tempID2 = 0;
+                players[Object.keys(players)[i]].bounding.type = this.type;
                 meshes.push(players[Object.keys(players)[i]].bounding)
                 //let c = players[Object.keys(players)[i]].mesharray;
                 /*for (let k = 0; k < c.length; c++) {

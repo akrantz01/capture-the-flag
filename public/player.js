@@ -44,15 +44,23 @@ function Player(x, y, z) {//abstract player
     }
 }
 
-Player.prototype.enemyHit = function () {
+Player.prototype.enemyHit = function (am) {
     if (this.maxSpeed > 10) {
-        this.maxSpeed -= 10;
+        this.maxSpeed -= am;
+    }
+
+    if (this.maxSpeed < 10) {
+        this.maxSpeed = 10;
     }
 };
 
-Player.prototype.friendHit = function () {
+Player.prototype.friendHit = function (am) {
     if (this.maxSpeed < 160) {
-        this.maxSpeed += 10;
+        this.maxSpeed += am;
+    }
+
+    if (this.maxSpeed > 160) {
+        this.maxSpeed = 160;
     }
 };
 
