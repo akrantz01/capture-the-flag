@@ -22,13 +22,13 @@ function Decal(pos, norm, mesh, team, scene) {
     this.pivot.position = mesh.mastermesh.position;
     this.decal.parent = this.pivot;
     this.decal.position = this.offset;
-    this.time = d.getTime();
+    this.time = new Date().getTime();
 }
 Decal.prototype.update = function() {
     this.pivot.position = (fromBabylon(this.mesh.mastermesh.position)).toBabylon();
     this.pivot.rotate(BABYLON.Axis.Y, this.mesh.mastermesh.deltar, BABYLON.Space.LOCAL);
     //this.decal.position = (fromBabylon(this.mesh.position).sub(this.offset)).toBabylon();*/
-    if (this.mesh._isDisposed ||  d.getTime() - this.time > 60000) {
+    if (this.mesh._isDisposed ||  new Date().getTime() - this.time > 60000) {
         this.decal.dispose();
         return true;
     }
