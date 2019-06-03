@@ -36,7 +36,7 @@ var otherPlayers = {};
 
 var decalList = [];
 
-var spawns = [{x: 243.85, y: 132, z: -218.78}, {x: -343.63, y: 132, z: 293.73}];
+var spawns = [{x: 243.85, y: 132, z: -218.78}, {x: 243.85, y: 132, z: -218.78}/* {x: -343.63, y: 132, z: 293.73}*/];
 
 var healthbar;
 
@@ -356,7 +356,11 @@ var createScene = function () {
             for (var i = 0; i < proj.length; i++) {
                 let id = proj[i].update(ground, scene, otherPlayers, players, decalList);
                 if (id === -2) {
-                    multiplayer.broadcast("-2" + multiplayer.getID(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, proj[i].vel.x, proj[i].vel.y, proj[i].vel.z, proj[i].type);
+                    if (team === 1) {
+                        multiplayer.broadcast("-2" + multiplayer.getID(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, proj[i].vel.x, proj[i].vel.y, proj[i].vel.z, proj[i].type);
+                    } else {
+                        multiplayer.broadcast("-3" + multiplayer.getID(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, proj[i].vel.x, proj[i].vel.y, proj[i].vel.z, proj[i].type);
+                    }
                 } else if (id !== 0 && id !== -1) {
                     let t = "";
                     for (let i = 0; i < multiplayer.getID().length; i++) {
@@ -378,9 +382,13 @@ var createScene = function () {
                 for (let dec2 in broadDecals) {
                     let dec = broadDecals[dec2];
                     let pos = new BABYLON.Vector3(dec.Coordinates.X, dec.Coordinates.Y, dec.Coordinates.Z);
-                    if (dec.ID.slice(0, 2) === "-2" & dec.ID !== "-2" + multiplayer.getID()) {
+                    if ((dec.ID.slice(0, 2) === "-2" && dec.ID !== "-2" + multiplayer.getID()) || dec.ID.slice(0, 2) === "-3" && dec.ID !== "-3" + multiplayer.getID()) {
                         let tvel = new BABYLON.Vector3(dec.Vel.X, dec.Vel.Y, dec.Vel.Z);
-                        proj.push(new Projectile(pos, tvel, team, false, dec.Size));
+                        if (dec.ID.slice(0, 2) === "-2") {
+                            proj.push(new Projectile(pos, tvel, 1, false, dec.Size));
+                        } else {
+                            proj.push(new Projectile(pos, tvel, 2, false, dec.Size));
+                        }
                     } else if (dec.ID.slice(0, 2) !== "-1" && dec.ID !== '') {
                         if (dec.ID === multiplayer.getID()) {
                             if (dec.Vel.X === team) {

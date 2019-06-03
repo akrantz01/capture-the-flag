@@ -31,7 +31,6 @@ function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, otherModel, sc
     if (team === 2) {
         this.mesharray = [];
         let c = otherModel.getChildren();
-        this.mesharray = [];
         for (let i = 0; i < c.length; i++) {
             let tempmod = c[i].createInstance(i+""+id);
             tempmod.scaling = new BABYLON.Vector3(13, -13, 13);
