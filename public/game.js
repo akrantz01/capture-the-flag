@@ -42,29 +42,12 @@ var healthbar;
 
 let mousedown = false;
 
+let d = new Date();
+
 let groundDecalList = [];
 let xdist = 0;
+var ground;
 var createScene = function () {
-
-
-    //camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 100, 0), scene);
-//camera.keysDown = camera.keysUp = camera.keysLeft = camera.keysRight = [];
-    //camera.radius = 0.001;
-    //camera.maxZ = 1000;
-    //camera.fov = 1;
-    document.onkeydown = (e) => {
-        if (e.key === 'd') {
-            let tempstr = [];
-            for (let i = 0; i < boxes.length; i++) {
-                tempstr.push("{x: " + boxes[i].scaling.x + ", y: " + boxes[i].scaling.y + ", z: " + boxes[i].scaling.z + "}, ");
-            }
-            console.log(tempstr);
-        }
-    }
-
-    // Start by only enabling position control
-    document.onkeydown({key: "w"})
-
     //lights
     var light = new BABYLON.DirectionalLight("DirLight", new BABYLON.Vector3(-0.1, -1, 0.2), scene);
     light.specular = new BABYLON.Color3(0, 0, 0);
@@ -80,7 +63,7 @@ var createScene = function () {
     let width = 1000;
     let height = 1000;
 
-    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "map3.png", width, height, 60*2, 0, 255 / 2, scene, false);
+    ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "map3.png", width, height, 60*2, 0, 255 / 2, scene, false);
 
     var groundMaterial = new BABYLON.StandardMaterial("groundMat", scene);
     groundMaterial.diffuseTexture = new BABYLON.Texture("snow.jpg", scene);
@@ -136,7 +119,7 @@ var createScene = function () {
             proj.push(new Projectile(fromBabylon(player.mesh.position).add(gunOffset).add(vel.mult(-4)), vel.mult(300), team, true, 1));
         },
     };
-    let currentType = "sniper";
+    let currentType = "normal";
     mousedown = false;
     let velOffset = [0, 0];
     let posOffset = [0, 0];
@@ -375,11 +358,16 @@ var createScene = function () {
                 if (id === -2) {
                     multiplayer.broadcast("-2" + multiplayer.getID(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, proj[i].vel.x, proj[i].vel.y, proj[i].vel.z, proj[i].type);
                 } else if (id !== 0 && id !== -1) {
-                    multiplayer.broadcast(id.pickedMesh.tempID, id.pickedPoint.x, id.pickedPoint.y, id.pickedPoint.z, team, 0, 0, proj[i].type);
+                    let t = "";
+                    for (let i = 0; i < multiplayer.getID().length; i++) {
+                        let ch = multiplayer.getID().charCodeAt(i);
+                        t += ch;
+                    }
+                    t = t % 13427;
+                    multiplayer.broadcast(id.pickedMesh.tempID, id.pickedPoint.x, id.pickedPoint.y, id.pickedPoint.z, team, id.pickedMesh.tempID2, t, proj[i].type);
                     proj.splice(i, 1);
-                    console.log(id.pickedMesh.tempID)
                 } else if (id === -1) {
-                    multiplayer.broadcast("-1" + multiplayer.getID(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, 0, 0, 0, proj[i].type);
+                    multiplayer.broadcast("-1" + multiplayer.getID(), proj[i].pos.x, proj[i].pos.y, proj[i].pos.z, team, 0, 0, proj[i].type);
                     proj.splice(i, 1);
                 }
             }
@@ -402,11 +390,23 @@ var createScene = function () {
                                 player.enemyHit();
                             }
                         } else if (otherPlayers[dec.ID]) {
-                            decalList.push(new Decal(pos, (Vector.sub(fromBabylon(otherPlayers[dec.ID].mesh.position), fromBabylon(pos)).normalize()).toBabylon(), otherPlayers[dec.ID].mesh, scene));
+                            let t = "";
+                            for (let i = 0; i < multiplayer.getID().length; i++) {
+                                let ch = multiplayer.getID().charCodeAt(i);
+                                t += ch;
+                            }
+                            t = t % 13427;
+                            if (dec.Vel.Z !== t) {
+                                decalList.push(new Decal(pos, (Vector.sub(fromBabylon(otherPlayers[dec.ID].mesh.position), fromBabylon(pos)).normalize()).toBabylon(), otherPlayers[dec.ID].mesharray[dec.Vel.Y], dec.Vel.X, scene));
+                            }
                         }
                     } else if (dec.ID !== 0 && dec.ID !== '' && dec.ID !== "-1" + multiplayer.getID()) {
                         var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
-                        decalMaterial.diffuseTexture = new BABYLON.Texture("p2.png", scene);
+
+                        if (dec.Vel.X === 1)
+                            decalMaterial.diffuseTexture = new BABYLON.Texture("redsplat.png", scene);
+                        else
+                            decalMaterial.diffuseTexture = new BABYLON.Texture("bluesplat.png", scene);
                         decalMaterial.diffuseTexture.hasAlpha = true;
                         decalMaterial.zOffset = -2;
                         var decalSize = new BABYLON.Vector3(10, 10, 10);
@@ -435,9 +435,9 @@ var createScene = function () {
                         }
                         if (!found) {
                             if (players[s[i]].Team === 1)
-                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], "", 1, snowman1, scene);
+                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], "test", 1, snowman1, snowman2, scene);
                             else
-                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], "", 2, snowman2, scene);
+                                otherPlayers[s[i]] = new OtherPlayer(0, 0, 0, 0, s[i], "test", 2, snowman2, snowman1, scene);
                             /*if (s[i] === multiplayer.getID()) {
                                 otherPlayers[s[i]].mesh.dispose();
                                 advancedTexture.removeControl(otherPlayers[s[i]].healthbar);
@@ -490,12 +490,18 @@ var createScene = function () {
                         }
                         otherPlayers[tid].move();
                         otherPlayers[tid].health = players[player_].Health;
-                        otherPlayers[tid].mesh.position = new BABYLON.Vector3(players[player_]["X"] + 1, players[player_]["Y"] + 2, players[player_]["Z"] - 0.5);
+                        otherPlayers[tid].bounding.position = new BABYLON.Vector3(players[player_]["X"] + 1, players[player_]["Y"] - 5, players[player_]["Z"] - 0.5);
+                        otherPlayers[tid].mesh.position = new BABYLON.Vector3(players[player_]["X"] + 1, players[player_]["Y"] - 5, players[player_]["Z"] - 0.5);
                         //otherPlayers[Object.keys(players)[index]].mesh.rotate(-otherPlayers[Object.keys(players)[index]].alpha + players[player_]["Orientation"]);
                         let deltar = otherPlayers[tid].alpha - players[player_]["Orientation"];
                         otherPlayers[tid].mesh.rotate(BABYLON.Axis.Y, deltar, BABYLON.Space.WORLD);
                         otherPlayers[tid].alpha = players[player_]["Orientation"];
                         otherPlayers[tid].mesh.deltar = deltar;
+                        for (let it = 0; it < otherPlayers[tid].mesharray.length; it++) {
+                            otherPlayers[tid].mesharray[it].deltar = deltar;
+                        }
+
+                        otherPlayers[tid].bounding.position.y += 5;
                         //console.log(players[player_]["Orientation"])
                     } else {
                         otherPlayers[Object.keys(players)[index]].mesh.position = new BABYLON.Vector3(0, -100, -100);
@@ -586,6 +592,7 @@ var createScene = function () {
                                     multiplayer.updateScore();
                                     multiplayer.lostFlag(-(i + 1));
                                     flags[i].mesh.dispose();
+                                    flags[i].sphere.dispose();
                                     flags[i] = new Flag(spawns[i].x, spawns[i].y, spawns[i].z, i + 1);
                                     //flags[i].updatePosition(spawns[i].x, spawns[i].y, spawns[i].z)
                                 }
@@ -666,7 +673,8 @@ var createScene = function () {
         }
     }));
 
-    var slider = document.getElementById("coh");
+    //for editing models in scene
+    /*var slider = document.getElementById("coh");
     var output = document.getElementById("output");
     output.innerHTML = "0";
 
@@ -700,9 +708,9 @@ var createScene = function () {
     sliderz.oninput = function () {
         curmod.scaling.z = parseFloat(this.value)/100;
         outputz.innerHTML = this.value;
-    };
+    };*/
 };
-let curmod = null;
+//let curmod = null;
 
 var multiplayer = new MMOC();
 
@@ -982,6 +990,7 @@ playerTask.onSuccess = function (task) {
             boxes[i].position = masterMeshList[i].getBoundingInfo().boundingBox.centerWorld;
             boxes[i].position.y -=3;
 
+            //see boundingboxes
             /*let outputplane = BABYLON.Mesh.CreatePlane("outputplane", 25, scene, false);
             outputplane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
             outputplane.material = new BABYLON.StandardMaterial("outputplane", scene);

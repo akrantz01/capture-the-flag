@@ -26,18 +26,17 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
                 this.pos.x = hitInfo.pickedPoint.x;
                 this.pos.z = hitInfo.pickedPoint.z;
                 let mapHeight = hitInfo.pickedPoint.y;
-            //}
 
-            //let mapHeight = ground.getHeightAtCoordinates(this.pos.x, this.pos.z);
-
-            //if (this.pos.y < mapHeight) {
                 if (Math.abs(mapHeight - this.pos.y) > Math.abs(this.vel.y)) {
                     this.pos.sub(this.vel.div(1.5));
                     mapHeight = ground.getHeightAtCoordinates(this.pos.x, this.pos.z);
                 }
                 this.pos.y = mapHeight + 1;
                 var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
-                decalMaterial.diffuseTexture = new BABYLON.Texture("p1.png", scene);
+                if (this.team === 1)
+                    decalMaterial.diffuseTexture = new BABYLON.Texture("redsplat.png", scene);
+                else
+                    decalMaterial.diffuseTexture = new BABYLON.Texture("bluesplat.png", scene);
                 decalMaterial.diffuseTexture.hasAlpha = true;
                 decalMaterial.zOffset = -2;
                 var decalSize = new BABYLON.Vector3(10, 10, 10);
@@ -55,13 +54,21 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
         if (players) {
             let meshes = [];
             for (var i = 0; i < Object.keys(players).length; i++) {
-                players[Object.keys(players)[i]].mesh.tempID = Object.keys(players)[i];
-                meshes.push(players[Object.keys(players)[i]].mesh);
+                //players[Object.keys(players)[i]].bounding.tempID = Object.keys(players)[i];
+                //players[Object.keys(players)[i]].bounding.subtempmesh = players[Object.keys(players)[i]].mesh;
+                let c = players[Object.keys(players)[i]].mesharray;
+                for (let k = 0; k < c.length; c++) {
+                    c[k].tempID = Object.keys(players)[i];
+                    c[k].tempID2 = k;
+                    meshes.push(c[k]);
+                }
+                //meshes.push(players[Object.keys(players)[i]].bounding);
             }
             var hitInfo = this.ray.intersectsMeshes(meshes);
             if (hitInfo.length) {
                 hitInfo = hitInfo[0];
-                decalList.push(new Decal(hitInfo.pickedPoint, hitInfo.getNormal(true, true), hitInfo.pickedMesh, scene));
+                //decalList.push(new Decal(hitInfo.pickedPoint, hitInfo.getNormal(true, true), hitInfo.pickedMesh.subtempmesh, this.team, scene));
+                decalList.push(new Decal(hitInfo.pickedPoint, hitInfo.getNormal(true, true), hitInfo.pickedMesh, this.team, scene));
                 this.mesh.dispose();
                 return hitInfo;
             }

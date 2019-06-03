@@ -25,7 +25,7 @@ function Player(x, y, z) {
     this.timeOfGround = 0;
     this.jump = false;
     this.onGround = false;
-    this.maxSpeed = 80;
+    this.maxSpeed = 60;
     this.health = 100;
     this.fall = true;
     this.slow = false;
@@ -41,7 +41,7 @@ function Player(x, y, z) {
 }
 
 Player.prototype.enemyHit = function () {
-    if (this.maxSpeed > 20) {
+    if (this.maxSpeed > 10) {
         this.maxSpeed -= 10;
     }
 };
