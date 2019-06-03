@@ -115,7 +115,11 @@ func (g *GameData) UpdateHealth(id string, amount int) {
 	g.Lock()
 	defer g.Unlock()
 
-	g.Users[id].Health += amount
+	if g.Users[id].Health > 100 || g.Users[id].Health + amount > 100 {
+		g.Users[id].Health = 100
+	} else {
+		g.Users[id].Health += amount
+	}
 }
 
 // Set an object's position
