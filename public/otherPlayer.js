@@ -1,31 +1,55 @@
-function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, scene) {
-    this.mesh = /*BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 5, diameterY: 4}, scene)*/
-                playerModel.createInstance("i" + id);
-    //var material = new BABYLON.StandardMaterial("PMaterial", scene);
-    //material.diffuseColor = new BABYLON.Color3(1, 1, 0);
-    //if (team === 2) material.diffuseColor = new BABYLON.Color3(0, 0, 1);
-    //this.mesh.material = material;
-    /*this.healthbar = new BABYLON.GUI.Rectangle();
-    this.healthbar.width = 0.2;
-    this.healthbar.height = 0.01;
-    this.healthbar.cornerRadius = 20;
-    this.healthbar.color = "transparent";
-    this.healthbar.background = "green";
-    advancedTexture.addControl(this.healthbar);
+function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, otherModel, scene) {
+    this.mesh = new BABYLON.Mesh("playerMesh"+id, scene);;
+    let c = playerModel.getChildren();
+    this.mesharray = [];
+    for (let i = 0; i < c.length; i++) {
+        let tempmod = c[i].createInstance(i+""+id);
+        tempmod.scaling = new BABYLON.Vector3(13, -13, 13);
+        if (team === 2) {
+            if (i === 2 || i === 3 || i === 4)
+                continue;
+            tempmod.position.z -= 1.3;
+            tempmod.position.x -= 2.8;
+            tempmod.position.y -= 0.5;
+            if (i === 1) {
+                tempmod.scaling = new BABYLON.Vector3(13.6, -13.5, 13.6);
+                tempmod.position.y -= 0.22;
+            }
+            tempmod.rotate(BABYLON.Axis.Y, -1-Math.PI/2-0.15, BABYLON.Space.WORLD);
+            tempmod.mastermesh = this.mesh;
+        }
+        else {
+            tempmod.position.z += 4;//+ left
+            tempmod.position.x += 1.7;//+ to me
+            tempmod.position.y += -0.5;
+            tempmod.rotate(BABYLON.Axis.Y, -1+Math.PI-0.2, BABYLON.Space.WORLD);
+            tempmod.mastermesh = this.mesh;
+        }
+        this.mesharray.push(tempmod);
+        this.mesh.addChild(tempmod);
+    }
+    if (team === 2) {
+        this.mesharray = [];
+        let c = otherModel.getChildren();
+        for (let i = 0; i < c.length; i++) {
+            let tempmod = c[i].createInstance(i+""+id);
+            tempmod.scaling = new BABYLON.Vector3(13, -13, 13);
+            tempmod.position.z += 4.3;//+ left
+            tempmod.position.x += 2.1;//+ to me
+            tempmod.position.y += -0.5;
+            tempmod.rotate(BABYLON.Axis.Y, -1+Math.PI-0.2, BABYLON.Space.WORLD);
+            //tempmod.isVisible = false;
+            this.mesharray.push(tempmod);
+            this.mesh.addChild(tempmod);
+            tempmod.mastermesh = this.mesh;
+        }
+    }
 
-    this.healthbar.linkWithMesh(this.mesh);
-    this.healthbar.linkOffsetY = -50;
-
-    this.label = new BABYLON.GUI.TextBlock();
-    this.name = name+"";
-    this.label.text = this.name;
-    advancedTexture.addControl(this.label);
-
-    //this.label.linkWithMesh(this.mesh);
-    this.label.linkOffsetY = -50;
-
-    this.label.linkWithMesh(this.mesh);
-    this.label.linkOffsetY = -50;*/
+    let height = 10;
+    this.bounding = BABYLON.MeshBuilder.CreateCylinder("cone", {diameterTop: 3, diameterBottom: 6, height: height, tessellation: 10}, scene);
+    this.bounding.position.y += height/2;
+    this.bounding.isVisible = false;
+    //this.mesh.addChild(this.bounding);
 
     this.healthBarMaterial = new BABYLON.StandardMaterial("hb1mat", scene);
     this.healthBarMaterial.diffuseColor = BABYLON.Color3.Green();
@@ -41,12 +65,30 @@ function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, scene) {
     let quaternion = new BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 0, 1), -Math.PI / 2);
     this.healthBar.rotationQuaternion = quaternion;
 
+    let outputplane = BABYLON.Mesh.CreatePlane("outputplane", 25, scene, false);
+    outputplane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
+    outputplane.material = new BABYLON.StandardMaterial("outputplane", scene);
+
+    let outputplaneTexture = new BABYLON.DynamicTexture("dynamic texture", 512, scene, true);
+    outputplane.material.diffuseTexture = outputplaneTexture;
+    outputplane.material.specularColor = new BABYLON.Color3(0, 0, 0);
+    outputplane.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+    outputplane.material.backFaceCulling = false;
+
+
+    outputplaneTexture.drawText(name, null, 140, "bold 50px verdana", "white");
+
+    outputplaneTexture.hasAlpha = true;
+
     healthBarContainer.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
     this.healthBar.position = new BABYLON.Vector3(0, 0, -.01);
-    healthBarContainer.position = new BABYLON.Vector3(2, 15, -0.5);
+    healthBarContainer.position = new BABYLON.Vector3(0, 12, 0);
+    outputplane.position = new BABYLON.Vector3(0, -4, -.01);
 
     this.healthBar.parent = healthBarContainer;
+    outputplane.parent = healthBarContainer;
+    healthBarContainer.scaling = new BABYLON.Vector3(1/3, 1/3, 1/3);
     healthBarContainer.parent = this.mesh;
 
     this.healthBar.material = this.healthBarMaterial;
@@ -61,8 +103,6 @@ function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, scene) {
     this.hasFlag = false;
     this.health = 100;
 }
-
-//https://www.babylonjs-playground.com/#3HQSB#4
 
 OtherPlayer.prototype.move = function() {
     //console.log(this.health)

@@ -104,7 +104,7 @@ let MMOC = (function () {
             }));
         }
 
-        broadcast(id = reqd('id'), x = reqd('x'), y = reqd('y'), z = reqd('z'), dx = reqd('dx'), dy = reqd('dy'), dz = reqd('dz')) {
+        broadcast(id = reqd('id'), x = reqd('x'), y = reqd('y'), z = reqd('z'), dx = reqd('dx'), dy = reqd('dy'), dz = reqd('dz'), size = reqd('size')) {
             if (!_connected) return;
             this.ws.send(JSON.stringify({
                 type: SERVER_CODES.BROADCAST,
@@ -118,7 +118,8 @@ let MMOC = (function () {
                     x: x,
                     y: y,
                     z: z
-                }
+                },
+                size: size
             }))
         }
 

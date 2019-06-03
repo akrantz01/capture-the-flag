@@ -1,4 +1,4 @@
-function Player(x, y, z, playerModel) {
+function Player(x, y, z) {
     this.pos = new Vector(x, y, z);
     this.oldPos = this.pos;
     this.vel = new Vector();
@@ -8,13 +8,14 @@ function Player(x, y, z, playerModel) {
     this.meshv.rotate(BABYLON.Axis.Y, Math.PI - 0.4, BABYLON.Space.WORLD);
     var playerMaterial = new BABYLON.StandardMaterial("player", scene);
     playerMaterial.alpha = 0;
-    this.mesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 2, diameterY: 4}, scene);
+    this.mesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 4, diameterY: 10}, scene);
     this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
     this.mesh.physicsImpostor = new BABYLON.PhysicsImpostor(this.mesh, BABYLON.PhysicsImpostor.SphereImpostor, {
         mass: 1,
         restitution: 0,
         friction: 0
     }, scene);
+    this.mesh.checkCollisions = true;
     this.mesh.material = this.meshv.material = playerMaterial;
 
     this.oldAlpha = 0;
@@ -24,17 +25,23 @@ function Player(x, y, z, playerModel) {
     this.timeOfGround = 0;
     this.jump = false;
     this.onGround = false;
-    this.maxSpeed = 80;
+    this.maxSpeed = 60;
     this.health = 100;
     this.fall = true;
     this.slow = false;
     this.slowWait = 0;
-    this.oldVel = this.vel.clone();
-    this.lastVels = [];
+    this.lastVels = [new Vector()];
+    this.offset = new Vector();
+    this.time = 0;
+    this.down = 0;
+    this.rays = [new BABYLON.Ray(this.mesh.position, new BABYLON.Vector3(0, -1, 0), 400)];
+    for (let i = 0; i < 3; i++) {
+        this.rays.push(new BABYLON.Ray(this.mesh.position, new BABYLON.Vector3(0, -1, 0), 400));
+    }
 }
 
 Player.prototype.enemyHit = function () {
-    if (this.maxSpeed > 20) {
+    if (this.maxSpeed > 10) {
         this.maxSpeed -= 10;
     }
 };
@@ -86,19 +93,53 @@ Player.prototype.input = function (keys) {
 Player.prototype.update = function (ground) {
     this.pos = fromBabylon(this.mesh.position);
     //prevent player vertical rotation
-    this.mesh.physicsImpostor.setAngularVelocity(new BABYLON.Quaternion(0, 0, 0, 0));
+    /*this.mesh.physicsImpostor.setAngularVelocity(new BABYLON.Quaternion(0, 0, 0, 0));
     this.mesh.physicsImpostor.executeNativeFunction(function (world, body) {
         body.fixedRotation = true;
         body.updateMassProperties();
-    });
+    });*/
 
+    //update player height
+    let tempPos = new BABYLON.Vector3(this.mesh.position.x, this.mesh.position.y, this.mesh.position.z);
+    tempPos.y = 200;
+    let hitInfo = [];
+    for (let i = 0; i < 4; i++) {
+        tempPos.x += Math.cos(i * Math.PI / 2);
+        tempPos.z += Math.sin(i * Math.PI / 2);
+        this.rays[i] = (new BABYLON.Ray(tempPos, new BABYLON.Vector3(0, -1, 0), 400));
+        hitInfo.push(this.rays[i].intersectsMeshes([ground]))
+    }
+    let norm = null;
+    let maxHeight = -Infinity;
+    for (let i = 0; i < hitInfo.length; i++) {
+        if (hitInfo[i].length) {
+            if (200 - hitInfo[i][0].distance > maxHeight) {
+                maxHeight = 200 - hitInfo[i][0].distance;
+                norm = hitInfo[i][0].getNormal(false, false);
+            }
+        }
+    }
+    if (maxHeight > -Infinity) {
+        //let mapHeight = ground.getHeightAtCoordinates(this.pos.x, this.pos.z) + 5;
+        this.onGround = this.mesh.position.y < maxHeight + 5.5;
+        if (this.onGround) {
+            this.mesh.position.y = maxHeight + 5.5;
+        }
+    }
+
+    this.time += 0.16;
+    if (this.time > Math.PI * 2) this.time -= Math.PI * 2;
+
+    let cang = camera.alpha + Math.PI / 2;
+
+    this.offset = new Vector(Math.cos(this.time) * Math.cos(cang), Math.sin(2 * this.time), Math.cos(this.time) * Math.sin(cang));
+    this.offset.mult(this.timeHeld / 16 * 0.6 * (1 - Math.abs(this.down.y)));
     //update camera position and rotation to follow player
     let tempR = camera.radius;
     let tempalpha = camera.alpha;
     let tempbeta = camera.beta;
-    camera.setTarget(this.meshv.position);
+    camera.setTarget(this.meshv.position.add(this.offset));
     camera.update();
-    camera.setPosition(fromBabylon(camera.position).add(this.oldPos.clone().sub(this.pos)).toBabylon());
     camera.radius = tempR;
     camera.alpha = tempalpha;
     camera.beta = tempbeta;
@@ -109,13 +150,6 @@ Player.prototype.update = function (ground) {
     this.meshv.rotate(BABYLON.Axis.Y, deltar, BABYLON.Space.WORLD);
 
     this.oldAlpha = camera.alpha;
-
-    //update player height
-    let mapHeight = ground.getHeightAtCoordinates(this.pos.x, this.pos.z) + 5;
-    this.onGround = this.mesh.position.y < mapHeight;
-    if (this.onGround) {
-        this.mesh.position.y = mapHeight;
-    }
 
     //player controls
     this.speedInc = new Vector(Math.pow(this.timeHeld, 0.25) * 40, 0, 0);
@@ -133,33 +167,34 @@ Player.prototype.update = function (ground) {
 
     if (this.onGround) {
         this.timeOfGround = 0;
-        let normal = fromBabylon(ground.getNormalAtCoordinates(this.pos.x, this.pos.z));
+        let normal = null;
+        try {
+            normal = fromBabylon(norm);
+        } catch (e) {
+            normal = new Vector(0,1,0);
+        }
+
         let incline = normal.y;
-        let down = normal.add(new Vector(0, -1, 0));
+        this.down = normal.add(new Vector(0, -1, 0));
         if (incline < 0.65) {
-            this.vel.add(new Vector(down.x * 20, down.y * 20, down.z * 20));
+            this.vel.add(new Vector(this.down.x * 20, this.down.y * 20, this.down.z * 20));
             tempy = this.vel.y;
             this.vel.y = 0;
             normal.y = 0;
-            if (normal.x !== 0 || normal.z !== 0) {
-                angbet = Vector.angleBetween(normal.mult(-1), this.vel);
-                let multi = 0;
-                console.log(angbet);
+            if ((normal.x !== 0 || normal.z !== 0)) {
+                try {
+                    angbet = Vector.angleBetween(normal.mult(-1), this.vel);
+                } catch (e) {
+                    angbet = 0;
+                }
+                if (angbet === null || isNaN(angbet)) {
+                    angbet = 0;
+                }
                 avgvel = new Vector();
                 for (let i = 0; i < this.lastVels.length; i++) {
                     avgvel.add(this.lastVels[i]);
                 }
                 if (angbet < Math.PI / 2 || true) {
-
-                    /*if (this.slow < 1) {
-                        this.slow += 0.05;
-                        this.vel.mult(0.8);
-                    }*/
-                    multi = 0.04;
-                    //angbet = Math.abs(Math.atan(normal.z/normal.x));
-                    //console.log(angbet)
-                    //this.vel.x *= Math.abs(Math.sin(angbet));
-                    //this.vel.z *= Math.abs(Math.sin(angbet));
                     let signs = new Vector();
                     signs.x = Math.sign(this.vel.x);
                     signs.z = Math.sign(this.vel.z);
@@ -172,24 +207,11 @@ Player.prototype.update = function (ground) {
                     if (!this.slow) {
                         this.slow = true;
                         this.timeHeld = 16;
-                        //this.mesh.position = (this.oldPos).toBabylon();
-                        //this.vel.sub(this.oldVel.mult(0.5));
                     }
                     avgvel.add(this.vel);
-                    avgvel.mult(1/(this.lastVels.length+1));
+                    avgvel.mult(1 / (this.lastVels.length + 1));
                     this.vel = avgvel;
-                } else {
-                    multi -= 0.05;
-                    /*if (this.slow > 0) {
-                        this.vel.mult (1-this.slow/2);
-                        this.slow -= 0.1;
-                    }
-                    if (this.slow < 0) {
-                        this.slow = 0;
-                    }*/
                 }
-                console.log(this.slow)
-                //this.vel.mult(multi);
             }
             this.vel.y = tempy;
             this.jump = false;
@@ -204,13 +226,6 @@ Player.prototype.update = function (ground) {
                 this.slow = false;
                 this.slowWait = 0;
             }
-            /*if (this.slow > 0) {
-                this.vel.mult (1-this.slow/2);
-                this.slow -= 0.1;
-            }
-            if (this.slow < 0) {
-                this.slow = 0;
-            }*/
         } else {
             if (this.slow) {
                 //this.slow = false;
@@ -220,13 +235,6 @@ Player.prototype.update = function (ground) {
                 this.slow = false;
                 this.slowWait = 0;
             }
-            /*if (this.slow > 0) {
-                this.vel.mult (1-this.slow/2);
-                this.slow -= 0.1;
-            }
-            if (this.slow < 0) {
-                this.slow = 0;
-            }*/
         }
     }
     if (this.jump && this.onGround) {
@@ -240,13 +248,21 @@ Player.prototype.update = function (ground) {
     } else {
         this.jump = false;
     }
+
+    //correct for weird undiscovered edge cases
+    if (isNaN(this.vel.x) || isNaN(this.vel.y) || isNaN(this.vel.z)) {
+        this.vel = this.lastVels[this.lastVels.length - 1];
+    }
+
+    if (isNaN(this.pos.x) || isNaN(this.pos.y) || isNaN(this.pos.z)) {
+        this.pos = this.oldPos;
+    }
+
     this.mesh.physicsImpostor.applyImpulse(new BABYLON.Vector3(0, 100, 0), this.mesh.getAbsolutePosition());
     this.mesh.physicsImpostor.setLinearVelocity(this.vel.toBabylon());
 
     this.meshv.position = new BABYLON.Vector3(this.mesh.position.x - 0.0, this.mesh.position.y + 2, this.mesh.position.z - 0.0);
-
     this.oldPos = this.pos.clone();
-    this.oldVel = this.vel.clone();
     this.lastVels.push(this.vel.clone());
     if (this.lastVels.length > 3) {
         this.lastVels.shift();

@@ -1,57 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Capture the Flag</title>
-        <style>
-            html, body {
-                overflow: hidden;
-                width: 100%;
-                height: 100%;
-                margin: 0;
-                padding: 0;
-                color: rgb(0, 0, 0);
-            }
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css?family=Concert+One" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <title>Capture the Flag</title>
+    <style>
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            color: rgb(0, 0, 0);
+        }
 
-            #renderCanvas {
-                width: 100%;
-                height: 100%;
-                touch-action: none;
-            }
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
 
-            #crosshair {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                margin-top: -10px;
-                margin-left: -10px;
-                width: 20px;
+        #UI {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            top: 0;
+            position: absolute;
+            display: -webkit-flex;
+            display: flex;
+            flex-direction: column;
+        }
 
-                filter: invert(100%) saturate(70%);
-                mix-blend-mode: difference;
-            }
+        #crosshair {
+            position: relative;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            width: 20px;
 
-            #points {
-                position: absolute;
-                left: 50%;
-                top: 10px;
-            }
-        </style>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" integrity="sha256-R91pD48xW+oHbpJYGn5xR0Q7tMhH4xOrWn1QqMRINtA=" crossorigin="anonymous" />
-        <link rel="stylesheet" type="text/css" href="base.css"/>
+            filter: invert(100%) saturate(70%);
+            mix-blend-mode: difference;
+        }
+
+        #points {
+            position: absolute;
+            bottom: 110px;
+
+            font-size: 45px;
+            font-family: 'Concert One', cursive;
+        }
+
+        #team1 {
+            position: absolute;
+            right: calc(100% - 55px);
+            color: /*#dbda28*/ #E74C3C;
+            text-align: right;
+        }
+
+        #team2 {
+            position: absolute;
+            left: calc(75px);
+            color: /*#2c80ea*/ #3498db;
+            text-align: left;
+        }
+
+        #controls {
+            margin: 10px;
+            position: absolute;
+            color: black;
+            font-family: Arial, serif;
+            font-weight: lighter;
+            width: 100%;
+            top: 10px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" integrity="sha256-R91pD48xW+oHbpJYGn5xR0Q7tMhH4xOrWn1QqMRINtA=" crossorigin="anonymous" />
+    <link rel="stylesheet" type="text/css" href="base.css"/>
     </head>
     <body style="background: linear-gradient(45deg, rgba(66, 183, 245, 0.8) 0%, rgba(66, 245, 189, 0.4) 100%)">
-        <canvas style="display: none;" id="renderCanvas"></canvas>
-        <img style="display: none" src="crosshair.png" id="crosshair">
-        <p style="display: none" id="points"><span id="team1"></span> : <span id="team2"></span></p>
+        <canvas id="renderCanvas"></canvas>
+        <div id="UI">
+            <img src="crosshair.png" id="crosshair">
+            <div id="points">
+                <span id="team1">0</span>
+                <span id="team2">0</span>
+            </div>
+            <div id="player-container">
+                <div id="container2">
+                    <div id="health">
+                        <i class="fa fa-heart"></i>
+                        <div id="health-text">100</div>
+                        <div id="health-bar">
+                            <div class="level"></div>
+                        </div>
+                    </div>
+
+                    <div id="armor">
+                <span class="fa-stack fa-lg">
+                  <i class="fa fa-bolt fa-stack-2x"></i>
+                  <i class="fa fa-plus fa-stack-1x"></i>
+                </span>
+                        <div id="armor-text">100</div>
+                        <div id="armor-bar">
+                            <div class="level"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <script src="mmoc.js"></script>
-
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js" integrity="sha256-yNbKY1y6h2rbVcQtf0b8lq4a+xpktyFc3pSYoGAY1qQ=" crossorigin="anonymous"></script>
         <script src="https://preview.babylonjs.com/cannon.js"></script>
         <script src="https://preview.babylonjs.com/babylon.js"></script>
         <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
         <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
         <script src="login.js"></script>
         <script src="decal.js"></script>
