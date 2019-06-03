@@ -1,13 +1,15 @@
-function Player(x, y, z) {
+function Player(x, y, z) {//abstract player
     this.pos = new Vector(x, y, z);
     this.oldPos = this.pos;
     this.vel = new Vector();
     this.move = new Vector();
+    //mesh to make easy calculations
     this.meshv = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 2, diameterY: 4}, scene);/*playerModel*/
 
     this.meshv.rotate(BABYLON.Axis.Y, Math.PI - 0.4, BABYLON.Space.WORLD);
     var playerMaterial = new BABYLON.StandardMaterial("player", scene);
     playerMaterial.alpha = 0;
+    //mesh to calculate physics with
     this.mesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 4, diameterY: 10}, scene);
     this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
     this.mesh.physicsImpostor = new BABYLON.PhysicsImpostor(this.mesh, BABYLON.PhysicsImpostor.SphereImpostor, {
@@ -20,6 +22,7 @@ function Player(x, y, z) {
 
     this.oldAlpha = 0;
 
+    //states/properties
     this.speedInc = new Vector(40, 0, 40);
     this.timeHeld = 0;
     this.timeOfGround = 0;
@@ -34,6 +37,7 @@ function Player(x, y, z) {
     this.offset = new Vector();
     this.time = 0;
     this.down = 0;
+    //to find ground height
     this.rays = [new BABYLON.Ray(this.mesh.position, new BABYLON.Vector3(0, -1, 0), 400)];
     for (let i = 0; i < 3; i++) {
         this.rays.push(new BABYLON.Ray(this.mesh.position, new BABYLON.Vector3(0, -1, 0), 400));
@@ -52,7 +56,7 @@ Player.prototype.friendHit = function () {
     }
 };
 
-Player.prototype.input = function (keys) {
+Player.prototype.input = function (keys) {//move with key presses
     if (keys[LEFT] || keys[RIGHT] || keys[UP] || keys[DOWN]) {
         this.timeHeld += 0.5;
         if (this.timeHeld > 16) {
@@ -100,6 +104,7 @@ Player.prototype.update = function (ground) {
     });*/
 
     //update player height
+    //find ground height from average (prevents errors from edges)
     let tempPos = new BABYLON.Vector3(this.mesh.position.x, this.mesh.position.y, this.mesh.position.z);
     tempPos.y = 200;
     let hitInfo = [];
@@ -119,6 +124,8 @@ Player.prototype.update = function (ground) {
             }
         }
     }
+
+    //change y position to above map
     if (maxHeight > -Infinity) {
         //let mapHeight = ground.getHeightAtCoordinates(this.pos.x, this.pos.z) + 5;
         this.onGround = this.mesh.position.y < maxHeight + 5.5;
@@ -127,11 +134,14 @@ Player.prototype.update = function (ground) {
         }
     }
 
+    //update time variable for player wobble
     this.time += 0.16;
     if (this.time > Math.PI * 2) this.time -= Math.PI * 2;
 
+    //currrent camera angle
     let cang = camera.alpha + Math.PI / 2;
 
+    //player wobble calc.
     this.offset = new Vector(Math.cos(this.time) * Math.cos(cang), Math.sin(2 * this.time), Math.cos(this.time) * Math.sin(cang));
     this.offset.mult(this.timeHeld / 16 * 0.6 * (1 - Math.abs(this.down.y)));
     //update camera position and rotation to follow player
@@ -151,7 +161,7 @@ Player.prototype.update = function (ground) {
 
     this.oldAlpha = camera.alpha;
 
-    //player controls
+    //player speed/directing controls
     this.speedInc = new Vector(Math.pow(this.timeHeld, 0.25) * 40, 0, 0);
     this.speedInc.z = this.speedInc.x;
     let forwards = new Vector(Math.sin(-tempalpha) * this.speedInc.x, 0, Math.cos(-tempalpha) * this.speedInc.x);
@@ -165,6 +175,7 @@ Player.prototype.update = function (ground) {
 
     let avgvel;
 
+    //change speed based on ground incline level and direction relative to ground normal
     if (this.onGround) {
         this.timeOfGround = 0;
         let normal = null;
@@ -237,11 +248,14 @@ Player.prototype.update = function (ground) {
             }
         }
     }
+
+    //if jumping
     if (this.jump && this.onGround) {
         this.vel.y = 70;
         this.onGround = false;
     }
 
+    //if not on ground: fall
     if (!this.onGround && this.fall) {
         this.timeOfGround++;
         this.vel.y -= Math.atan(this.timeOfGround / 4) * 5;
@@ -258,6 +272,8 @@ Player.prototype.update = function (ground) {
         this.pos = this.oldPos;
     }
 
+
+    //update physics and positions
     this.mesh.physicsImpostor.applyImpulse(new BABYLON.Vector3(0, 100, 0), this.mesh.getAbsolutePosition());
     this.mesh.physicsImpostor.setLinearVelocity(this.vel.toBabylon());
 

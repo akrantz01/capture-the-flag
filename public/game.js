@@ -8,6 +8,7 @@ console.log = () => {};
 //list of pressed keys
 var keys = [];
 
+//positions of scene meshes
 /*currently on fence0, 0-20
 [", {x: 0, y: 0, z: 0}, {x: -76, y: 78, z: 77}, {x: 311, y: 0, z: 170}, {x: -103, y: 0, z: 111}, {x: 99, y: 0, z: 28.081017125192844}, {x: 34, y: 0, z: 11}, {x: 231, y: 90, z: -145}, {x: -156, y: 0, z: -224}, {x: -162, y: -2, z: -224}, {x: -192, y: 0, z: -224}, {x: -426, y: 83, z: 197.81645722438955}, {x: 216, y: -3, z: 228.62414309043842}, {x: 48.614135955672765, y: 69, z: 302.69270927916335}, {x: 15, y: 0, z: 96.366923201049}, {x: 126.85939427492343, y: 0, z: 12.264696854805358}, {x: 75.26286696952977, y: 40, z: 298.29452756284235}, {x: -257, y: 0, z: -263}, {x: 386, y: 0, z: 67.96195374967739}, {x: 58, y: 0, z: -115}, {x: 49.18251664818074, y: 0, z: 29.55082021686961}, {x: 420, y: 89, z: 324.6530476304758}, {x: 87, y: 44, z: 38}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 5.24099311144921, y: 0, z: 144.8703287145665}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}"]
 
@@ -40,16 +41,19 @@ var proj = [];
 var player;
 var otherPlayers = {};
 
+//list of paint platters
 var decalList = [];
 
+//spawn points
 var spawns = [{x: 243.85, y: 132, z: -218.78}, {x: -343.63, y: 132, z: 293.73}];
 
 var healthbar;
 
 let mousedown = false;
 
+//list of paint platters on ground
 let groundDecalList = [];
-let xdist = 0;
+let xdist = 0;//for sniper movement
 var ground;
 var multiplayer, canvas, engine;
 function runGame() {
@@ -92,12 +96,15 @@ function runGame() {
         //create player/data
         player = new Player(0, 0, 0);
 
+        //init player vairables
         let spawn = true;
         let team = 0;
         let lastPlayerPos = new BABYLON.Vector3();
 
+        //create flags
         var flags = [new Flag(spawns[0].x, spawns[0].y, spawns[0].z, 1), new Flag(spawns[1].x, spawns[1].y, spawns[1].z, 2)];
 
+        //create weapon types
         let gunOffset = new Vector(0, 1, 0);
 
         function rotateGunOffset(alpha) {
@@ -141,6 +148,7 @@ function runGame() {
         //create projectiles on click
         document.addEventListener("mouseup", function (e) {
             mousedown = false;
+            //right click: punch
             if (e.which === 3) {
                 let close = [];
 
@@ -174,7 +182,7 @@ function runGame() {
                 if (closest !== null) {
                     multiplayer.changeHealth(-10, closest[1]);
                 }
-            } else {
+            } else {//left click: projectile
                 switch (currentType) {
                     case "normal":
                         weaponTypes[currentType](camera.alpha, camera.beta);
@@ -231,11 +239,13 @@ function runGame() {
         var team1 = document.getElementById("team1");
         var team2 = document.getElementById("team2");
 
+        //healing variables
         let delay = 0;
         let wait = null;
         let healtime = null;
         let heal = false;
 
+        //create fog and snow
         scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
         scene.fogDensity = 0.01;
 
@@ -286,7 +296,9 @@ function runGame() {
         // Start the particle system
         particleSystem.start();
 
+        //run every frame
         scene.executeWhenReady(scene.registerBeforeRender(function () {
+            //more projectile controls
             if (mousedown) {
                 switch (currentType) {
                     case "machineGun":
@@ -309,14 +321,17 @@ function runGame() {
                 delay++;
             }
             if (delay > 100) {
+                //create scoreboard
                 team1.innerText = multiplayer.getScores().Team1;
                 team2.innerText = multiplayer.getScores().Team2;
 
-
+                //update player
                 player.input(keys);
                 player.update(ground);
                 // console.log(player.mesh.position.x+", "+ player.mesh.position.y+", "+ player.mesh.position.z)
 
+
+                //update player health
                 let players = multiplayer.getPlayers();
                 let th = player.health;
 
@@ -348,6 +363,7 @@ function runGame() {
                     }, 1000);
                 }
 
+                //update healthbar/speed bar
                 let color;
                 if (player.health < 15) color = "#e74c3c"; else if (player.health < 50) color = "#f39c12"; else color = "#2ecc71";
                 healthbar[0].style.left = "-" + (100 - player.health) + "%";
@@ -357,16 +373,18 @@ function runGame() {
                 document.querySelectorAll('#armor-bar .level')[0].style.left = "-" + (160 - player.maxSpeed) / 1.6 + "%";
                 document.querySelectorAll("#armor-text")[0].innerHTML = player.maxSpeed;
 
+                //die if below map
                 if (player.mesh.position.y < -100) {
                     spawn = true;
                 }
 
+                //start respawn if dead
                 if (player.health <= 0) {
                     spawn = true;
                     multiplayer.changeHealth(-player.health + 100, multiplayer.getID());
                 }
 
-                //broadcast decals/projectiles info
+                //broadcast decals/projectiles info to server
                 for (var i = 0; i < proj.length; i++) {
                     let id = proj[i].update(ground, scene, otherPlayers, players, decalList);
                     if (id === -2) {
@@ -390,7 +408,7 @@ function runGame() {
                     }
                 }
 
-                //get broadcasted decals/projectiles
+                //get broadcasted decals/projectiles from server
                 let broadDecals = multiplayer.getBroadcasts();
                 if (Object.keys(broadDecals).length > 0) {
                     for (let dec2 in broadDecals) {
@@ -492,6 +510,7 @@ function runGame() {
                     for (let player_ in players) {
                         let tid = Object.keys(players)[index];
                         if (tid !== multiplayer.getID()) {
+                            //update flag properties
                             if (flagsEvents.Action === 1) {
                                 if (flagsEvents.Flag < 0) {
                                     flags[-flagsEvents.Flag - 1] = new Flag(spawns[-flagsEvents.Flag - 1].x, spawns[-flagsEvents.Flag - 1].y, spawns[-flagsEvents.Flag - 1].z, -flagsEvents.Flag)
@@ -511,6 +530,7 @@ function runGame() {
                                     flags[flagsEvents.Flag].count = 0;
                                 }
                             }
+                            //update other players positions
                             otherPlayers[tid].move();
                             otherPlayers[tid].health = players[player_].Health;
                             otherPlayers[tid].bounding.position = new BABYLON.Vector3(players[player_]["X"] + 1, players[player_]["Y"] - 5, players[player_]["Z"] - 0.5);
@@ -528,7 +548,7 @@ function runGame() {
                             //console.log(players[player_]["Orientation"])
                         } else {
                             otherPlayers[Object.keys(players)[index]].mesh.position = new BABYLON.Vector3(0, -100, -100);
-                            if (spawn) {
+                            if (spawn) {//respawn
                                 /*if (flags[0].id === multiplayer.getID()) {
                                     multiplayer.lostFlag(0);
                                     //console.log('test3')
@@ -569,6 +589,7 @@ function runGame() {
                     }
                     //console.log(player.mesh.position);
 
+                    //update flags
                     if (team > 0) {
                         for (let i = 0; i < flags.length; i++) {
                             flags[i].update();
@@ -735,12 +756,13 @@ function runGame() {
     };
     //let curmod = null;
 
-    multiplayer = new MMOC();
+    multiplayer = new MMOC()//to get player data
 
-    canvas = document.getElementById("renderCanvas");
+    canvas = document.getElementById("renderCanvas");//create canvas
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
+    //create render/engine objects
     engine = new BABYLON.Engine(canvas, true, {preserveDrawingBuffer: true, stencil: true});
     scene = new BABYLON.Scene(engine);
 
@@ -758,7 +780,7 @@ function runGame() {
     assetsManager.onProgress = function (remainingCount, totalCount, lastFinishedTask) {
         engine.loadingUIText = 'We are loading the scene. ' + remainingCount + ' out of ' + totalCount + ' items still need to be loaded.';
     };
-    assetsManager.onFinish = function (tasks) {
+    assetsManager.onFinish = function (tasks) {//start scene
         createScene();
         healthbar = document.querySelectorAll('#health-bar .level');
 
@@ -771,12 +793,13 @@ function runGame() {
         multiplayer.init();
     };
 
+    //start physics engine
     var gravityVector = new BABYLON.Vector3(0, -100, 0);
     var physicsPlugin = new BABYLON.CannonJSPlugin();
     scene.enablePhysics(gravityVector, physicsPlugin);
     scene.collisionsEnabled = true;
 
-
+    //create and divide up meshes from christmas.glb
     let playerTask = assetsManager.addMeshTask("player task", "", "./GLTF/", "christmas.glb");
     let models = {};
     let cabin1 = new BABYLON.Mesh("cabin1", scene);
@@ -979,6 +1002,8 @@ function runGame() {
         cabin1.position.x += 20;
         cabin2.position.y += 20;
 
+        //scale meshes up
+
         sled.scaling = new BABYLON.Vector3(16, 16, 16);
         campfire.scaling = new BABYLON.Vector3(16, 16, 16);
         bench1.scaling = new BABYLON.Vector3(16, 16, 16);
@@ -1007,6 +1032,7 @@ function runGame() {
         cabin2.scaling = new BABYLON.Vector3(16, 16, 16);
         train.scaling = new BABYLON.Vector3(16, 16, 16);
 
+        //alter scalings slightly to fit meshes better
         let scaling = [{x: 1, y: 1, z: 1}, {x: 1, y: 1, z: 1}, {x: 0.44, y: 1, z: 0.55}, {
             x: 0.73,
             y: 2.98,
@@ -1061,6 +1087,7 @@ function runGame() {
             z: 1
         }, {x: 1, y: 0.57, z: 1}, {x: 1, y: 1, z: 1}];
 
+        //set timeout to let positions finish loading
         setTimeout(function () {
             for (let i = 0; i < boxes.length; i++) {
                 boxes[i].position = masterMeshList[i].getBoundingInfo().boundingBox.centerWorld;
@@ -1087,6 +1114,8 @@ function runGame() {
                 outputplane.position.z = boxes[i].position.z;*/
             }
         }, 1000);
+
+        //create bounding boxes (for physics approx.) and set positions
         for (let i = 0; i < masterMeshList.length; i++) {
             masterMeshList[i].position.x = poss[i].x;
             masterMeshList[i].position.y = poss[i].y;
@@ -1128,6 +1157,7 @@ function runGame() {
             boxes.push(box);
         }
     };
+    //create bounding box of multiple meshes
     var totalBoundingInfo = function (meshes) {
         var boundingInfo = meshes[0].getBoundingInfo();
         var min = boundingInfo.minimum.add(meshes[0].position);
@@ -1139,13 +1169,14 @@ function runGame() {
         }
         return new BABYLON.BoundingInfo(min, max);
     };
-    assetsManager.load();
+    assetsManager.load();//load assets
 
     // Resize
     window.addEventListener("resize", function () {
         engine.resize();
     });
 
+    //update key presses
     document.addEventListener("keydown", function (e) {
         keys[e.keyCode] = true;
     });
@@ -1153,6 +1184,7 @@ function runGame() {
         keys[e.keyCode] = false;
     });
 
+    //pointer lock handling
     canvas.addEventListener("click", function (e) {
         canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
         if (canvas.requestPointerLock) {
@@ -1182,6 +1214,7 @@ function runGame() {
     document.addEventListener("mozpointerlockchange", pointerlockchange, false);
     document.addEventListener("webkitpointerlockchange", pointerlockchange, false);
 
+    //function to check if 2 arrays contents are equal
     function arraysEqual(a, b) {
         if (a === b) return true;
         if (a == null || b == null) return false;

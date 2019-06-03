@@ -1,6 +1,6 @@
-function Decal(pos, norm, mesh, team, scene) {
+function Decal(pos, norm, mesh, team, scene) {//abstract decal creation
     var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
-    if (team === 1)
+    if (team === 1)//change color based on team
         decalMaterial.diffuseTexture = new BABYLON.Texture("redsplat.png", scene);
     else
         decalMaterial.diffuseTexture = new BABYLON.Texture("bluesplat.png", scene);
@@ -15,6 +15,7 @@ function Decal(pos, norm, mesh, team, scene) {
         size: decalSize
     }, scene);
     this.decal.material = decalMaterial;
+    //change rotation pivot
     this.offset = Vector.sub(fromBabylon(this.mesh.mastermesh.position), fromBabylon(this.decal.position));
     this.offset = this.offset.mult(-1);
     this.decal.position = new BABYLON.Vector3(0, 0, 0);
@@ -25,10 +26,11 @@ function Decal(pos, norm, mesh, team, scene) {
     this.time = new Date().getTime();
 }
 Decal.prototype.update = function() {
+    //move decals with players
     this.pivot.position = (fromBabylon(this.mesh.mastermesh.position)).toBabylon();
     this.pivot.rotate(BABYLON.Axis.Y, this.mesh.mastermesh.deltar, BABYLON.Space.LOCAL);
     //this.decal.position = (fromBabylon(this.mesh.position).sub(this.offset)).toBabylon();*/
-    if (this.mesh._isDisposed ||  new Date().getTime() - this.time > 60000) {
+    if (this.mesh._isDisposed ||  new Date().getTime() - this.time > 30000) {//dispose of decals to save memory
         this.decal.dispose();
         return true;
     }

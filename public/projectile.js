@@ -1,4 +1,4 @@
-function Projectile(pos, vel, team, dup, type) {
+function Projectile(pos, vel, team, dup, type) {//abstract projectile creation
     this.pos = (pos instanceof BABYLON.Vector3) ? fromBabylon(pos) : pos;
     this.vel = (vel instanceof BABYLON.Vector3) ? fromBabylon(vel) : vel;
     this.team = team;
@@ -8,17 +8,18 @@ function Projectile(pos, vel, team, dup, type) {
     this.mesh = BABYLON.MeshBuilder.CreateSphere("proj" + Math.random(), {diameter: type}, scene);
     this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
     var material = new BABYLON.StandardMaterial("material", scene);
-    material.diffuseColor = new BABYLON.Color3(231/255, 76/255, 60/255);
+
+    material.diffuseColor = new BABYLON.Color3(231/255, 76/255, 60/255);//change color based on team
     if (team === 2) material.diffuseColor = new BABYLON.Color3(31/255, 118/255, 234/255);
     this.mesh.material = material;
-    this.ray = new BABYLON.Ray(this.pos.toBabylon(), this.vel.toBabylon(), this.vel.mag());
+    this.ray = new BABYLON.Ray(this.pos.toBabylon(), this.vel.toBabylon(), this.vel.mag());//prevent phasing
 }
 
 Projectile.prototype.update = function (ground, scene, players, oPlayers, decalList) {
     this.pos = fromBabylon(this.mesh.position);
-    this.vel.y -= 0.1;
-    if (this.dup) {
-        if (players) {
+    this.vel.y -= 0.1;//update position
+    if (this.dup) {//if not a duplicate
+        if (players) {//check ray to see if intersecting with player mesh
             let meshes = [];
             for (var i = 0; i < Object.keys(players).length; i++) {
                 players[Object.keys(players)[i]].bounding.tempID = Object.keys(players)[i];
@@ -34,7 +35,7 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
                 //meshes.push(players[Object.keys(players)[i]].bounding);
             }
             var hitInfo = this.ray.intersectsMeshes(meshes);
-            if (hitInfo.length) {
+            if (hitInfo.length) {//if hit
                 hitInfo = hitInfo[0];
                 console.log(hitInfo);
                 //decalList.push(new Decal(hitInfo.pickedPoint, hitInfo.getNormal(true, true), hitInfo.pickedMesh.subtempmesh, this.team, scene));
@@ -43,10 +44,10 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
                 return hitInfo;
             }
         }
-        if (ground) {
+        if (ground) {//check intersection with ground
             this.ray = new BABYLON.Ray(this.pos.toBabylon(), this.vel.toBabylon(), this.vel.mag());
             var hitInfo = this.ray.intersectsMeshes([ground]);
-            if (hitInfo.length) {
+            if (hitInfo.length) {//if hit
                 hitInfo = hitInfo[0];
                 this.pos.x = hitInfo.pickedPoint.x;
                 this.pos.z = hitInfo.pickedPoint.z;
@@ -57,6 +58,8 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
                     mapHeight = ground.getHeightAtCoordinates(this.pos.x, this.pos.z);
                 }
                 this.pos.y = mapHeight + 1;
+
+                //create decal on ground
                 var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
                 if (this.team === 1)
                     decalMaterial.diffuseTexture = new BABYLON.Texture("redsplat.png", scene);
@@ -77,7 +80,7 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
             }
         }
     }
-
+    //finish updating position after check and return based on current state (first pass or created)
     this.mesh.position = (this.pos.add(this.vel)).toBabylon();
     this.ray.origin = this.mesh.position;
     this.ray.direction = this.vel.toBabylon();

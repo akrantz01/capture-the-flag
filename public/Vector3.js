@@ -1,3 +1,4 @@
+//basic vector class to simplify vector math (Babylon's vector class is hard to use)
 function Vector(x, y, z) {
     this.x = x || 0;
     this.y = y || 0;

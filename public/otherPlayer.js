@@ -1,7 +1,8 @@
-function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, otherModel, scene) {
-    this.mesh = new BABYLON.Mesh("playerMesh"+id, scene);;
-    let c = playerModel.getChildren();
+function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, otherModel, scene) {//abstract other players
+    this.mesh = new BABYLON.Mesh("playerMesh"+id, scene);
+    let c = playerModel.getChildren();//create visiable mesh
     this.mesharray = [];
+    //iterate to create instance of children (easier to render) and replace certain parts of snowman 2 with snowman 1 (snowman2 doesn't work completely with projectile collisions)
     for (let i = 0; i < c.length; i++) {
         let tempmod = c[i].createInstance(i+""+id);
         tempmod.scaling = new BABYLON.Vector3(13, -13, 13);
@@ -45,12 +46,16 @@ function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, otherModel, sc
         }
     }
 
+    //create bounding for projectile collisions
     let height = 10;
     this.bounding = BABYLON.MeshBuilder.CreateCylinder("cone", {diameterTop: 3, diameterBottom: 6, height: height, tessellation: 10}, scene);
     this.bounding.position.y += height/2;
     this.bounding.isVisible = false;
     //this.mesh.addChild(this.bounding);
 
+
+
+    //display healthbar and name
     this.healthBarMaterial = new BABYLON.StandardMaterial("hb1mat", scene);
     this.healthBarMaterial.diffuseColor = BABYLON.Color3.Green();
     this.healthBarMaterial.emissiveColor = BABYLON.Color3.Green();
@@ -94,6 +99,7 @@ function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, otherModel, sc
     this.healthBar.material = this.healthBarMaterial;
     healthBarContainer.material = healthBarContainerMaterial;
 
+    //properties and states
     this.mesh.position = new BABYLON.Vector3(x, y, z);
     this.mesh.rotate(BABYLON.Axis.Y, Math.PI-0.4+alpha, BABYLON.Space.WORLD);
     this.alpha = alpha;
@@ -104,7 +110,7 @@ function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, otherModel, sc
     this.health = 100;
 }
 
-OtherPlayer.prototype.move = function() {
+OtherPlayer.prototype.move = function() {//update healthbar color/length based on health
     //console.log(this.health)
     this.healthBar.scaling.y = this.health / 100;
     this.healthBar.position.x =  (1 - (this.health / 100)) * -1;

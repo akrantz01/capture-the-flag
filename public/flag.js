@@ -1,11 +1,11 @@
-function Flag(x, y, z, team) {
+function Flag(x, y, z, team) {//abstract flag creation
     this.mesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 2}, scene);
-    this.mesh.isVisible = false;
+    this.mesh.isVisible = false;//mesh that is easier to calculate with
 
-    var sc = 4;
+    var sc = 4;//mesh that is visiable
     this.sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 5*sc}, scene);
     this.sphere.scaling = new BABYLON.Vector3(1/sc, 1/sc, 1/sc);
-    var fsphere = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 5*sc}, scene);
+    var fsphere = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 5*sc}, scene);//stores initial vertices data
     fsphere.isVisible = false;
     fsphere.scaling = new BABYLON.Vector3(1/sc, 1/sc, 1/sc);
 
@@ -19,6 +19,9 @@ function Flag(x, y, z, team) {
     /*mat.reflectionTexture = new BABYLON.Texture("spheremap.jpg", scene);
     mat.reflectionTexture.level = 0.6;
     mat.reflectionTexture.coordinatesMode = BABYLON.Texture.SPHERICAL_MODE;*/
+
+
+    //create cool material
     var material = new BABYLON.StandardMaterial("kosh5", scene);
     material.diffuseColor = new BABYLON.Color3(0, 0, 0);
     material.reflectionTexture = new BABYLON.Texture("spheremap.jpg", scene);
@@ -44,6 +47,7 @@ function Flag(x, y, z, team) {
     this.mesh.position = this.sphere.position = new BABYLON.Vector3(x, y, z);
     this.pmesh = null;
 
+    //properties
     this.team = team;
     this.hold = false;
     this.count = 0;
@@ -52,14 +56,14 @@ function Flag(x, y, z, team) {
     this.t = 0;
 }
 
-Flag.prototype.taken = function (team, pmesh, id) {
+Flag.prototype.taken = function (team, pmesh, id) {//update properties if picked up
     this.pmesh = pmesh;
     this.moved = true;
     this.hold = true;
     this.id = id;
 };
 
-Flag.prototype.update = function() {
+Flag.prototype.update = function() {//update position and visuals
     for (var i = 0; i < this.sphere.getTotalVertices(); i++) {
         let fx = this.fv[i * 3 + 0]; let fy = this.fv[i * 3 + 1]; let fz = this.fv[i * 3 + 2];
 
