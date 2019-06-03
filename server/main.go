@@ -119,8 +119,8 @@ func main() {
 				}
 				break
 
-			// Close connection after 30 seconds
-			case <- time.After(30 * time.Second):
+			// Close connection after 4 seconds (fixes error w/ Amazon SES)
+			case <- time.After(4 * time.Second):
 				if open {
 					if err := s.Close(); err != nil {
 						log.Fatalf("Unable to close mail server connection: %s", err)
