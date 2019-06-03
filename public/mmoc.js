@@ -29,7 +29,7 @@ let MMOC = (function () {
 
     class MMOC {
         init(id_len = 8) {
-            this.ws = new WebSocket(`wss://${document.domain}/ws`);
+            this.ws = new WebSocket(`ws://${document.domain}:8080/ws`);
 
             this.ws.onopen = function (event) {
                 let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

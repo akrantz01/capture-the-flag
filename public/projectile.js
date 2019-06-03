@@ -36,7 +36,7 @@ Projectile.prototype.update = function (ground, scene, players, oPlayers, decalL
             var hitInfo = this.ray.intersectsMeshes(meshes);
             if (hitInfo.length) {
                 hitInfo = hitInfo[0];
-                console.log(hitInfo)
+                console.log(hitInfo);
                 //decalList.push(new Decal(hitInfo.pickedPoint, hitInfo.getNormal(true, true), hitInfo.pickedMesh.subtempmesh, this.team, scene));
                 decalList.push(new Decal(hitInfo.pickedPoint, hitInfo.getNormal(true, true), players[hitInfo.pickedMesh.tempID].mesharray[0], this.team, scene));
                 this.mesh.dispose();

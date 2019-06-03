@@ -21,7 +21,7 @@ In the `deployment` branch, you can use the tool to automatically provision the 
 * Navigate to your server's IP address
 
 ## Server Configuration
-The server is configured with a file that can be in either JSON or YAML, which ever you prefer. To see an example of the configuration file, see [config.sample.yaml](/config.sample.yaml).
+The server is configured with a file that can be in either JSON or YAML, which ever you prefer. To see an example of the configuration file, see [config.sample.yaml](/config.yaml).
 
 ## Disclaimer
 Please keep in mind that we are both juniors in high school which means that we won't be able to provide much support and game updates will come fairly infrequently.

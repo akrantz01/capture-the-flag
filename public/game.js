@@ -25,16 +25,33 @@ var camera, scene, currentType;
 
 // Key codes
 // The commented numbers are for arrow keys
-var LEFT = 37;//65; // 37;
-var UP = 38;//87; // 38;
-var RIGHT = 39;//68; // 39;
-var DOWN = 40;//83; // 40;
+var LEFT = 65; // 37;
+var UP = 87; // 38;
+var RIGHT = 68; // 39;
+var DOWN = 83; // 40;
 var SPACE = 32;
 var ESC = 27;
 
 //map coords
 //var map = [];
+var proj = [];
 
+//players
+var player;
+var otherPlayers = {};
+
+var decalList = [];
+
+var spawns = [{x: 243.85, y: 132, z: -218.78}, {x: -343.63, y: 132, z: 293.73}];
+
+var healthbar;
+
+let mousedown = false;
+
+let groundDecalList = [];
+let xdist = 0;
+var ground;
+var multiplayer, canvas, engine;
 function runGame() {
     if (scene !== undefined || canvas !== undefined) {
         toastr.error("An instance is already running", "Unable to start a new game instance");
@@ -45,23 +62,6 @@ function runGame() {
     $("#UI").css("display", "block");
 
     //list of projectiles
-    var proj = [];
-
-    //players
-    var player;
-    var otherPlayers = {};
-
-    var decalList = [];
-
-    var spawns = [{x: 243.85, y: 132, z: -218.78}, {x: 243.85, y: 132, z: -218.78}/* {x: -343.63, y: 132, z: 293.73}*/];
-
-    var healthbar;
-
-    let mousedown = false;
-
-    let groundDecalList = [];
-    let xdist = 0;
-    var ground;
     var createScene = function () {
         //lights
         var light = new BABYLON.DirectionalLight("DirLight", new BABYLON.Vector3(-0.1, -1, 0.2), scene);
@@ -134,7 +134,6 @@ function runGame() {
                 proj.push(new Projectile(fromBabylon(player.mesh.position).add(gunOffset).add(vel.mult(-4)), vel.mult(300), team, true, 1));
             },
         };
-        currentType = "normal";
         mousedown = false;
         let velOffset = [0, 0];
         let posOffset = [0, 0];
@@ -736,19 +735,20 @@ function runGame() {
     };
     //let curmod = null;
 
-    var multiplayer = new MMOC();
+    multiplayer = new MMOC();
 
-    var canvas = document.getElementById("renderCanvas");
+    canvas = document.getElementById("renderCanvas");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    var engine = new BABYLON.Engine(canvas, true, {preserveDrawingBuffer: true, stencil: true});
+    engine = new BABYLON.Engine(canvas, true, {preserveDrawingBuffer: true, stencil: true});
     scene = new BABYLON.Scene(engine);
 
     //camera
     camera = new BABYLON.ArcRotateCamera("Camera", 0, 0.8, 200, new BABYLON.Vector3.Zero(), scene);
     camera.attachControl(canvas, false);
     camera.maxZ = 500;
+    camera.keysDown = camera.keysUp = camera.keysLeft = camera.keysRight = [];
 
     //asset loader
     var assetsManager = new BABYLON.AssetsManager(scene);
