@@ -80,8 +80,10 @@ function OtherPlayer(x, y, z, alpha, id, name, team, playerModel, otherModel, sc
     outputplane.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
     outputplane.material.backFaceCulling = false;
 
-
-    outputplaneTexture.drawText(name, null, 140, "bold 50px verdana", "white");
+    if (team === 1)
+        outputplaneTexture.drawText(name, null, 140, "bold 50px verdana", "#e71e2d");
+    else
+        outputplaneTexture.drawText(name, null, 140, "bold 50px verdana", "#3498db");
 
     outputplaneTexture.hasAlpha = true;
 
