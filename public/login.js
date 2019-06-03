@@ -22,11 +22,12 @@ function arrayBuffer2Base16(buffer) {
 }
 
 function hashString(string) {
-    let buffer = string2ArrayBuffer(string);
-    crypto.subtle.digest("SHA-256", buffer);
+    if (!crypto.hasOwnProperty("subtle")) {
+        console.error("Site must be served over HTTPS");
+    }
 
-    return new Promise(function (resolve, reject) {
-        crypto.subtle.digest("SHA-256", buffer).then(ab => resolve(arrayBuffer2Base16(ab)));
+    return new Promise(function (resolve) {
+        crypto.subtle.digest("SHA-256", string2ArrayBuffer(string)).then(ab => resolve(arrayBuffer2Base16(ab)));
     });
 }
 
