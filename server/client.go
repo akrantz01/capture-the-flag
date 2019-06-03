@@ -106,6 +106,7 @@ func (c *Client) readPump() {
 				msg.Coordinates.Y,
 				msg.Coordinates.Z,
 				msg.Orientation,
+				msg.Name,
 			)
 
 			// Assign team if not already assigned one

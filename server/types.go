@@ -18,6 +18,7 @@ type (
 
 	// User value
 	UserValue struct {
+		Name	string
 		X		float32
 		Y	 	float32
 		Z		float32
@@ -37,6 +38,7 @@ type (
 		Flag		int						`yaml:"flag"`
 		Action		int						`yaml:"action"`
 		Size		float32					`yaml:"size"`
+		Name		string					`yaml:"name"`
 	}
 
 	// Store player coordinates (2d)
@@ -71,7 +73,7 @@ type (
 )
 
 // Set the position and orientation of a player by ID
-func (g *GameData) SetUserData(id string, x, y, z, orientation float32) {
+func (g *GameData) SetUserData(id string, x, y, z, orientation float32, name string) {
 	// Acquire lock to prevent race conditions
 	g.Lock()
 	defer g.Unlock()
@@ -83,6 +85,7 @@ func (g *GameData) SetUserData(id string, x, y, z, orientation float32) {
 			Y: y,
 			Z: z,
 			Orientation: orientation,
+			Name: name,
 			Health: 100,
 		}
 	} else {
@@ -91,6 +94,7 @@ func (g *GameData) SetUserData(id string, x, y, z, orientation float32) {
 			Y: y,
 			Z: z,
 			Orientation: orientation,
+			Name: name,
 			Health: g.Users[id].Health,
 		}
 	}
