@@ -15,6 +15,11 @@ var SPACE = 32;
 var ESC = 27;
 
 function runGame() {
+    if (scene !== undefined || canvas !== undefined) {
+        toastr.error("An instance is already running", "Unable to start a new game instance");
+        return;
+    }
+
     $("#renderCanvas").css("display", "block");
     $("#points").css("display", "block");
     $("#crosshair").css("display", "block");
