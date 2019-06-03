@@ -152,6 +152,7 @@
                     $(".form-panel.one")[0].style.display = "none";
                     $(".form-panel.two")[0].style.display = "none";
                     $(".form-panel.three")[0].style.display = "block";
+                    document.title = "Account - Capture the Flag";
 
                     $("#account-name").attr("placeholder", `Current: ${user.name}`);
                     $("#account-username").attr("placeholder", `Current: ${user.username}`);
@@ -201,6 +202,7 @@
                         $(".form-panel.one")[0].style.display = "none";
                         $(".form-panel.two")[0].style.display = "none";
                         $(".form-panel.three")[0].style.display = "block";
+                        document.title = "Account - Capture the Flag";
 
                         $("#account-name").attr("placeholder", `Current: ${data.name}`);
                         $("#account-username").attr("placeholder", `Current: ${data.username}`);
@@ -258,6 +260,7 @@
                 $(".form-panel.one")[0].style.display = "none";
                 $(".form-panel.two")[0].style.display = "none";
                 $(".form-panel.four")[0].style.display = "block";
+                document.title = "Forgot Password - Capture the Flag";
             });
 
             $("#fp-back").on("click", function (e) {
@@ -267,6 +270,7 @@
                 $(".form-panel.one")[0].style.display = "block";
                 $(".form-panel.two")[0].style.display = "block";
                 $(".form-panel.four")[0].style.display = "none";
+                document.title = "Account - Capture the Flag";
             });
 
             $("#submit-fp").on("click", function (e) {
@@ -324,6 +328,7 @@
                     $(".form-panel.one")[0].style.display = "block";
                     $(".form-panel.two")[0].style.display = "block";
                     $(".form-panel.three")[0].style.display = "none";
+                    document.title = "Account - Capture the Flag";
 
                     toastr.success("", "Successfully logged out");
                 }).catch(err => toastr.error(capitalizeFirstLetter(err), "Unable to logout"))
