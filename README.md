@@ -5,10 +5,6 @@
 A continuous multiplayer capture the flag game built with [BabylonJS](https://github.com/BabylonJS/Babylon.js) and [Golang](https://golang.org). BabylonJS is the rendering engine and physics stimulator we are using. The multiplayer server is written in Golang and loosely based off of another project called [MMOS](https://github.com/akrantz01/mmos).
 
 ## Running It
-### Deployment Script
-In the `deployment` branch, you can use the tool to automatically provision the server and configure it completely. 
-
-### On Self-Hosted
 * Download a server binary from the [releases](https://github.com/akrantz01/capture-the-flag/releases) tab
   * The naming scheme is: `capture-the-flag.[OS].[arch]`
   * For Windows 64-bit, this would be: `capture-the-flag.win.amd64.exe`
