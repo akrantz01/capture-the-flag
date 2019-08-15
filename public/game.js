@@ -249,7 +249,7 @@ function runGame() {
         scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
         scene.fogDensity = 0.01;
 
-        let particleSystem = new BABYLON.GPUParticleSystem("particles", {capacity: 40000}, scene);
+        let particleSystem = new BABYLON.GPUParticleSystem("particles", {capacity: 400}, scene);
 
         particleSystem.particleTexture = new BABYLON.Texture("snowflake.png", scene);
 
